@@ -1,0 +1,25 @@
+import { NavLink } from "react-router-dom";
+
+export default function Sidebar() {
+  return (
+    <aside className="sidebar">
+
+      <NavLink to="/">
+        Home
+      </NavLink>
+
+      <NavLink to="/file-reader">
+        File Reader
+      </NavLink>
+
+      <NavLink to="/about">
+        About
+      </NavLink>
+
+      <NavLink to="/settings">
+        Settings
+      </NavLink>
+
+    </aside>
+  );
+}
