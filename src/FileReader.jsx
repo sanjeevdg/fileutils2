@@ -16,7 +16,7 @@ export default function FileReader() {
             setLoading(true);
 //http://localhost:8000/api/
             const res = await axios.post(
-                "https://mypybackend.onrender.com/read-file",
+                "https://mypybackend.onrender.com/api/read-file",
                 formData,
                 {
                     headers: {
