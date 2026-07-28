@@ -26,7 +26,7 @@ console.log("FormRenderer rendered");
 
             console.log("About to fetch...");
 
-            const response = await fetch("http://127.0.0.1:8000/api/config");
+            const response = await fetch("https://mypybackend-1.onrender.com/api/config");
 
             console.log("Response:", response.status);
 
