@@ -12,6 +12,10 @@ export default function Sidebar() {
         File Reader
       </NavLink>
 
+<NavLink to="/formrenderer">
+        Form Renderer
+      </NavLink>
+
       <NavLink to="/about">
         About
       </NavLink>
