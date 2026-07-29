@@ -17,6 +17,29 @@ export default function FormRenderer() {
 console.log("FormRenderer rendered");
 
     const [config, setConfig] = useState(null);
+    const [formData, setFormData] = useState({});
+    const [rows, setRows] = useState([]);
+
+useEffect(() => {
+
+
+
+async function loadRows() {
+
+    const response = await fetch(
+        "http://127.0.0.1:8000/api/users"
+    );
+
+    const data = await response.json();
+
+    setRows(data);
+}
+
+loadRows();
+
+},[]);
+
+
 
     useEffect(() => {
 
@@ -25,8 +48,8 @@ console.log("FormRenderer rendered");
         async function loadYaml() {
 
             console.log("About to fetch...");
-
-            const response = await fetch("https://mypybackend-1.onrender.com/api/config");
+//https://mypybackend-1.onrender.com/api/config
+            const response = await fetch("http://127.0.0.1:8000/api/config");
 
             console.log("Response:", response.status);
 
@@ -41,6 +64,55 @@ console.log("FormRenderer rendered");
 
     }, []);
 
+
+useEffect(() => {
+
+async  function fetchUsers() {
+
+await fetch(
+
+    "http://127.0.0.1:8000/api/users",
+
+    {
+
+        method:"POST",
+
+        headers:{
+
+            "Content-Type":"application/json"
+
+        },
+
+        body:JSON.stringify({
+
+            first_name:"John",
+
+            last_name:"Smith",
+
+            email:"john@gmail.com",
+
+            active:true
+
+        })
+
+    }
+
+)
+
+
+
+
+}
+
+fetchUsers();
+
+
+
+
+
+},[]);
+
+
   if (!config) {
     return <div>Loading...</div>;
 }
@@ -52,22 +124,54 @@ const columns = config.table.columns.map(name => ({
     flex: 1
 }));
 
-const rows = [
-    {
-        id: 1,
-        first_name: "John",
-        last_name: "Smith",
-        age: 35,
-        active: true
-    },
-    {
-        id: 2,
-        first_name: "Jane",
-        last_name: "Brown",
-        age: 29,
-        active: false
+
+
+
+
+
+async function saveUser() {
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/api/users",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(formData)
+            }
+        );
+
+        const result = await response.json();
+
+        console.log(result);
+
+        alert("User saved!");
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Save failed");
+
     }
-];
+
+}
+
+
+
+ if (!config) {
+                    return <div>Loading...</div>;
+                }
+
+const entity = config.entities.users;
+
+                console.log(config);
+
+
+
 
     return (
 
@@ -75,7 +179,10 @@ const rows = [
 
             <h2>{/* config.app.title */}</h2>
 
-            {config.fields.map(field => {
+            {entity.fields.map(field => {
+
+
+
 
                 switch(field.type) {
 
@@ -87,6 +194,13 @@ const rows = [
                                 label={field.label}
                                 fullWidth
                                 margin="normal"
+                                 value={formData[field.name] || ""}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        [field.name]: e.target.value
+                                    })
+                                }
                             />
                         );
 
@@ -99,6 +213,13 @@ const rows = [
                                 type="number"
                                 fullWidth
                                 margin="normal"
+                                 value={formData[field.name] || ""}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        [field.name]: Number(e.target.value)
+                                    })
+                                }
                             />
                         );
 
@@ -107,7 +228,14 @@ const rows = [
                         return (
                             <FormControlLabel
                                 key={field.name}
-                                control={<Checkbox />}
+                                control={<Checkbox checked={formData[field.name] || false}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    [field.name]: e.target.checked
+                                })
+                            }
+        />}
                                 label={field.label}
                             />
                         );
@@ -121,6 +249,13 @@ const rows = [
             type="email"
             fullWidth
             margin="normal"
+            value={formData[field.name] || ""}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        [field.name]: e.target.value
+                                    })
+                                }
         />
     );
 
@@ -132,9 +267,22 @@ const rows = [
 
             })}
 
-            <Button variant="contained">
-                Save
-            </Button>
+          <div style={{ marginTop: 20 }}>
+
+    {config.buttons.map(button => (
+
+        <Button
+            key={button}
+            variant="contained"
+            style={{ marginRight: 10 }}
+            onClick={saveUser}
+        >
+            {button}
+        </Button>
+
+    ))}
+
+</div>
 
 <div style={{ height: 400, width: "100%" }}>
     <DataGrid
