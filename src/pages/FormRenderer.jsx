@@ -6,11 +6,10 @@ import {
 } from "@mui/material";
 
 import { useEffect, useState } from "react";
-//import { load } from "js-yaml";
 import { DataGrid } from '@mui/x-data-grid';
-//export default function FormRenderer({config}) {
-import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import { API_URL } from "../config";
 
 export default function FormRenderer() {
@@ -48,8 +47,6 @@ console.log("FormRenderer rendered");
         async function loadYaml() {
 
             console.log("About to fetch...");
-//https://mypybackend-1.onrender.com/api/config
-            //http://127.0.0.1:8000/api/config
             const response = await fetch(`${API_URL}/api/config`);
 
             console.log("Response:", response.status);
@@ -110,7 +107,7 @@ fetchUsers();
 
 
 },[]);
-*/
+
 
 async function deleteRecord(id) {
 
@@ -127,9 +124,39 @@ async function deleteRecord(id) {
 
    loadRows();
 }
+*/
 
   if (!config) {
     return <div>Loading...</div>;
+}
+
+async function editRecord(row) {
+
+    console.log(row);
+
+    setFormData(row);
+
+}
+
+async function deleteRecord(id) {
+
+    if (!window.confirm("Delete this record?"))
+        return;
+
+    await fetch(
+
+        `${API_URL}/api/users/${id}`,
+
+        {
+
+            method: "DELETE"
+
+        }
+
+    );
+
+    await loadRows();
+
 }
 
 
@@ -142,23 +169,40 @@ const columns = config.table.columns.map(name => ({
 
 
 columns.push({
+
     field: "actions",
+
     headerName: "Actions",
+
     width: 120,
+
+    sortable: false,
 
     renderCell: (params) => (
 
-        <IconButton
-        color="error"
-        onClick={() => deleteRecord(params.row.id)}
-    >
-        <DeleteIcon />
-    </IconButton>
+        <>
+
+            <IconButton
+                color="primary"
+                onClick={() => editRecord(params.row)}
+            >
+                <EditIcon />
+            </IconButton>
+
+            <IconButton
+                color="error"
+                onClick={() => deleteRecord(params.row.id)}
+            >
+                <DeleteIcon />
+            </IconButton>
+
+        </>
 
     )
+
 });
 
-
+/*
 async function saveUser() {
 
     try {
@@ -188,7 +232,37 @@ async function saveUser() {
     }
 
 }
+*/
 
+async function saveUser() {
+
+    let url;
+    let method;
+
+    if (formData.id) {
+
+        url = `${API_URL}/api/users/${formData.id}`;
+        method = "PUT";
+
+    } else {
+
+        url = `${API_URL}/api/users`;
+        method = "POST";
+
+    }
+
+    await fetch(url, {
+        method,
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+    });
+
+    await loadRows();
+
+    setFormData({});
+}
 
 
  if (!config) {
