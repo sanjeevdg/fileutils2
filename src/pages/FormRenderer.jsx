@@ -172,10 +172,11 @@ async function deleteRecord(id) {
 }
 
 
-const columns = config.table.columns.map(name => ({
-    field: name,
-    headerName: name.replace("_", " "),
-    flex: 1
+const columns = config.entities.users.fields.map(field => ({
+    field: field.name,
+    headerName: field.label,
+    flex: 1,
+    editable: true
 }));
 
 
@@ -235,7 +236,9 @@ async function uploadFile(file) {
     );
 
     return await response.json();
+    //const result = await uploadFile(file);
 
+    updateField(field.name, result.filename);
 }
 
 
@@ -466,63 +469,50 @@ const entity = config.entities.users;
 
                         );
 
-                    case "file":
+                 case "file":
 
-                        return (
+                    return (
+
+                        <div key={field.name}>
 
                             <Button
-
                                 variant="outlined"
-
                                 component="label"
-
                             >
-
                                 Upload File
 
                                 <input
-
                                     hidden
-
                                     type="file"
-
-                                    onChange={async (e)=>{
+                                    onChange={async (e) => {
 
                                         const file = e.target.files[0];
 
-                                        if(!file)
-                                            return;
+                                        if (!file) return;
 
                                         const result = await uploadFile(file);
 
-                                        setFormData(prev=>({
-
-                                            ...prev,
-
-                                            [field.name]: result.filename
-
-                                        }));
+                                        updateField(field.name, result.filename);
 
                                     }}
-
                                 />
 
                             </Button>
-                            
 
-                        );
-                        {formData[field.name] &&
+                            {formData[field.name] && (
 
-                                <div>
+                                <div style={{ marginTop: 8 }}>
 
-                                    Uploaded:
-
-                                    {formData[field.name]}
+                                    Uploaded: {formData[field.name]}
 
                                 </div>
 
-                            }
+                            )}
 
+                        </div>
+
+                    );
+                       
 
 
 
