@@ -9,8 +9,9 @@ import { useEffect, useState } from "react";
 //import { load } from "js-yaml";
 import { DataGrid } from '@mui/x-data-grid';
 //export default function FormRenderer({config}) {
-
-
+import DeleteIcon from "@mui/icons-material/Delete";
+import IconButton from "@mui/material/IconButton";
+import { API_URL } from "../config";
 
 export default function FormRenderer() {
 
@@ -20,24 +21,23 @@ console.log("FormRenderer rendered");
     const [formData, setFormData] = useState({});
     const [rows, setRows] = useState([]);
 
-useEffect(() => {
+  async function loadRows() {
 
+        const response = await fetch(
+            `${API_URL}/api/users`
+        );
 
+        const data = await response.json();
 
-async function loadRows() {
-//http://127.0.0.1:8000/api/users
-    const response = await fetch(
-        "https://mypybackend-1.onrender.com/api/users"
-    );
+        setRows(data);
+    }
 
-    const data = await response.json();
+    useEffect(() => {
 
-    setRows(data);
-}
+        loadRows();
 
-loadRows();
+    }, []);
 
-},[]);
 
 
 
@@ -50,7 +50,7 @@ loadRows();
             console.log("About to fetch...");
 //https://mypybackend-1.onrender.com/api/config
             //http://127.0.0.1:8000/api/config
-            const response = await fetch("https://mypybackend-1.onrender.com/api/config");
+            const response = await fetch(`${API_URL}/api/config`);
 
             console.log("Response:", response.status);
 
@@ -65,14 +65,12 @@ loadRows();
 
     }, []);
 
-
+/*
 useEffect(() => {
 
 async  function fetchUsers() {
 
-await fetch(
-//http://127.0.0.1:8000/api
-    "https://mypybackend-1.onrender.com/api/users",
+await fetch(`${API_URL}/api/users`,
 
     {
 
@@ -112,7 +110,23 @@ fetchUsers();
 
 
 },[]);
+*/
 
+async function deleteRecord(id) {
+
+ console.log("Deleting id:", id);
+
+    if (!window.confirm("Delete this record?"))
+        return;
+
+    await fetch(`${API_URL}/api/users/${id}`,
+        {
+            method: "DELETE"
+        }
+    );
+
+   loadRows();
+}
 
   if (!config) {
     return <div>Loading...</div>;
@@ -127,15 +141,29 @@ const columns = config.table.columns.map(name => ({
 
 
 
+columns.push({
+    field: "actions",
+    headerName: "Actions",
+    width: 120,
 
+    renderCell: (params) => (
+
+        <IconButton
+        color="error"
+        onClick={() => deleteRecord(params.row.id)}
+    >
+        <DeleteIcon />
+    </IconButton>
+
+    )
+});
 
 
 async function saveUser() {
 
     try {
 //http://127.0.0.1:8000/api
-        const response = await fetch(
-            "https://mypybackend-1.onrender.com/api/users",
+        const response = await fetch(`${API_URL}/api/users/`,
             {
                 method: "POST",
                 headers: {
@@ -148,7 +176,7 @@ async function saveUser() {
         const result = await response.json();
 
         console.log(result);
-
+        loadRows();
         alert("User saved!");
 
     } catch (err) {
