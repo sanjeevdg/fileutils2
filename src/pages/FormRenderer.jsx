@@ -2,7 +2,9 @@ import {
     TextField,
     Checkbox,
     FormControlLabel,
-    Button
+    Button,
+    MenuItem,
+    Autocomplete
 } from "@mui/material";
 
 import { useEffect, useState } from "react";
@@ -12,14 +14,48 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { API_URL } from "../config";
 
+
+
+import {
+    DateTimePicker
+} from "@mui/x-date-pickers/DateTimePicker";
+
+import {
+    LocalizationProvider
+} from "@mui/x-date-pickers";
+
+import {
+    AdapterDayjs
+} from "@mui/x-date-pickers/AdapterDayjs";
+
+import dayjs from "dayjs";
+
+
 export default function FormRenderer() {
 
 console.log("FormRenderer rendered");
 
     const [config, setConfig] = useState(null);
-    const [formData, setFormData] = useState({});
+   // const [formData, setFormData] = useState({});
     const [rows, setRows] = useState([]);
     const [errors, setErrors] = useState({});
+
+
+
+
+const [formData, setFormData] = useState({});
+
+function updateField(name, value) {
+    setFormData(prev => ({
+        ...prev,
+        [name]: value
+    }));
+}
+
+
+
+
+
   async function loadRows() {
 
         const response = await fetch(
@@ -178,6 +214,29 @@ columns.push({
 
 });
 
+async function uploadFile(file) {
+
+    const fd = new FormData();
+
+    fd.append("file", file);
+
+    const response = await fetch(
+
+        `${API_URL}/api/upload`,
+
+        {
+
+            method: "POST",
+
+            body: fd
+
+        }
+
+    );
+
+    return await response.json();
+
+}
 
 
 async function saveUser() {
@@ -254,12 +313,7 @@ const entity = config.entities.users;
                                 fullWidth
                                 margin="normal"
                                  value={formData[field.name] || ""}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        [field.name]: e.target.value
-                                    })
-                                }
+                                onChange={(e) => updateField(field.name, e.target.value)}
                             />
                         );
 
@@ -273,12 +327,7 @@ const entity = config.entities.users;
                                 fullWidth
                                 margin="normal"
                                  value={formData[field.name] || ""}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        [field.name]: Number(e.target.value)
-                                    })
-                                }
+                                onChange={(e) => updateField(field.name, e.target.value)}
                             />
                         );
 
@@ -288,38 +337,208 @@ const entity = config.entities.users;
                             <FormControlLabel
                                 key={field.name}
                                 control={<Checkbox checked={formData[field.name] || false}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    [field.name]: e.target.checked
-                                })
-                            }
+                            onChange={(e) => updateField(field.name, e.target.checked)}
         />}
                                 label={field.label}
                             />
                         );
 
-                        case "email":
+                    case "email":
 
-    return (
-        <TextField
-            key={field.name}
-            label={field.label}
-            type="email"
-            fullWidth
-            margin="normal"
-            value={formData[field.name] || ""}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        [field.name]: e.target.value
-                                    })
+                        return (
+                                <TextField
+                                    key={field.name}
+                                    label={field.label}
+                                    type="email"
+                                    fullWidth
+                                    margin="normal"
+                                    value={formData[field.name] || ""}
+                                                       onChange={(e) => updateField(field.name, e.target.value)}
+                                    error={!!errors[field.name]}
+                                    helperText={errors[field.name] || ""}
+                                               
+                                />
+                            );
+
+
+                        case "datetime":
+
+                            return (
+
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+
+                                    <DateTimePicker
+
+                                        label={field.label}
+
+                                        value={
+                                            formData[field.name]
+                                                ? dayjs(formData[field.name])
+                                                : null
+                                        }
+
+                                        onChange={(value)=>
+
+                                            updateField(
+                                                field.name,
+                                                value ? value.toISOString() : null
+                                            )
+
+                                        }
+
+                                    />
+
+                                </LocalizationProvider>
+
+                            );
+
+                        case "select":
+
+                            return (
+
+                                <TextField
+
+                                    select
+
+                                    label={field.label}
+
+                                    value={formData[field.name] || ""}
+
+                                    onChange={(e)=>
+
+                                        updateField(field.name,e.target.value)
+
+                                    }
+
+                                >
+
+                                    {field.options.map(option=>
+
+                                        <MenuItem
+
+                                            key={option}
+
+                                            value={option}
+
+                                        >
+
+                                            {option}
+
+                                        </MenuItem>
+
+                                    )}
+
+                                </TextField>
+
+                            );    
+
+
+                    
+                    case "autocomplete":
+
+                        return (
+
+                            <Autocomplete
+
+                                options={field.options}
+
+                                value={formData[field.name] || null}
+
+                                onChange={(event,value)=>
+
+                                    updateField(field.name,value)
+
                                 }
-            error={!!errors[field.name]}
-            helperText={errors[field.name] || ""}
-                       
-        />
-    );
+
+                                renderInput={(params)=>
+
+                                    <TextField
+
+                                        {...params}
+
+                                        label={field.label}
+
+                                    />
+
+                                }
+
+                            />
+
+                        );
+
+                    case "file":
+
+                        return (
+
+                            <Button
+
+                                variant="outlined"
+
+                                component="label"
+
+                            >
+
+                                Upload File
+
+                                <input
+
+                                    hidden
+
+                                    type="file"
+
+                                    onChange={async (e)=>{
+
+                                        const file = e.target.files[0];
+
+                                        if(!file)
+                                            return;
+
+                                        const result = await uploadFile(file);
+
+                                        setFormData(prev=>({
+
+                                            ...prev,
+
+                                            [field.name]: result.filename
+
+                                        }));
+
+                                    }}
+
+                                />
+
+                            </Button>
+                            
+
+                        );
+                        {formData[field.name] &&
+
+                                <div>
+
+                                    Uploaded:
+
+                                    {formData[field.name]}
+
+                                </div>
+
+                            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
