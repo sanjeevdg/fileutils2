@@ -9,6 +9,7 @@ import About from "./pages/About";
 import Settings from "./pages/Settings";
 import FormRenderer from './pages/FormRenderer';
 
+import TestPicker from './pages/TestPicker';
 import "./App.css";
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/file-reader" element={<FileReaderPage />} />
             <Route path="/about" element={<About />} />
+            <Route path="/testpicker" element={<TestPicker />} />
             <Route path="/formrenderer" element={<FormRenderer />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>

@@ -20,6 +20,9 @@ export default function Sidebar() {
         About
       </NavLink>
 
+<NavLink to="/testpicker">
+        TestPicker
+      </NavLink>
       <NavLink to="/settings">
         Settings
       </NavLink>

@@ -16,9 +16,9 @@ import { API_URL } from "../config";
 
 
 
-import {
-    DateTimePicker
-} from "@mui/x-date-pickers/DateTimePicker";
+    import {
+        DateTimePicker
+    } from "@mui/x-date-pickers/DateTimePicker";
 
 import {
     LocalizationProvider
@@ -46,6 +46,7 @@ console.log("FormRenderer rendered");
 const [formData, setFormData] = useState({});
 
 function updateField(name, value) {
+      console.log(name, value);
     setFormData(prev => ({
         ...prev,
         [name]: value
@@ -53,7 +54,9 @@ function updateField(name, value) {
 }
 
 
-
+useEffect(() => {
+    console.log("formData =", formData);
+}, [formData]);
 
 
   async function loadRows() {
@@ -63,7 +66,7 @@ function updateField(name, value) {
         );
 
         const data = await response.json();
-
+console.log('mydata',data);
         setRows(data);
     }
 
@@ -246,6 +249,7 @@ async function saveUser() {
 
 
 console.log("Save clicked");
+console.log("Saving:", formData);
 
     if (!validateForm()) {
         console.log("Validation failed");
@@ -367,32 +371,33 @@ const entity = config.entities.users;
                         case "datetime":
 
                             return (
-
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-
+                                <LocalizationProvider
+                                    key={field.name}
+                                    dateAdapter={AdapterDayjs}
+                                >
                                     <DateTimePicker
-
                                         label={field.label}
-
                                         value={
                                             formData[field.name]
                                                 ? dayjs(formData[field.name])
                                                 : null
                                         }
-
-                                        onChange={(value)=>
+                                        onChange={(value) => {
+                                            console.log("datetime changed", value);
 
                                             updateField(
                                                 field.name,
                                                 value ? value.toISOString() : null
-                                            )
-
-                                        }
-
+                                            );
+                                        }}
+                                        slotProps={{
+                                            textField: {
+                                                fullWidth: true,
+                                                margin: "normal"
+                                            }
+                                        }}
                                     />
-
                                 </LocalizationProvider>
-
                             );
 
                         case "select":
@@ -412,6 +417,7 @@ const entity = config.entities.users;
                                         updateField(field.name,e.target.value)
 
                                     }
+                                    key={field.name}
 
                                 >
 
@@ -446,7 +452,7 @@ const entity = config.entities.users;
                                 options={field.options}
 
                                 value={formData[field.name] || null}
-
+                                key={field.name}
                                 onChange={(event,value)=>
 
                                     updateField(field.name,value)
