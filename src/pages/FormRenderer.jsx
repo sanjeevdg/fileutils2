@@ -25,9 +25,9 @@ useEffect(() => {
 
 
 async function loadRows() {
-
+//http://127.0.0.1:8000/api/users
     const response = await fetch(
-        "http://127.0.0.1:8000/api/users"
+        "https://mypybackend-1.onrender.com/api/users"
     );
 
     const data = await response.json();
@@ -49,7 +49,8 @@ loadRows();
 
             console.log("About to fetch...");
 //https://mypybackend-1.onrender.com/api/config
-            const response = await fetch("http://127.0.0.1:8000/api/config");
+            //http://127.0.0.1:8000/api/config
+            const response = await fetch("https://mypybackend-1.onrender.com/api/config");
 
             console.log("Response:", response.status);
 
@@ -70,8 +71,8 @@ useEffect(() => {
 async  function fetchUsers() {
 
 await fetch(
-
-    "http://127.0.0.1:8000/api/users",
+//http://127.0.0.1:8000/api
+    "https://mypybackend-1.onrender.com/api/users",
 
     {
 
@@ -132,9 +133,9 @@ const columns = config.table.columns.map(name => ({
 async function saveUser() {
 
     try {
-
+//http://127.0.0.1:8000/api
         const response = await fetch(
-            "http://127.0.0.1:8000/api/users",
+            "https://mypybackend-1.onrender.com/api/users",
             {
                 method: "POST",
                 headers: {
