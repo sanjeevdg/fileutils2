@@ -19,7 +19,7 @@ console.log("FormRenderer rendered");
     const [config, setConfig] = useState(null);
     const [formData, setFormData] = useState({});
     const [rows, setRows] = useState([]);
-
+    const [errors, setErrors] = useState({});
   async function loadRows() {
 
         const response = await fetch(
@@ -37,94 +37,70 @@ console.log("FormRenderer rendered");
 
     }, []);
 
+function validateForm() {
 
+    const newErrors = {};
 
+    entity.fields.forEach(field => {
 
-    useEffect(() => {
+        const value = formData[field.name];
 
-        console.log("useEffect running");
-
-        async function loadYaml() {
-
-            console.log("About to fetch...");
-            const response = await fetch(`${API_URL}/api/config`);
-
-            console.log("Response:", response.status);
-
-            const config = await response.json();
-
-            console.log(config);
-
-            setConfig(config);
+        // Required
+        if (field.required && !value) {
+            newErrors[field.name] = "Required";
+            return;
         }
 
-        loadYaml();
+        // Email
+        if (
+            field.type === "email" &&
+            value &&
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+        ) {
+            newErrors[field.name] = "Invalid email address";
+        }
 
-    }, []);
+    });
 
-/*
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+}
+
+
+  async function loadYaml() {
+
+    const response = await fetch(`${API_URL}/api/config`);
+
+    const config = await response.json();
+
+    setConfig(config);
+}
+
+async function loadRows() {
+
+    const response = await fetch(`${API_URL}/api/users`);
+
+    const rows = await response.json();
+
+    setRows(rows);
+}
+
 useEffect(() => {
 
-async  function fetchUsers() {
+    async function initialize() {
 
-await fetch(`${API_URL}/api/users`,
+        await loadYaml();
 
-    {
-
-        method:"POST",
-
-        headers:{
-
-            "Content-Type":"application/json"
-
-        },
-
-        body:JSON.stringify({
-
-            first_name:"John",
-
-            last_name:"Smith",
-
-            email:"john@gmail.com",
-
-            active:true
-
-        })
+        await loadRows();
 
     }
 
-)
+    initialize();
+
+}, []);
 
 
-
-
-}
-
-fetchUsers();
-
-
-
-
-
-},[]);
-
-
-async function deleteRecord(id) {
-
- console.log("Deleting id:", id);
-
-    if (!window.confirm("Delete this record?"))
-        return;
-
-    await fetch(`${API_URL}/api/users/${id}`,
-        {
-            method: "DELETE"
-        }
-    );
-
-   loadRows();
-}
-*/
 
   if (!config) {
     return <div>Loading...</div>;
@@ -202,39 +178,19 @@ columns.push({
 
 });
 
-/*
+
+
 async function saveUser() {
 
-    try {
-//http://127.0.0.1:8000/api
-        const response = await fetch(`${API_URL}/api/users/`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(formData)
-            }
-        );
 
-        const result = await response.json();
+console.log("Save clicked");
 
-        console.log(result);
-        loadRows();
-        alert("User saved!");
-
-    } catch (err) {
-
-        console.error(err);
-
-        alert("Save failed");
-
+    if (!validateForm()) {
+        console.log("Validation failed");
+        return;
     }
 
-}
-*/
-
-async function saveUser() {
+    console.log("Validation passed");
 
     let url;
     let method;
@@ -359,6 +315,9 @@ const entity = config.entities.users;
                                         [field.name]: e.target.value
                                     })
                                 }
+            error={!!errors[field.name]}
+            helperText={errors[field.name] || ""}
+                       
         />
     );
 
