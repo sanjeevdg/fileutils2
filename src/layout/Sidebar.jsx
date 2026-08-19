@@ -16,6 +16,10 @@ export default function Sidebar() {
         Form Renderer
       </NavLink>
 
+<NavLink to="/loginrenderer">
+        Login Renderer
+      </NavLink>
+
       <NavLink to="/about">
         About
       </NavLink>

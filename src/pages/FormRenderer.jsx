@@ -1,8 +1,14 @@
+
 import {
     TextField,
     Checkbox,
     FormControlLabel,
     Button,
+    Box,
+    Paper,
+    Typography,
+    Stack,
+    Grid,
     MenuItem,
     Autocomplete
 } from "@mui/material";
@@ -109,11 +115,12 @@ function validateForm() {
 
   async function loadYaml() {
 
-    const response = await fetch(`${API_URL}/api/config`);
+    const response = await fetch(`${API_URL}/api/config?name=app`);
 
     const config = await response.json();
 
     setConfig(config);
+    
 }
 
 async function loadRows() {
@@ -300,279 +307,467 @@ const entity = config.entities.users;
 
     return (
 
-        <div>
+    <Box
+        sx={{
+            width: "100%",
+            maxWidth: 1200,
+            mx: "auto",
+            p: 3
+        }}
+    >
 
-            <h2>{/* config.app.title */}</h2>
+        {/* Form */}
 
-            {entity.fields.map(field => {
+        <Paper
+            elevation={3}
+            sx={{
+                p: 4,
+                borderRadius: 2
+            }}
+        >
+
+            <Box
+                sx={{
+                    mb: 3
+                }}
+            >
+                <Typography
+                    variant="h5"
+                    component="h1"
+                    gutterBottom
+                >
+                    {config.app?.title || "Customer Manager"}
+                </Typography>
+
+                {config.app?.subtitle && (
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                    >
+                        {config.app.subtitle}
+                    </Typography>
+                )}
+            </Box>
 
 
+            {/* Two-column form */}
 
+            <Grid
+                container
+                spacing={2}
+            >
 
-                switch(field.type) {
+                {entity.fields.map(field => {
 
-                    case "text":
+                    switch (field.type) {
 
-                        return (
-                            <TextField
-                                key={field.name}
-                                label={field.label}
-                                fullWidth
-                                margin="normal"
-                                 value={formData[field.name] || ""}
-                                onChange={(e) => updateField(field.name, e.target.value)}
-                            />
-                        );
+                        case "text":
 
-                    case "number":
-
-                        return (
-                            <TextField
-                                key={field.name}
-                                label={field.label}
-                                type="number"
-                                fullWidth
-                                margin="normal"
-                                 value={formData[field.name] || ""}
-                                onChange={(e) => updateField(field.name, e.target.value)}
-                            />
-                        );
-
-                    case "checkbox":
-
-                        return (
-                            <FormControlLabel
-                                key={field.name}
-                                control={<Checkbox checked={formData[field.name] || false}
-                            onChange={(e) => updateField(field.name, e.target.checked)}
-        />}
-                                label={field.label}
-                            />
-                        );
-
-                    case "email":
-
-                        return (
-                                <TextField
+                            return (
+                                <Grid
                                     key={field.name}
-                                    label={field.label}
-                                    type="email"
-                                    fullWidth
-                                    margin="normal"
-                                    value={formData[field.name] || ""}
-                                                       onChange={(e) => updateField(field.name, e.target.value)}
-                                    error={!!errors[field.name]}
-                                    helperText={errors[field.name] || ""}
-                                               
-                                />
+                                    size={{ xs: 12, md: 6 }}
+                                >
+                                    <TextField
+                                        label={field.label}
+                                        fullWidth
+                                        margin="normal"
+                                        value={
+                                            formData[field.name] || ""
+                                        }
+                                        onChange={(e) =>
+                                            updateField(
+                                                field.name,
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </Grid>
+                            );
+
+
+                        case "number":
+
+                            return (
+                                <Grid
+                                    key={field.name}
+                                    size={{ xs: 12, md: 6 }}
+                                >
+                                    <TextField
+                                        label={field.label}
+                                        type="number"
+                                        fullWidth
+                                        margin="normal"
+                                        value={
+                                            formData[field.name] || ""
+                                        }
+                                        onChange={(e) =>
+                                            updateField(
+                                                field.name,
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </Grid>
+                            );
+
+
+                        case "password":
+
+                            return (
+                                <Grid
+                                    key={field.name}
+                                    size={{ xs: 12, md: 6 }}
+                                >
+                                    <TextField
+                                        label={field.label}
+                                        type="password"
+                                        fullWidth
+                                        margin="normal"
+                                        value={
+                                            formData[field.name] || ""
+                                        }
+                                        onChange={(e) =>
+                                            updateField(
+                                                field.name,
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </Grid>
+                            );
+
+
+                        case "email":
+
+                            return (
+                                <Grid
+                                    key={field.name}
+                                    size={{ xs: 12, md: 6 }}
+                                >
+                                    <TextField
+                                        label={field.label}
+                                        type="email"
+                                        fullWidth
+                                        margin="normal"
+                                        value={
+                                            formData[field.name] || ""
+                                        }
+                                        onChange={(e) =>
+                                            updateField(
+                                                field.name,
+                                                e.target.value
+                                            )
+                                        }
+                                        error={
+                                            !!errors[field.name]
+                                        }
+                                        helperText={
+                                            errors[field.name] || ""
+                                        }
+                                    />
+                                </Grid>
                             );
 
 
                         case "datetime":
 
                             return (
-                                <LocalizationProvider
+                                <Grid
                                     key={field.name}
-                                    dateAdapter={AdapterDayjs}
+                                    size={{ xs: 12, md: 6 }}
+                                    sx={{
+                                        mt: 1
+                                    }}
                                 >
-                                    <DateTimePicker
-                                        label={field.label}
-                                        value={
-                                            formData[field.name]
-                                                ? dayjs(formData[field.name])
-                                                : null
-                                        }
-                                        onChange={(value) => {
-                                            console.log("datetime changed", value);
-
-                                            updateField(
-                                                field.name,
-                                                value ? value.toISOString() : null
-                                            );
-                                        }}
-                                        slotProps={{
-                                            textField: {
-                                                fullWidth: true,
-                                                margin: "normal"
+                                    <LocalizationProvider
+                                        dateAdapter={AdapterDayjs}
+                                    >
+                                        <DateTimePicker
+                                            label={field.label}
+                                            value={
+                                                formData[field.name]
+                                                    ? dayjs(
+                                                        formData[field.name]
+                                                    )
+                                                    : null
                                             }
-                                        }}
-                                    />
-                                </LocalizationProvider>
+                                            onChange={(value) => {
+
+                                                console.log(
+                                                    "datetime changed",
+                                                    value
+                                                );
+
+                                                updateField(
+                                                    field.name,
+                                                    value
+                                                        ? value.toISOString()
+                                                        : null
+                                                );
+
+                                            }}
+                                            slotProps={{
+                                                textField: {
+                                                    fullWidth: true
+                                                }
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
                             );
+
 
                         case "select":
 
                             return (
-
-                                <TextField
-
-                                    select
-
-                                    label={field.label}
-
-                                    value={formData[field.name] || ""}
-
-                                    onChange={(e)=>
-
-                                        updateField(field.name,e.target.value)
-
-                                    }
+                                <Grid
                                     key={field.name}
+                                    size={{ xs: 12, md: 6 }}
+                                >
+                                    <TextField
+                                        select
+                                        label={field.label}
+                                        fullWidth
+                                        margin="normal"
+                                        value={
+                                            formData[field.name] || ""
+                                        }
+                                        onChange={(e) =>
+                                            updateField(
+                                                field.name,
+                                                e.target.value
+                                            )
+                                        }
+                                    >
 
+                                        {field.options.map(
+                                            option => (
+
+                                                <MenuItem
+                                                    key={option}
+                                                    value={option}
+                                                >
+                                                    {option}
+                                                </MenuItem>
+
+                                            )
+                                        )}
+
+                                    </TextField>
+                                </Grid>
+                            );
+
+
+                        case "autocomplete":
+
+                            return (
+                                <Grid
+                                    key={field.name}
+                                    size={{ xs: 12, md: 6 }}
+                                    sx={{
+                                        mt: 1
+                                    }}
+                                >
+                                    <Autocomplete
+                                        options={field.options}
+                                        value={
+                                            formData[field.name] || null
+                                        }
+                                        onChange={(
+                                            event,
+                                            value
+                                        ) =>
+                                            updateField(
+                                                field.name,
+                                                value
+                                            )
+                                        }
+                                        renderInput={(
+                                            params
+                                        ) => (
+                                            <TextField
+                                                {...params}
+                                                label={field.label}
+                                                fullWidth
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+                            );
+
+
+                        case "checkbox":
+
+                            return (
+                                <Grid
+                                    key={field.name}
+                                    size={{ xs: 12, md: 6 }}
+                                >
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    formData[
+                                                        field.name
+                                                    ] || false
+                                                }
+                                                onChange={(e) =>
+                                                    updateField(
+                                                        field.name,
+                                                        e.target.checked
+                                                    )
+                                                }
+                                            />
+                                        }
+                                        label={field.label}
+                                    />
+                                </Grid>
+                            );
+
+
+                        case "file":
+
+                            return (
+                                <Grid
+                                    key={field.name}
+                                    size={{ xs: 12, md: 6 }}
                                 >
 
-                                    {field.options.map(option=>
+                                    <Stack
+                                        spacing={1}
+                                    >
 
-                                        <MenuItem
-
-                                            key={option}
-
-                                            value={option}
-
+                                        <Button
+                                            variant="outlined"
+                                            component="label"
+                                            sx={{
+                                                width: "fit-content"
+                                            }}
                                         >
+                                            Upload File
 
-                                            {option}
+                                            <input
+                                                hidden
+                                                type="file"
+                                                onChange={async (e) => {
 
-                                        </MenuItem>
+                                                    const file =
+                                                        e.target.files[0];
 
-                                    )}
+                                                    if (!file)
+                                                        return;
 
-                                </TextField>
+                                                    const result =
+                                                        await uploadFile(
+                                                            file
+                                                        );
 
-                            );    
+                                                    updateField(
+                                                        field.name,
+                                                        result.filename
+                                                    );
 
+                                                }}
+                                            />
 
-                    
-                    case "autocomplete":
-
-                        return (
-
-                            <Autocomplete
-
-                                options={field.options}
-
-                                value={formData[field.name] || null}
-                                key={field.name}
-                                onChange={(event,value)=>
-
-                                    updateField(field.name,value)
-
-                                }
-
-                                renderInput={(params)=>
-
-                                    <TextField
-
-                                        {...params}
-
-                                        label={field.label}
-
-                                    />
-
-                                }
-
-                            />
-
-                        );
-
-                 case "file":
-
-                    return (
-
-                        <div key={field.name}>
-
-                            <Button
-                                variant="outlined"
-                                component="label"
-                            >
-                                Upload File
-
-                                <input
-                                    hidden
-                                    type="file"
-                                    onChange={async (e) => {
-
-                                        const file = e.target.files[0];
-
-                                        if (!file) return;
-
-                                        const result = await uploadFile(file);
-
-                                        updateField(field.name, result.filename);
-
-                                    }}
-                                />
-
-                            </Button>
-
-                            {formData[field.name] && (
-
-                                <div style={{ marginTop: 8 }}>
-
-                                    Uploaded: {formData[field.name]}
-
-                                </div>
-
-                            )}
-
-                        </div>
-
-                    );
-                       
+                                        </Button>
 
 
+                                        {formData[field.name] && (
+
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                            >
+                                                Uploaded:{" "}
+                                                {formData[field.name]}
+                                            </Typography>
+
+                                        )}
+
+                                    </Stack>
+
+                                </Grid>
+                            );
 
 
+                        default:
+                            return null;
+
+                    }
+
+                })}
+
+            </Grid>
 
 
+            {/* Buttons */}
+
+            <Stack
+                direction="row"
+                spacing={2}
+                sx={{
+                    mt: 4
+                }}
+            >
+
+                {config.entities.users.buttons.map(
+                    button => (
+
+                        <Button
+                            key={button}
+                            variant="contained"
+                            onClick={saveUser}
+                        >
+                            {button}
+                        </Button>
+
+                    )
+                )}
+
+            </Stack>
+
+        </Paper>
 
 
+        {/* DataGrid */}
 
-
-
-
-
-
-
-
-
-
-
-                    default:
-                        return null;
-                }
-
-            })}
-
-          <div style={{ marginTop: 20 }}>
-
-    {config.buttons.map(button => (
-
-        <Button
-            key={button}
-            variant="contained"
-            style={{ marginRight: 10 }}
-            onClick={saveUser}
+        <Paper
+            elevation={3}
+            sx={{
+                mt: 4,
+                p: 2,
+                borderRadius: 2
+            }}
         >
-            {button}
-        </Button>
 
-    ))}
+            <Typography
+                variant="h6"
+                sx={{
+                    mb: 2
+                }}
+            >
+                Users
+            </Typography>
 
-</div>
+            <Box
+                sx={{
+                    height: 400,
+                    width: "100%"
+                }}
+            >
+                <DataGrid
+                    rows={rows}
+                    columns={columns}
+                    pageSizeOptions={[5, 10, 25]}
+                />
+            </Box>
 
-<div style={{ height: 400, width: "100%" }}>
-    <DataGrid
-        rows={rows}
-        columns={columns}
-    />
-</div>
-        </div>
+        </Paper>
 
+    </Box>
 
-
-
-
-    );
+);
 
 }
