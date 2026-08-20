@@ -1,773 +1,625 @@
+import React from "react";
 
 import {
-    TextField,
-    Checkbox,
-    FormControlLabel,
-    Button,
     Box,
-    Paper,
-    Typography,
-    Stack,
+    Button,
+    Checkbox,
+    Container,
+    FormControl,
+    FormControlLabel,
     Grid,
+    InputLabel,
     MenuItem,
-    Autocomplete
+    Paper,
+    Select,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    TextField,
+    Typography
 } from "@mui/material";
 
-import { useEffect, useState } from "react";
-import { DataGrid } from '@mui/x-data-grid';
-import IconButton from "@mui/material/IconButton";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import { API_URL } from "../config";
 
+function getValue(object, path) {
 
+    if (!object || !path) {
+        return undefined;
+    }
 
-    import {
-        DateTimePicker
-    } from "@mui/x-date-pickers/DateTimePicker";
-
-import {
-    LocalizationProvider
-} from "@mui/x-date-pickers";
-
-import {
-    AdapterDayjs
-} from "@mui/x-date-pickers/AdapterDayjs";
-
-import dayjs from "dayjs";
-
-
-export default function FormRenderer() {
-
-console.log("FormRenderer rendered");
-
-    const [config, setConfig] = useState(null);
-   // const [formData, setFormData] = useState({});
-    const [rows, setRows] = useState([]);
-    const [errors, setErrors] = useState({});
-
-
-
-
-const [formData, setFormData] = useState({});
-
-function updateField(name, value) {
-      console.log(name, value);
-    setFormData(prev => ({
-        ...prev,
-        [name]: value
-    }));
-}
-
-
-useEffect(() => {
-    console.log("formData =", formData);
-}, [formData]);
-
-
-  async function loadRows() {
-
-        const response = await fetch(
-            `${API_URL}/api/users`
+    return path
+        .split(".")
+        .reduce(
+            (value, key) =>
+                value?.[key],
+            object
         );
+}
 
-        const data = await response.json();
-console.log('mydata',data);
-        setRows(data);
+
+export default function FormRenderer({
+    node,
+    context,
+    handlers
+}) {
+
+    if (!node) {
+        return null;
     }
 
-    useEffect(() => {
-
-        loadRows();
-
-    }, []);
-
-function validateForm() {
-
-    const newErrors = {};
-
-    entity.fields.forEach(field => {
-
-        const value = formData[field.name];
-
-        // Required
-        if (field.required && !value) {
-            newErrors[field.name] = "Required";
-            return;
-        }
-
-        // Email
-        if (
-            field.type === "email" &&
-            value &&
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-        ) {
-            newErrors[field.name] = "Invalid email address";
-        }
-
-    });
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-}
-
-
-  async function loadYaml() {
-
-    const response = await fetch(`${API_URL}/api/config?name=app`);
-
-    const config = await response.json();
-
-    setConfig(config);
-    
-}
-
-async function loadRows() {
-
-    const response = await fetch(`${API_URL}/api/users`);
-
-    const rows = await response.json();
-
-    setRows(rows);
-}
-
-useEffect(() => {
-
-    async function initialize() {
-
-        await loadYaml();
-
-        await loadRows();
-
-    }
-
-    initialize();
-
-}, []);
-
-
-
-  if (!config) {
-    return <div>Loading...</div>;
-}
-
-async function editRecord(row) {
-
-    console.log(row);
-
-    setFormData(row);
-
-}
-
-async function deleteRecord(id) {
-
-    if (!window.confirm("Delete this record?"))
-        return;
-
-    await fetch(
-
-        `${API_URL}/api/users/${id}`,
-
-        {
-
-            method: "DELETE"
-
-        }
-
-    );
-
-    await loadRows();
-
-}
-
-
-const columns = config.entities.users.fields.map(field => ({
-    field: field.name,
-    headerName: field.label,
-    flex: 1,
-    editable: true
-}));
-
-
-
-columns.push({
-
-    field: "actions",
-
-    headerName: "Actions",
-
-    width: 120,
-
-    sortable: false,
-
-    renderCell: (params) => (
-
-        <>
-
-            <IconButton
-                color="primary"
-                onClick={() => editRecord(params.row)}
-            >
-                <EditIcon />
-            </IconButton>
-
-            <IconButton
-                color="error"
-                onClick={() => deleteRecord(params.row.id)}
-            >
-                <DeleteIcon />
-            </IconButton>
-
-        </>
-
-    )
-
-});
-
-async function uploadFile(file) {
-
-    const fd = new FormData();
-
-    fd.append("file", file);
-
-    const response = await fetch(
-
-        `${API_URL}/api/upload`,
-
-        {
-
-            method: "POST",
-
-            body: fd
-
-        }
-
-    );
-
-    return await response.json();
-    //const result = await uploadFile(file);
-
-    updateField(field.name, result.filename);
-}
-
-
-async function saveUser() {
-
-
-console.log("Save clicked");
-console.log("Saving:", formData);
-
-    if (!validateForm()) {
-        console.log("Validation failed");
-        return;
-    }
-
-    console.log("Validation passed");
-
-    let url;
-    let method;
-
-    if (formData.id) {
-
-        url = `${API_URL}/api/users/${formData.id}`;
-        method = "PUT";
-
-    } else {
-
-        url = `${API_URL}/api/users`;
-        method = "POST";
-
-    }
-
-    await fetch(url, {
-        method,
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-    });
-
-    await loadRows();
-
-    setFormData({});
-}
-
-
- if (!config) {
-                    return <div>Loading...</div>;
+    const {
+        type,
+        props = {},
+        children = [],
+        text,
+        field,
+        binding,
+        dataSource,
+        events = {},
+        options = []
+    } = node;
+
+
+    /*
+    =====================================================
+    TEXTFIELD
+    =====================================================
+    */
+
+    if (type === "textfield") {
+
+        const value = binding
+            ? getValue(
+                context,
+                binding
+            )
+            : "";
+
+
+        return (
+            <TextField
+
+                label={
+                    props.label
                 }
 
-const entity = config.entities.users;
-
-                console.log(config);
-
-
-
-
-    return (
-
-    <Box
-        sx={{
-            width: "100%",
-            maxWidth: 1200,
-            mx: "auto",
-            p: 3
-        }}
-    >
-
-        {/* Form */}
-
-        <Paper
-            elevation={3}
-            sx={{
-                p: 4,
-                borderRadius: 2
-            }}
-        >
-
-            <Box
-                sx={{
-                    mb: 3
-                }}
-            >
-                <Typography
-                    variant="h5"
-                    component="h1"
-                    gutterBottom
-                >
-                    {config.app?.title || "Customer Manager"}
-                </Typography>
-
-                {config.app?.subtitle && (
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                    >
-                        {config.app.subtitle}
-                    </Typography>
-                )}
-            </Box>
-
-
-            {/* Two-column form */}
-
-            <Grid
-                container
-                spacing={2}
-            >
-
-                {entity.fields.map(field => {
-
-                    switch (field.type) {
-
-                        case "text":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                >
-                                    <TextField
-                                        label={field.label}
-                                        fullWidth
-                                        margin="normal"
-                                        value={
-                                            formData[field.name] || ""
-                                        }
-                                        onChange={(e) =>
-                                            updateField(
-                                                field.name,
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                </Grid>
-                            );
-
-
-                        case "number":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                >
-                                    <TextField
-                                        label={field.label}
-                                        type="number"
-                                        fullWidth
-                                        margin="normal"
-                                        value={
-                                            formData[field.name] || ""
-                                        }
-                                        onChange={(e) =>
-                                            updateField(
-                                                field.name,
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                </Grid>
-                            );
-
-
-                        case "password":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                >
-                                    <TextField
-                                        label={field.label}
-                                        type="password"
-                                        fullWidth
-                                        margin="normal"
-                                        value={
-                                            formData[field.name] || ""
-                                        }
-                                        onChange={(e) =>
-                                            updateField(
-                                                field.name,
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                </Grid>
-                            );
-
-
-                        case "email":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                >
-                                    <TextField
-                                        label={field.label}
-                                        type="email"
-                                        fullWidth
-                                        margin="normal"
-                                        value={
-                                            formData[field.name] || ""
-                                        }
-                                        onChange={(e) =>
-                                            updateField(
-                                                field.name,
-                                                e.target.value
-                                            )
-                                        }
-                                        error={
-                                            !!errors[field.name]
-                                        }
-                                        helperText={
-                                            errors[field.name] || ""
-                                        }
-                                    />
-                                </Grid>
-                            );
-
-
-                        case "datetime":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                    sx={{
-                                        mt: 1
-                                    }}
-                                >
-                                    <LocalizationProvider
-                                        dateAdapter={AdapterDayjs}
-                                    >
-                                        <DateTimePicker
-                                            label={field.label}
-                                            value={
-                                                formData[field.name]
-                                                    ? dayjs(
-                                                        formData[field.name]
-                                                    )
-                                                    : null
-                                            }
-                                            onChange={(value) => {
-
-                                                console.log(
-                                                    "datetime changed",
-                                                    value
-                                                );
-
-                                                updateField(
-                                                    field.name,
-                                                    value
-                                                        ? value.toISOString()
-                                                        : null
-                                                );
-
-                                            }}
-                                            slotProps={{
-                                                textField: {
-                                                    fullWidth: true
-                                                }
-                                            }}
-                                        />
-                                    </LocalizationProvider>
-                                </Grid>
-                            );
-
-
-                        case "select":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                >
-                                    <TextField
-                                        select
-                                        label={field.label}
-                                        fullWidth
-                                        margin="normal"
-                                        value={
-                                            formData[field.name] || ""
-                                        }
-                                        onChange={(e) =>
-                                            updateField(
-                                                field.name,
-                                                e.target.value
-                                            )
-                                        }
-                                    >
-
-                                        {field.options.map(
-                                            option => (
-
-                                                <MenuItem
-                                                    key={option}
-                                                    value={option}
-                                                >
-                                                    {option}
-                                                </MenuItem>
-
-                                            )
-                                        )}
-
-                                    </TextField>
-                                </Grid>
-                            );
-
-
-                        case "autocomplete":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                    sx={{
-                                        mt: 1
-                                    }}
-                                >
-                                    <Autocomplete
-                                        options={field.options}
-                                        value={
-                                            formData[field.name] || null
-                                        }
-                                        onChange={(
-                                            event,
-                                            value
-                                        ) =>
-                                            updateField(
-                                                field.name,
-                                                value
-                                            )
-                                        }
-                                        renderInput={(
-                                            params
-                                        ) => (
-                                            <TextField
-                                                {...params}
-                                                label={field.label}
-                                                fullWidth
-                                            />
-                                        )}
-                                    />
-                                </Grid>
-                            );
-
-
-                        case "checkbox":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                >
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                checked={
-                                                    formData[
-                                                        field.name
-                                                    ] || false
-                                                }
-                                                onChange={(e) =>
-                                                    updateField(
-                                                        field.name,
-                                                        e.target.checked
-                                                    )
-                                                }
-                                            />
-                                        }
-                                        label={field.label}
-                                    />
-                                </Grid>
-                            );
-
-
-                        case "file":
-
-                            return (
-                                <Grid
-                                    key={field.name}
-                                    size={{ xs: 12, md: 6 }}
-                                >
-
-                                    <Stack
-                                        spacing={1}
-                                    >
-
-                                        <Button
-                                            variant="outlined"
-                                            component="label"
-                                            sx={{
-                                                width: "fit-content"
-                                            }}
-                                        >
-                                            Upload File
-
-                                            <input
-                                                hidden
-                                                type="file"
-                                                onChange={async (e) => {
-
-                                                    const file =
-                                                        e.target.files[0];
-
-                                                    if (!file)
-                                                        return;
-
-                                                    const result =
-                                                        await uploadFile(
-                                                            file
-                                                        );
-
-                                                    updateField(
-                                                        field.name,
-                                                        result.filename
-                                                    );
-
-                                                }}
-                                            />
-
-                                        </Button>
-
-
-                                        {formData[field.name] && (
-
-                                            <Typography
-                                                variant="body2"
-                                                color="text.secondary"
-                                            >
-                                                Uploaded:{" "}
-                                                {formData[field.name]}
-                                            </Typography>
-
-                                        )}
-
-                                    </Stack>
-
-                                </Grid>
-                            );
-
-
-                        default:
-                            return null;
+                name={
+                    props.name
+                }
+
+                type={
+                    props.type ||
+                    "text"
+                }
+
+                fullWidth={
+                    props.fullWidth
+                }
+
+                disabled={
+                    props.disabled
+                }
+
+                size={
+                    props.size
+                }
+
+                required={
+                    props.required
+                }
+
+                sx={
+                    props.sx
+                }
+
+                value={
+                    value === null ||
+                    value === undefined
+                        ? ""
+                        : String(value)
+                }
+
+                onChange={
+                    (event) => {
+
+                        if (
+                            handlers
+                                ?.handleBindingChange &&
+                            binding
+                        ) {
+
+                            handlers
+                                .handleBindingChange(
+                                    binding,
+                                    event
+                                        .target
+                                        .value
+                                );
+
+                        }
 
                     }
+                }
 
-                })}
+            />
+        );
+    }
 
-            </Grid>
+
+    /*
+    =====================================================
+    SELECT
+    =====================================================
+    */
+
+    if (type === "select") {
+
+        const value = binding
+            ? getValue(
+                context,
+                binding
+            )
+            : "";
 
 
-            {/* Buttons */}
-
-            <Stack
-                direction="row"
-                spacing={2}
-                sx={{
-                    mt: 4
-                }}
+        return (
+            <FormControl
+                fullWidth
+                sx={
+                    props.sx
+                }
             >
 
-                {config.entities.users.buttons.map(
-                    button => (
+                <InputLabel>
+                    {props.label}
+                </InputLabel>
 
-                        <Button
-                            key={button}
-                            variant="contained"
-                            onClick={saveUser}
-                        >
-                            {button}
-                        </Button>
+                <Select
+                    label={
+                        props.label
+                    }
+
+                    name={
+                        props.name
+                    }
+
+                    value={
+                        value ??
+                        ""
+                    }
+
+                    onChange={
+                        (event) => {
+
+                            if (
+                                handlers
+                                    ?.handleBindingChange &&
+                                binding
+                            ) {
+
+                                handlers
+                                    .handleBindingChange(
+                                        binding,
+                                        event
+                                            .target
+                                            .value
+                                    );
+
+                            }
+
+                        }
+                    }
+                >
+
+                    {options.map(
+                        (
+                            option,
+                            index
+                        ) => {
+
+                            const label =
+                                typeof option ===
+                                "string"
+                                    ? option
+                                    : option.label;
+
+                            const optionValue =
+                                typeof option ===
+                                "string"
+                                    ? option
+                                    : option.value;
+
+
+                            return (
+                                <MenuItem
+                                    key={
+                                        optionValue ??
+                                        index
+                                    }
+
+                                    value={
+                                        optionValue
+                                    }
+                                >
+                                    {label}
+                                </MenuItem>
+                            );
+
+                        }
+                    )}
+
+                </Select>
+
+            </FormControl>
+        );
+    }
+
+
+    /*
+    =====================================================
+    CHECKBOX
+    =====================================================
+    */
+
+    if (type === "checkbox") {
+
+        const value = binding
+            ? getValue(
+                context,
+                binding
+            )
+            : false;
+
+
+        return (
+            <FormControlLabel
+
+                label={
+                    props.label
+                }
+
+                control={
+                    <Checkbox
+
+                        name={
+                            props.name
+                        }
+
+                        checked={
+                            Boolean(value)
+                        }
+
+                        onChange={
+                            (event) => {
+
+                                if (
+                                    handlers
+                                        ?.handleBindingChange &&
+                                    binding
+                                ) {
+
+                                    handlers
+                                        .handleBindingChange(
+                                            binding,
+                                            event
+                                                .target
+                                                .checked
+                                        );
+
+                                }
+
+                            }
+                        }
+
+                    />
+                }
+
+            />
+        );
+    }
+
+
+    /*
+    =====================================================
+    TABLE BODY
+    =====================================================
+    */
+
+    if (type === "tableBody") {
+
+        const rows =
+            context[
+                dataSource
+            ] || [];
+
+
+        return (
+            <TableBody>
+
+                {rows.map(
+                    (
+                        row,
+                        index
+                    ) => (
+
+                        <FormRenderer
+                            key={
+                                row.id ??
+                                index
+                            }
+
+                            node={
+                                children[0]
+                            }
+
+                            context={{
+                                ...context,
+                                row
+                            }}
+
+                            handlers={
+                                handlers
+                            }
+
+                        />
 
                     )
                 )}
 
-            </Stack>
+            </TableBody>
+        );
+    }
 
-        </Paper>
+
+    /*
+    =====================================================
+    TABLE ROW
+    =====================================================
+    */
+
+    if (type === "tableRow") {
+
+        const row =
+            context.row;
 
 
-        {/* DataGrid */}
+        const rowEventProps = {};
 
-        <Paper
-            elevation={3}
-            sx={{
-                mt: 4,
-                p: 2,
-                borderRadius: 2
-            }}
+
+        Object.entries(
+            events
+        ).forEach(
+            (
+                [
+                    eventName,
+                    handlerName
+                ]
+            ) => {
+
+                if (
+                    handlers?.[
+                        handlerName
+                    ]
+                ) {
+
+                    rowEventProps[
+                        eventName
+                    ] =
+                        (event) => {
+
+                            handlers[
+                                handlerName
+                            ](
+                                event,
+                                row
+                            );
+
+                        };
+
+                }
+
+            }
+        );
+
+
+        return (
+            <TableRow
+                {...props}
+                {...rowEventProps}
+            >
+
+                {children.map(
+                    (
+                        child,
+                        index
+                    ) => (
+
+                        <FormRenderer
+                            key={
+                                index
+                            }
+
+                            node={
+                                child
+                            }
+
+                            context={
+                                context
+                            }
+
+                            handlers={
+                                handlers
+                            }
+
+                        />
+
+                    )
+                )}
+
+            </TableRow>
+        );
+    }
+
+
+    /*
+    =====================================================
+    TABLE CELL
+    =====================================================
+    */
+
+    if (type === "tableCell") {
+
+        const value =
+            field
+                ? getValue(
+                    context.row,
+                    field
+                )
+                : text;
+
+
+        return (
+            <TableCell>
+                {
+                    typeof value ===
+                    "boolean"
+                        ? value
+                            ? "Yes"
+                            : "No"
+                        : value
+                }
+            </TableCell>
+        );
+    }
+
+
+    /*
+    =====================================================
+    NORMAL MUI COMPONENT
+    =====================================================
+    */
+
+    const componentMap = {
+
+        container:
+            Container,
+
+        box:
+            Box,
+
+        grid:
+            Grid,
+
+        paper:
+            Paper,
+
+        typography:
+            Typography,
+
+        button:
+            Button,
+
+        table:
+            Table,
+
+        tableHead:
+            TableHead,
+
+        tableBody:
+            TableBody,
+
+        tableRow:
+            TableRow,
+
+        tableCell:
+            TableCell
+
+    };
+
+
+    const Component =
+        componentMap[type];
+
+
+    if (!Component) {
+
+        console.warn(
+            `Unknown component type: ${type}`
+        );
+
+        return null;
+    }
+
+
+    const eventProps = {};
+
+
+    Object.entries(
+        events
+    ).forEach(
+        (
+            [
+                eventName,
+                handlerName
+            ]
+        ) => {
+
+            if (
+                handlers?.[
+                    handlerName
+                ]
+            ) {
+
+                eventProps[
+                    eventName
+                ] =
+                    handlers[
+                        handlerName
+                    ];
+
+            }
+
+        }
+    );
+
+
+    return (
+        <Component
+            {...props}
+            {...eventProps}
         >
 
-            <Typography
-                variant="h6"
-                sx={{
-                    mb: 2
-                }}
-            >
-                Users
-            </Typography>
+            {text}
 
-            <Box
-                sx={{
-                    height: 400,
-                    width: "100%"
-                }}
-            >
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    pageSizeOptions={[5, 10, 25]}
-                />
-            </Box>
+            {children.map(
+                (
+                    child,
+                    index
+                ) => (
 
-        </Paper>
+                    <FormRenderer
+                        key={
+                            index
+                        }
 
-    </Box>
+                        node={
+                            child
+                        }
 
-);
+                        context={
+                            context
+                        }
 
+                        handlers={
+                            handlers
+                        }
+
+                    />
+
+                )
+            )}
+
+        </Component>
+    );
 }

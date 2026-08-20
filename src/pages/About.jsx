@@ -1,4 +1,4 @@
-export default function About() {
+nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnexport default function About() {
   return (
     <>
       <h1>About</h1>

@@ -12,8 +12,8 @@ export default function Sidebar() {
         File Reader
       </NavLink>
 
-<NavLink to="/formrenderer">
-        Form Renderer
+<NavLink to="/userformrenderer">
+       User Form Renderer
       </NavLink>
 
 <NavLink to="/loginrenderer">
@@ -23,6 +23,12 @@ export default function Sidebar() {
 <NavLink to="/master-detail">
         Master/Detail 
       </NavLink>
+
+<NavLink to="/change-password">
+        Change Password 
+      </NavLink>
+
+
 
       <NavLink to="/about">
         About
