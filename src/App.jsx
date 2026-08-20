@@ -8,6 +8,7 @@ import FileReaderPage from "./pages/FileReaderPage";
 import About from "./pages/About";
 import Settings from "./pages/Settings";
 import FormRenderer from './pages/FormRenderer';
+import CustomerMasterDetail from './pages/CustomerMasterDetail';
 import LoginRenderer from './pages/LoginRenderer'
 import TestPicker from './pages/TestPicker';
 import "./App.css";
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/testpicker" element={<TestPicker />} />
             <Route path="/formrenderer" element={<FormRenderer />} />
+            <Route path="/master-detail" element={<CustomerMasterDetail />} />
             <Route path="/loginrenderer" element={<LoginRenderer />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>

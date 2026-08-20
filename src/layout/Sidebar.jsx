@@ -20,6 +20,10 @@ export default function Sidebar() {
         Login Renderer
       </NavLink>
 
+<NavLink to="/master-detail">
+        Master/Detail 
+      </NavLink>
+
       <NavLink to="/about">
         About
       </NavLink>
