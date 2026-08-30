@@ -506,10 +506,14 @@ async function selectUser(event, user) {
     }
   }
 
-async function saveOrder() {
+async function saveOrder(formData) {
 
-    if (!selectedOrder) {
-        setError("Please create an order first.");
+    console.log("=== SAVE ORDER CALLED ===");
+    console.log("FORM DATA RECEIVED:", formData);
+    console.log("SELECTED ORDER:", selectedOrder);
+
+    if (!formData) {
+        setError("No order data received.");
         return;
     }
 
@@ -519,13 +523,28 @@ async function saveOrder() {
         setError(null);
         setMessage(null);
 
+        const orderToSave = {
+            ...formData,
+
+            // Preserve the ID when editing.
+            // New orders will have no ID.
+            ...(selectedOrder?.id != null
+                ? { id: selectedOrder.id }
+                : {})
+        };
+
+        console.log("ORDER TO SAVE:", orderToSave);
+
         const isNew =
-            selectedOrder.id === null ||
-            selectedOrder.id === undefined;
+            orderToSave.id === null ||
+            orderToSave.id === undefined;
 
         const url = isNew
             ? `${API_URL}/api/orders`
-            : `${API_URL}/api/orders/${selectedOrder.id}`;
+            : `${API_URL}/api/orders/${orderToSave.id}`;
+
+        console.log("SAVE URL:", url);
+        console.log("METHOD:", isNew ? "POST" : "PUT");
 
         const response = await fetch(
             url,
@@ -536,50 +555,38 @@ async function saveOrder() {
                     "Content-Type": "application/json"
                 },
 
-                body: JSON.stringify(
-                    selectedOrder
-                )
+                body: JSON.stringify(orderToSave)
             }
         );
 
+        console.log("RESPONSE STATUS:", response.status);
+
         if (!response.ok) {
 
-            const errorText =
-                await response.text();
+            const errorText = await response.text();
 
             throw new Error(
                 `Failed to save order: ${response.status} ${errorText}`
             );
         }
 
-        const savedOrder =
-            await response.json();
+        const savedOrder = await response.json();
 
-        console.log(
-            "ORDER SAVED:",
-            savedOrder
-        );
+        console.log("ORDER SAVED:", savedOrder);
 
         setSelectedOrder(null);
 
-        setMessage(
-            "Order saved successfully."
-        );
+        setMessage("Order saved successfully.");
 
-        // Reload orders
         await loadOrders();
 
-    }
-    catch (err) {
+    } catch (err) {
 
-        console.error(err);
+        console.error("SAVE ORDER ERROR:", err);
 
-        setError(
-            err.message
-        );
+        setError(err.message);
 
-    }
-    finally {
+    } finally {
 
         setSaving(false);
     }
