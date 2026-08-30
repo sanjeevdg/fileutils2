@@ -1,5 +1,5 @@
 import React from "react";
-
+import ChildTableRenderer from "./ChildTableRenderer";
 import {
     Box,
     Button,
@@ -21,7 +21,7 @@ import {
     Typography
 } from "@mui/material";
 
-
+import EntityFormRenderer from "./EntityFormRenderer";
 function getValue(object, path) {
 
     if (!object || !path) {
@@ -48,6 +48,19 @@ export default function FormRenderer({
         return null;
     }
 
+    // Conditional rendering
+    if (node.visibleWhen) {
+
+        const value = getValue(
+            context,
+            node.visibleWhen
+        );
+
+        if (!value) {
+            return null;
+        }
+    }
+
     const {
         type,
         props = {},
@@ -60,6 +73,465 @@ export default function FormRenderer({
         options = []
     } = node;
 
+
+
+/*
+=====================================================
+ENTITY FORM
+=====================================================
+*/
+
+if (type === "form") {
+
+    const formEntity =
+        context?.config?.entities?.[node.entity];
+
+    if (!formEntity) {
+        return (
+            <Typography color="error">
+                Entity "{node.entity}" not found
+            </Typography>
+        );
+    }
+
+    const record =
+        binding
+            ? getValue(context, binding)
+            : {};
+
+    const updateField =
+        handlers?.updateField;
+
+    return (
+        <Box>
+
+            {(node.fields || []).map(fieldName => {
+
+                const fieldConfig =
+                    formEntity.fields?.find(
+                        field =>
+                            field.name === fieldName
+                    );
+
+                if (!fieldConfig) {
+                    return null;
+                }
+
+                const fieldValue =
+                    record?.[fieldName] ?? "";
+
+                const fieldType =
+                    fieldConfig.type || "text";
+
+
+                if (fieldType === "reference") {
+
+    const reference =
+        fieldConfig.reference;
+
+    const referenceEntity =
+        reference?.entity;
+
+    const referenceData =
+        context?.[
+            referenceEntity
+        ] || [];
+
+    return (
+        <FormControl
+            key={fieldName}
+            fullWidth
+            margin="normal"
+        >
+
+            <InputLabel>
+                {
+                    fieldConfig.label ||
+                    fieldName
+                }
+            </InputLabel>
+
+            <Select
+                label={
+                    fieldConfig.label ||
+                    fieldName
+                }
+
+                value={
+                    fieldValue ?? ""
+                }
+
+                onChange={(event) => {
+
+                    updateField?.(
+                        binding,
+                        fieldName,
+                        event.target.value
+                    );
+
+                }}
+
+                disabled={
+                    fieldConfig.readonly ||
+                    fieldConfig.name === "id"
+                }
+            >
+
+                {referenceData.map(
+                    record => {
+
+                        const value =
+                            record[
+                                reference.valueField
+                            ];
+
+                        const label =
+                            record[
+                                reference.labelField
+                            ];
+
+                        return (
+                            <MenuItem
+                                key={value}
+                                value={value}
+                            >
+                                {label}
+                            </MenuItem>
+                        );
+
+                    }
+                )}
+
+            </Select>
+
+        </FormControl>
+    );
+}
+    
+////////////////////////
+if (fieldType === "date") {
+
+    return (
+        <TextField
+            key={fieldName}
+
+            label={
+                fieldConfig.label ||
+                fieldName
+            }
+
+            type="date"
+
+            value={
+                fieldValue ?? ""
+            }
+
+            onChange={(event) => {
+
+                updateField?.(
+                    binding,
+                    fieldName,
+                    event.target.value
+                );
+
+            }}
+
+            fullWidth
+
+            margin="normal"
+
+            InputLabelProps={{
+                shrink: true
+            }}
+
+            disabled={
+                fieldConfig.readonly
+            }
+        />
+    );
+}
+/////////////////////////////
+if (fieldType === "currency") {
+
+    return (
+        <TextField
+            key={fieldName}
+
+            label={
+                fieldConfig.label ||
+                fieldName
+            }
+
+            type="number"
+
+            value={
+                fieldValue ?? ""
+            }
+
+            onChange={(event) => {
+
+                updateField?.(
+                    binding,
+                    fieldName,
+                    event.target.value
+                );
+
+            }}
+
+            fullWidth
+
+            margin="normal"
+
+            inputProps={{
+                min: 0,
+                step: "0.01"
+            }}
+
+            disabled={
+                fieldConfig.readonly
+            }
+        />
+    );
+}
+////////////////////////
+
+                /*
+                =========================================
+                SELECT
+                =========================================
+                */
+
+                if (fieldType === "select") {
+
+                    return (
+                        <FormControl
+                            key={fieldName}
+                            fullWidth
+                            margin="normal"
+                        >
+
+                            <InputLabel>
+                                {fieldConfig.label || fieldName}
+                            </InputLabel>
+
+                            <Select
+                                label={
+                                    fieldConfig.label ||
+                                    fieldName
+                                }
+
+                                value={
+                                    fieldValue ?? ""
+                                }
+
+                                onChange={(event) => {
+
+                                    updateField?.(
+                                        binding,
+                                        fieldName,
+                                        event.target.value
+                                    );
+
+                                }}
+
+                                disabled={
+                                    fieldConfig.readonly ||
+                                    fieldConfig.name === "id"
+                                }
+                            >
+
+                                {(fieldConfig.options || []).map(
+                                    (option, index) => {
+
+                                        const optionLabel =
+                                            typeof option === "string"
+                                                ? option
+                                                : option.label;
+
+                                        const optionValue =
+                                            typeof option === "string"
+                                                ? option
+                                                : option.value;
+
+                                        return (
+                                            <MenuItem
+                                                key={
+                                                    optionValue ??
+                                                    index
+                                                }
+                                                value={
+                                                    optionValue
+                                                }
+                                            >
+                                                {optionLabel}
+                                            </MenuItem>
+                                        );
+
+                                    }
+                                )}
+
+                            </Select>
+
+                        </FormControl>
+                    );
+                }
+
+
+                /*
+                =========================================
+                CHECKBOX
+                =========================================
+                */
+
+                if (fieldType === "checkbox" ||
+                    fieldType === "boolean") {
+
+                    return (
+                        <FormControlLabel
+                            key={fieldName}
+
+                            label={
+                                fieldConfig.label ||
+                                fieldName
+                            }
+
+                            control={
+                                <Checkbox
+                                    checked={
+                                        Boolean(fieldValue)
+                                    }
+
+                                    onChange={(event) => {
+
+                                        updateField?.(
+                                            binding,
+                                            fieldName,
+                                            event.target.checked
+                                        );
+
+                                    }}
+
+                                    disabled={
+                                        fieldConfig.readonly ||
+                                        fieldConfig.name === "id"
+                                    }
+                                />
+                            }
+                        />
+                    );
+                }
+
+
+                /*
+                =========================================
+                NORMAL TEXT / EMAIL / NUMBER
+                =========================================
+                */
+
+                return (
+                    <TextField
+                        key={fieldName}
+
+                        label={
+                            fieldConfig.label ||
+                            fieldName
+                        }
+
+                        value={
+                            fieldValue
+                        }
+
+                        onChange={(event) => {
+
+                            updateField?.(
+                                binding,
+                                fieldName,
+                                event.target.value
+                            );
+
+                        }}
+
+                        fullWidth
+                        margin="normal"
+
+                        disabled={
+                            fieldConfig.readonly ||
+                            fieldConfig.name === "id"
+                        }
+
+                        type={
+                            fieldType === "email"
+                                ? "email"
+                                : fieldType === "number"
+                                    ? "number"
+                                    : "text"
+                        }
+                    />
+                );
+
+            })}
+
+        </Box>
+    );
+}
+
+    if (type === "entityForm") {
+
+    const entity =
+        context?.config?.entities?.[node.entity];
+
+    const record = binding
+        ? getValue(context, binding)
+        : {};
+
+    const entityFields =
+        node.fields || [];
+console.log("mycontext:",context);
+
+    return (
+       <EntityFormRenderer
+    entity={entity}
+    record={record}
+    fields={entityFields}
+    readonly={props.readonly}
+    context={context}
+    onChange={(fieldName, value) => {
+
+                if (binding === "selectedOrder") {
+
+                    handlers?.updateOrderField?.(
+                        fieldName,
+                        value
+                    );
+
+                } else {
+
+                    handlers?.updateField?.(
+                        binding,
+                        fieldName,
+                        value
+                    );
+
+                }
+
+            }}
+
+    onSave={
+        events?.onSave
+            ? handlers?.[events.onSave]
+            : undefined
+    }
+
+    onDelete={
+        events?.onDelete
+            ? handlers?.[events.onDelete]
+            : undefined
+    }
+/>
+    );
+}
+
+ 
 
     /*
     =====================================================
@@ -256,6 +728,7 @@ export default function FormRenderer({
     }
 
 
+
     /*
     =====================================================
     CHECKBOX
@@ -319,6 +792,62 @@ export default function FormRenderer({
         );
     }
 
+/*
+=====================================================
+CHILD TABLE
+=====================================================
+*/
+
+if (type === "childTable") {
+
+    const childEntity =
+        context?.config?.entities?.[node.entity];
+
+    const parentValue =
+        node.parentBinding
+            ? getValue(
+                context,
+                node.parentBinding
+            )
+            : null;
+
+    const childData =
+        context?.[
+            node.dataSource ||
+            node.entity
+        ] || [];
+
+
+    const rowClickHandler =
+        node.events?.onClick
+            ? handlers?.[
+                node.events.onClick
+            ]
+            : undefined;
+
+
+    return (
+        <ChildTableRenderer
+            entity={childEntity}
+
+            data={childData}
+
+            parentValue={parentValue}
+
+            relationship={
+                node.relationship
+            }
+
+            columns={
+                node.columns || []
+            }
+
+            onRowClick={
+                rowClickHandler
+            }
+        />
+    );
+}
 
     /*
     =====================================================
@@ -355,7 +884,7 @@ export default function FormRenderer({
 
                             context={{
                                 ...context,
-                                row
+                                row                                
                             }}
 
                             handlers={

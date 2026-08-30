@@ -23,7 +23,8 @@ import {
   Alert,
 } from "@mui/material";
 
-
+import PageRenderer from './PageRenderer';
+import FormRenderer from './FormRenderer';
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "http://127.0.0.1:8000";
@@ -120,428 +121,7 @@ function getValue(object, path) {
 }
 */
 
-/*
-=========================================================
-FORM RENDERER
-=========================================================
-*/
 
-function FormRenderer({
-  node,
-  context,
-  handlers,
-}) {
-
-  if (!node) {
-    return null;
-  }
-
-
-  const {
-    type,
-    props = {},
-    children = [],
-    text,
-    field,
-    binding,
-    dataSource,
-    events = {},
-    options = [],
-  } = node;
-
-
-  /*
-  -------------------------------------------------------
-  Resolve events
-  -------------------------------------------------------
-  */
-
-  const eventProps = {};
-
-
-  Object.entries(events).forEach(
-    ([eventName, handlerName]) => {
-
-      if (
-        handlers[handlerName]
-      ) {
-
-        eventProps[eventName] =
-          handlers[handlerName];
-
-      }
-
-    }
-  );
-
-
-  /*
-  =======================================================
-  TABLE BODY
-  =======================================================
-  */
-
-  if (type === "tableBody") {
-
-    const rows =
-      context[dataSource] || [];
-
-
-    return (
-      <TableBody>
-
-        {rows.map(
-          (row, index) => (
-
-            <FormRenderer
-              key={
-                row.id ?? index
-              }
-
-              node={
-                children[0]
-              }
-
-              context={{
-                ...context,
-                row,
-              }}
-
-              handlers={
-                handlers
-              }
-            />
-
-          )
-        )}
-
-      </TableBody>
-    );
-  }
-
-
-  /*
-  =======================================================
-  TABLE ROW
-  =======================================================
-  */
-
-  if (type === "tableRow") {
-
-    const row = context.row;
-
-    const rowEventProps = {};
-
-    Object.entries(events).forEach(
-        ([eventName, handlerName]) => {
-
-            if (handlers[handlerName]) {
-
-                rowEventProps[eventName] =
-                    (event) => {
-
-                        handlers[handlerName](
-                            event,
-                            row
-                        );
-
-                    };
-            }
-        }
-    );
-
-    return (
-        <TableRow
-            {...props}
-            {...rowEventProps}
-        >
-
-            {children.map(
-                (child, index) => (
-
-                    <FormRenderer
-                        key={
-                            child.id ?? index
-                        }
-                        node={child}
-                        context={context}
-                        handlers={handlers}
-                    />
-
-                )
-            )}
-
-        </TableRow>
-    );
-}
-
-  /*
-  =======================================================
-  TABLE CELL
-  =======================================================
-  */
-
-  if (type === "tableCell") {
-
-    const cellValue =
-      field
-        ? getValue(
-            context.row,
-            field
-          )
-        : text;
-
-
-    return (
-      <TableCell>
-
-        {
-          typeof cellValue ===
-          "boolean"
-
-            ? cellValue
-              ? "Yes"
-              : "No"
-
-            : cellValue
-        }
-
-      </TableCell>
-    );
-  }
-
-
-  /*
-  =======================================================
-  TEXT FIELD
-  =======================================================
-  */
-
-  if (type === "textfield") {
-
-    const value = binding
-        ? getValue(context, binding)
-        : "";
-
-    return (
-        <TextField
-            label={props.label}
-            name={props.name}
-            type={props.type || "text"}
-            fullWidth={props.fullWidth}
-            disabled={props.disabled}
-            size={props.size}
-            sx={props.sx}
-
-            value={
-                value === null ||
-                value === undefined
-                    ? ""
-                    : String(value)
-            }
-
-            onChange={(event) => {
-
-                if (
-                    handlers.handleBindingChange &&
-                    binding
-                ) {
-
-                    handlers.handleBindingChange(
-                        binding,
-                        event.target.value
-                    );
-
-                }
-
-            }}
-        />
-    );
-}
-  /*
-  =======================================================
-  SELECT
-  =======================================================
-  */
-
-  if (type === "select") {
-
-    const value = binding
-        ? getValue(context, binding)
-        : "";
-
-    return (
-        <FormControl
-            fullWidth
-            sx={props.sx}
-        >
-
-            <InputLabel>
-                {props.label}
-            </InputLabel>
-
-            <Select
-                label={props.label}
-                name={props.name}
-
-                value={
-                    value === null ||
-                    value === undefined
-                        ? ""
-                        : value
-                }
-
-                onChange={(event) => {
-
-                    if (
-                        handlers.handleBindingChange &&
-                        binding
-                    ) {
-
-                        handlers.handleBindingChange(
-                            binding,
-                            event.target.value
-                        );
-                    }
-
-                }}
-            >
-
-                {options.map(
-                    (option, index) => {
-
-                        const label =
-                            typeof option === "string"
-                                ? option
-                                : option.label;
-
-                        const optionValue =
-                            typeof option === "string"
-                                ? option
-                                : option.value;
-
-                        return (
-                            <MenuItem
-                                key={
-                                    optionValue ??
-                                    index
-                                }
-                                value={optionValue}
-                            >
-                                {label}
-                            </MenuItem>
-                        );
-                    }
-                )}
-
-            </Select>
-
-        </FormControl>
-    );
-}
-
-  /*
-  =======================================================
-  CHECKBOX
-  =======================================================
-  */
-
-  if (type === "checkbox") {
-
-    const value = binding
-        ? getValue(context, binding)
-        : false;
-
-    return (
-        <FormControlLabel
-
-            label={props.label}
-
-            control={
-                <Checkbox
-                    name={props.name}
-
-                    checked={
-                        Boolean(value)
-                    }
-
-                    onChange={(event) => {
-
-                        if (
-                            handlers.handleBindingChange &&
-                            binding
-                        ) {
-
-                            handlers.handleBindingChange(
-                                binding,
-                                event.target.checked
-                            );
-                        }
-
-                    }}
-                />
-            }
-
-        />
-    );
-}
-
-  /*
-  =======================================================
-  NORMAL MUI COMPONENT
-  =======================================================
-  */
-
-  const Component =
-    componentMap[type];
-
-
-  if (!Component) {
-
-    console.warn(
-      `Unknown component type: ${type}`
-    );
-
-    return null;
-  }
-
-
-  return (
-    <Component
-      {...props}
-      {...eventProps}
-    >
-
-      {text}
-
-      {children.map(
-        (child, index) => (
-
-          <FormRenderer
-            key={
-              child.id ?? index
-            }
-
-            node={
-              child
-            }
-
-            context={
-              context
-            }
-
-            handlers={
-              handlers
-            }
-
-          />
-
-        )
-      )}
-
-    </Component>
-  );
-}
 
 
 /*
@@ -590,7 +170,60 @@ export default function CustomerMasterDetail() {
     setSelectedUser,
   ] = useState(null);
 
+const [
+    selectedOrder,
+    setSelectedOrder,
+] = useState(null);
 
+const [
+    orders,
+    setOrders,
+] = useState([]);
+
+const updateField = (
+    binding,
+    fieldName,
+    value
+) => {
+
+    console.log(
+        "UPDATE FIELD:",
+        binding,
+        fieldName,
+        value
+    );
+
+    if (binding !== "selectedUser") {
+        return;
+    }
+
+    setSelectedUser(previous => {
+
+        if (!previous) {
+            return previous;
+        }
+
+        const updatedUser = {
+            ...previous,
+            [fieldName]: value
+        };
+
+        console.log(
+            "UPDATED USER:",
+            updatedUser
+        );
+
+        setUsers(previousUsers =>
+            previousUsers.map(user =>
+                user.id === updatedUser.id
+                    ? updatedUser
+                    : user
+            )
+        );
+
+        return updatedUser;
+    });
+};
   /*
   -------------------------------------------------------
   Search
@@ -694,14 +327,14 @@ export default function CustomerMasterDetail() {
 
     const response =
       await fetch(
-        `${API_URL}/api/users`
+        `${API_URL}/api/customers`
       );
 
 
     if (!response.ok) {
 
       throw new Error(
-        `Failed to load users: ${response.status}`
+        `Failed to load customers: ${response.status}`
       );
 
     }
@@ -728,6 +361,28 @@ export default function CustomerMasterDetail() {
 
     }
   }
+
+async function loadOrders() {
+
+    const response =
+        await fetch(
+            `${API_URL}/api/orders`
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Failed to load orders: ${response.status}`
+        );
+
+    }
+
+    const data =
+        await response.json();
+
+    setOrders(data);
+}
+
 
 async function selectUser(event, user) {
 
@@ -758,6 +413,7 @@ async function selectUser(event, user) {
         await loadYaml();
 
         await loadUsers();
+        await loadOrders();
 
       }
       catch (err) {
@@ -816,14 +472,15 @@ async function selectUser(event, user) {
 
       const response =
         await fetch(
-          `${API_URL}/api/users/${user.id}`
+          `${API_URL}/api/customers/${user.id}`
         );
 
+          console.log("Selected:", response);
 
       if (!response.ok) {
 
         throw new Error(
-          `Failed to load user: ${response.status}`
+          `Failed to load customer: ${response.status}`
         );
 
       }
@@ -849,22 +506,109 @@ async function selectUser(event, user) {
     }
   }
 
+async function saveOrder() {
 
+    if (!selectedOrder) {
+        setError("Please create an order first.");
+        return;
+    }
+
+    try {
+
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        const isNew =
+            selectedOrder.id === null ||
+            selectedOrder.id === undefined;
+
+        const url = isNew
+            ? `${API_URL}/api/orders`
+            : `${API_URL}/api/orders/${selectedOrder.id}`;
+
+        const response = await fetch(
+            url,
+            {
+                method: isNew ? "POST" : "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(
+                    selectedOrder
+                )
+            }
+        );
+
+        if (!response.ok) {
+
+            const errorText =
+                await response.text();
+
+            throw new Error(
+                `Failed to save order: ${response.status} ${errorText}`
+            );
+        }
+
+        const savedOrder =
+            await response.json();
+
+        console.log(
+            "ORDER SAVED:",
+            savedOrder
+        );
+
+        setSelectedOrder(null);
+
+        setMessage(
+            "Order saved successfully."
+        );
+
+        // Reload orders
+        await loadOrders();
+
+    }
+    catch (err) {
+
+        console.error(err);
+
+        setError(
+            err.message
+        );
+
+    }
+    finally {
+
+        setSaving(false);
+    }
+}
   /*
   =======================================================
   CHANGE DETAIL FIELD
   =======================================================
   */
 
-function handleBindingChange(binding, value) {
+const handleBindingChange = (
+    binding,
+    value
+) => {
+
+    console.log(
+        "BINDING CHANGE:",
+        binding,
+        value
+    );
 
     if (!binding.startsWith("selectedUser.")) {
         return;
     }
 
-    const fieldName = binding.substring(
-        "selectedUser.".length
-    );
+    const fieldName =
+        binding.substring(
+            "selectedUser.".length
+        );
 
     setSelectedUser(previous => {
 
@@ -877,7 +621,6 @@ function handleBindingChange(binding, value) {
             [fieldName]: value
         };
 
-        // Keep master list in sync
         setUsers(previousUsers =>
             previousUsers.map(user =>
                 user.id === updatedUser.id
@@ -888,7 +631,7 @@ function handleBindingChange(binding, value) {
 
         return updatedUser;
     });
-}
+};
   /*
   =======================================================
   SAVE USER
@@ -899,97 +642,188 @@ function handleBindingChange(binding, value) {
 
     if (!selectedUser) {
 
-      setError(
-        "Please select a user first."
-      );
+        setError(
+            "Please select a user first."
+        );
 
-      return;
+        return;
     }
-
 
     try {
 
-      setSaving(true);
+        setSaving(true);
+        setError(null);
+        setMessage(null);
 
-      setError(null);
+        const isNew =
+            selectedUser.id === null ||
+            selectedUser.id === undefined;
 
-      setMessage(null);
+
+        /*
+        =====================================================
+        NEW CUSTOMER
+        =====================================================
+        */
+
+        if (isNew) {
+
+            const response =
+                await fetch(
+                    `${API_URL}/api/customers`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+
+                        body:
+                            JSON.stringify(
+                                selectedUser
+                            ),
+                    }
+                );
 
 
-      const response =
-        await fetch(
-          `${API_URL}/api/users/${selectedUser.id}`,
-          {
-            method: "PUT",
+            if (!response.ok) {
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+                const errorData =
+                    await response.json()
+                        .catch(() => null);
 
-            body:
-              JSON.stringify(
-                selectedUser
-              ),
-          }
+                throw new Error(
+                    errorData?.detail
+                        ? JSON.stringify(
+                            errorData.detail
+                        )
+                        : `Failed to create user: ${response.status}`
+                );
+            }
+
+
+            const created =
+                await response.json();
+
+
+            /*
+            * Add new customer to master list
+            */
+
+            setUsers(
+                previousUsers => [
+                    ...previousUsers,
+                    created
+                ]
+            );
+
+
+            /*
+            * Select newly created customer
+            */
+
+            setSelectedUser(
+                created
+            );
+
+
+            setMessage(
+                "User created successfully."
+            );
+
+            return;
+        }
+
+
+        /*
+        =====================================================
+        EXISTING CUSTOMER
+        =====================================================
+        */
+
+        const response =
+            await fetch(
+                `${API_URL}/api/customers/${selectedUser.id}`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    body:
+                        JSON.stringify(
+                            selectedUser
+                        ),
+                }
+            );
+
+
+        if (!response.ok) {
+
+            const errorData =
+                await response.json()
+                    .catch(() => null);
+
+            throw new Error(
+                errorData?.detail
+                    ? JSON.stringify(
+                        errorData.detail
+                    )
+                    : `Failed to save user: ${response.status}`
+            );
+        }
+
+
+        const updated =
+            await response.json();
+
+
+        /*
+        * Update master list
+        */
+
+        setUsers(
+            previousUsers =>
+                previousUsers.map(
+                    user =>
+                        user.id === updated.id
+                            ? updated
+                            : user
+                )
         );
 
 
-      if (!response.ok) {
+        /*
+        * Keep detail synchronized
+        */
 
-        throw new Error(
-          `Failed to save user: ${response.status}`
+        setSelectedUser(
+            updated
         );
 
-      }
 
-
-      const updated =
-        await response.json();
-
-
-      /*
-       * Update master list
-       */
-
-      setUsers(
-        previous =>
-          previous.map(
-            user =>
-              user.id ===
-              updated.id
-                ? updated
-                : user
-          )
-      );
-
-
-      setSelectedUser(
-        updated
-      );
-
-
-      setMessage(
-        "User saved successfully."
-      );
+        setMessage(
+            "User saved successfully."
+        );
 
     }
     catch (err) {
 
-      console.error(err);
+        console.error(err);
 
-      setError(
-        err.message
-      );
+        setError(
+            err.message
+        );
 
     }
     finally {
 
-      setSaving(false);
+        setSaving(false);
     }
-
-  }
-
+}
 
   /*
   =======================================================
@@ -1029,7 +863,7 @@ function handleBindingChange(binding, value) {
 
       const response =
         await fetch(
-          `${API_URL}/api/users/${selectedUser.id}`,
+          `${API_URL}/api/customers/${selectedUser.id}`,
           {
             method: "DELETE",
           }
@@ -1086,7 +920,22 @@ function handleBindingChange(binding, value) {
 
   }
 
+async function selectOrder(
+    event,
+    order
+) {
 
+    console.log(
+        "Selected order:",
+        order
+    );
+
+    setError(null);
+
+    setSelectedOrder(
+        order
+    );
+}
   /*
   =======================================================
   FILTER USERS
@@ -1153,16 +1002,14 @@ function handleBindingChange(binding, value) {
   =======================================================
   */
 
-  const context = {
-
-    users:
-      filteredUsers,
-
+const context = {
+    config,
+    customers: filteredUsers,
+    orders,
     selectedUser,
-
+    selectedOrder,
     search,
-
-  };
+};
   console.log(
       "RENDER CONTEXT:",
       context
@@ -1174,17 +1021,88 @@ function handleBindingChange(binding, value) {
   =======================================================
   */
 
+const newCustomer = () => {
+
+    setSelectedUser({
+        first_name: "",
+        last_name: "",
+        email: "",
+        age: "",
+        gender: "",
+        city: "",
+        active: true
+    });
+
+};
+function updateOrderField(fieldName, value) {
+
+    setSelectedOrder(previous => {
+
+        if (!previous) {
+            return previous;
+        }
+
+        return {
+            ...previous,
+            [fieldName]: value
+        };
+    });
+}
+const newOrder = () => {
+
+    console.log("NEW ORDER CLICKED");
+    console.log("CURRENT CUSTOMER:", selectedUser);
+
+    if (!selectedUser) {
+
+        setError(
+            "Please select a customer first."
+        );
+
+        return;
+    }
+
+    const order = {
+        id: null,
+        customer_id: selectedUser.id,
+        order_date: new Date()
+            .toISOString()
+            .split("T")[0],
+        product: "",
+        quantity: 1,
+        amount: 0,
+        status: "draft"
+    };
+
+    console.log("NEW ORDER:", order);
+
+    setSelectedOrder(order);
+};
+
+
   const handlers = {
 
-    handleSearch,
+        handleSearch,
 
     selectCustomer,
+
+    newCustomer,
+
+    newOrder,
+
+    selectOrder,
 
     handleBindingChange,
 
     saveCustomer,
 
     deleteCustomer,
+
+    updateField,
+
+    updateOrderField,
+
+    saveOrder
 
   };
 
@@ -1234,13 +1152,65 @@ function handleBindingChange(binding, value) {
 
   }
 
-
+console.log("CONFIG FROM API:", config);
   /*
   =======================================================
   RENDER YAML
   =======================================================
   */
+/*
 
+const context = {
+    customers: [
+        {
+            id: 1,
+            first_name: "John",
+            last_name: "Smith",
+            email: "john@example.com",
+            age: 35,
+            gender: "Male",
+            city: "London",
+            active: true
+        },
+        {
+            id: 2,
+            first_name: "Jane",
+            last_name: "Doe",
+            email: "jane@example.com",
+            age: 29,
+            gender: "Female",
+            city: "Paris",
+            active: true
+        }
+    ],
+
+    orders: [
+        {
+            id: 101,
+            customer_id: 1,
+            order_date: "2026-08-20",
+            product: "Laptop",
+            quantity: 2,
+            amount: 2400,
+            status: "approved"
+        }
+    ],
+
+    selectedUser: null
+};
+
+
+    const pageConfig =
+        page || config?.pages?.customer;
+
+    if (!pageConfig) {
+        return (
+            <div>
+                Page configuration not found
+            </div>
+        );
+    }
+*/
   return (
     <>
 
@@ -1265,19 +1235,12 @@ function handleBindingChange(binding, value) {
 
 
       {config && (
-        <FormRenderer
-          node={
-            config.page
-          }
-
-          context={
-            context
-          }
-
-          handlers={
-            handlers
-          }
-        />
+     <PageRenderer
+    config={config}
+    pageName="customer"
+    context={context}
+    handlers={handlers}
+/>
       )}
 
 
