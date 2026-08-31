@@ -9,6 +9,7 @@ import About from "./pages/About";
 import Settings from "./pages/Settings";
 import UserFormRenderer from './pages/UserFormRenderer';
 import CustomerMasterDetail from './pages/CustomerMasterDetail';
+import Dashboard from './pages/Dashboard';
 import LoginRenderer from './pages/LoginRenderer'
 import TestPicker from './pages/TestPicker';
 import PasswordPage from './pages/PasswordPage';
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/testpicker" element={<TestPicker />} />
             <Route path="/userformrenderer" element={<UserFormRenderer />} />
             <Route path="/change-password" element={<PasswordPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/master-detail" element={<CustomerMasterDetail />} />
             <Route path="/loginrenderer" element={<LoginRenderer />} />
             <Route path="/settings" element={<Settings />} />

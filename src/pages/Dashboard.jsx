@@ -1239,7 +1239,7 @@ return (
         {config && (
             <PageRenderer
                 config={config}
-                pageName="customer"
+                pageName="dashboard"
                 context={context}
                 handlers={handlers}
             />
