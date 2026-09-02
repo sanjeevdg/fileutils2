@@ -14,7 +14,7 @@ import {
     Card,
     CardContent
 } from "@mui/material";
-
+import WidgetRenderer from "./WidgetRenderer";
 
 export default function DashboardRenderer({
     node,
@@ -32,71 +32,77 @@ const [stats, setStats] = useState([]);
   useEffect(() => {
 
     if (!node?.stats?.length) {
-      setStats([]);
-      return;
+        setStats([]);
+        return;
     }
 
     const loadStats = async () => {
 
-    try {
+        try {
 
-        setError("");
+            setError("");
 
-        console.log("NODE.STATS:", node.stats);
-        console.log(
-            "NODE.STATS JSON:",
-            JSON.stringify(node.stats)
-        );
+            console.log("========== STATS DEBUG ==========");
+            console.log("SELECTED CUSTOMER:", selectedCustomer);
+            console.log("SELECTED CUSTOMER ID:", selectedCustomer?.id);
+            console.log("STATS CONFIG:", node.stats);
+            console.log("=================================");
 
-        const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/stats`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-            stats: node.stats
-        }),
-            }
-        );
+            const response =
+                await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/stats`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            stats: node.stats,
+                            selectedCustomerId:
+                                selectedCustomer?.id ?? null
+                        }),
+                    }
+                );
 
-        const responseText = await response.text();
+            const responseText =
+                await response.text();
 
-        console.log(
-            "STATS RESPONSE STATUS:",
-            response.status
-        );
-
-        console.log(
-            "STATS RESPONSE:",
-            responseText
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Stats request failed: ${response.status} - ${responseText}`
+            console.log(
+                "STATS RESPONSE STATUS:",
+                response.status
             );
+
+            console.log(
+                "STATS RESPONSE:",
+                responseText
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    `Stats request failed: ${response.status} - ${responseText}`
+                );
+            }
+
+            const data =
+                JSON.parse(responseText);
+
+            setStats(data);
+
         }
+        catch (err) {
 
-        const data = JSON.parse(responseText);
+            console.error(
+                "Dashboard stats error:",
+                err
+            );
 
-        setStats(data);
-
-    } catch (err) {
-
-        console.error(
-            "Dashboard stats error:",
-            err
-        );
-
-        setError(err.message);
-    }
-};
+            setError(err.message);
+        }
+    };
 
     loadStats();
 
-  }, [node]);
+}, [node, selectedCustomer?.id]);
 
     // -----------------------------------------
     // ORDERS FOR SELECTED CUSTOMER
@@ -136,7 +142,12 @@ const [stats, setStats] = useState([]);
 
     };
 
-
+    // -----------------------------------------
+    // YAML WIDGETS
+    // -----------------------------------------
+console.log("DASHBOARD NODE:", node);
+console.log("DASHBOARD WIDGETS:", node?.widgets);
+   
     // -----------------------------------------
     // RENDER
     // -----------------------------------------
@@ -150,6 +161,36 @@ const [stats, setStats] = useState([]);
                 py: 3
             }}
         >
+
+        {node?.widgets?.length > 0 && (
+            <Grid
+                container
+                spacing={2}
+                sx={{
+                    mb: 3
+                }}
+            >
+
+                {node.widgets.map((widget, index) => (
+                    <Grid
+                        key={widget.id || index}
+                        size={{
+                            xs: 12,
+                            sm: 6,
+                            md: 3
+                        }}
+                    >
+                        <WidgetRenderer
+                            widget={widget}
+                            context={context}
+                            handlers={handlers}
+                        />
+                    </Grid>
+                ))}
+
+            </Grid>
+        )}
+
 
             {/* ================================= */}
             {/* TITLE */}

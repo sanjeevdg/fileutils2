@@ -1,19 +1,19 @@
 import React from "react";
 import FormRenderer from "./FormRenderer";
 import DashboardRenderer from "./DashboardRenderer";
-import ChartRenderer from "./ChartRenderer";
 
 
 export default function PageRenderer({
     config,
     pageName = "customer",
+//    pageName = "widget_test",
     context = {},
     handlers = {}
 }) {
 
     const pageConfig =
         config?.pages?.[pageName];
-
+console.log("PAGE CONFIG:", pageName, pageConfig);
     if (!pageConfig) {
         return (
             <div>
@@ -22,13 +22,14 @@ export default function PageRenderer({
         );
     }
 
+
     // -----------------------------------------
-    // CUSTOM DASHBOARD
+    // DASHBOARD
     // -----------------------------------------
 
-   if (pageConfig.type === "dashboard") {
-    return (
-        <>
+    if (pageConfig.type === "dashboard") {
+
+        return (
             <DashboardRenderer
                 node={pageConfig}
                 context={{
@@ -37,15 +38,9 @@ export default function PageRenderer({
                 }}
                 handlers={handlers}
             />
+        );
+    }
 
-            {pageConfig.chart && (
-                <ChartRenderer
-                    chart={pageConfig.chart}
-                />
-            )}
-        </>
-    );
-}
 
     // -----------------------------------------
     // EXISTING YAML UI
@@ -62,4 +57,3 @@ export default function PageRenderer({
         />
     );
 }
-

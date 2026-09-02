@@ -460,10 +460,7 @@ async function selectUser(event, user) {
   =======================================================
   */
 
-  async function selectCustomer(
-    event,
-    user
-  ) {
+  async function selectCustomer(user) {
 
     try {
 
