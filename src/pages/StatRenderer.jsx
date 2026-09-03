@@ -11,8 +11,10 @@ export default function StatRenderer({
     widget,
     context = {}
 }) {
+
     console.log("STAT RENDERER:", widget);
-console.log("STAT CONTEXT:", context);
+    console.log("STAT CONTEXT:", context);
+
     const title = widget.title || "Stat";
 
     const source = widget.source || {};
@@ -20,12 +22,81 @@ console.log("STAT CONTEXT:", context);
     const entity = source.entity;
     const aggregate = source.aggregate || "count";
     const field = source.field;
+    const sourceValue = source.value;
 
     // -----------------------------------------
     // GET DATA FROM CONTEXT
     // -----------------------------------------
 
-    const rows = context[entity] || [];
+    let rows = context[entity] || [];
+
+    // -----------------------------------------
+    // APPLY FILTER
+    // -----------------------------------------
+
+    const filter = widget.filter;
+
+    if (filter?.field) {
+
+        let filterValue = null;
+
+        // Resolve binding such as:
+        // selectedUser.id
+        if (filter.binding) {
+
+            const parts = filter.binding.split(".");
+
+            filterValue = context;
+
+            for (const part of parts) {
+
+                if (
+                    filterValue === null ||
+                    filterValue === undefined
+                ) {
+                    break;
+                }
+
+                filterValue = filterValue[part];
+            }
+        }
+
+        // Apply filter only when we have a value
+        if (
+            filterValue !== null &&
+            filterValue !== undefined
+        ) {
+
+            rows = rows.filter(row =>
+                String(row[filter.field]) ===
+                String(filterValue)
+            );
+
+        }
+    }
+
+    // -----------------------------------------
+    // APPLY SOURCE VALUE FILTER
+    //
+    // Example:
+    //
+    // field: status
+    // value: submitted
+    //
+    // -----------------------------------------
+
+    if (
+        field &&
+        sourceValue !== undefined &&
+        sourceValue !== null
+    ) {
+
+        rows = rows.filter(row =>
+            String(row[field]) ===
+            String(sourceValue)
+        );
+
+    }
 
     // -----------------------------------------
     // CALCULATE VALUE
@@ -89,19 +160,18 @@ console.log("STAT CONTEXT:", context);
 
     }
 
-
     // -----------------------------------------
     // FORMAT
     // -----------------------------------------
 
-    if (aggregate === "avg") {
-        value = Number(value).toFixed(2);
-    }
+    if (
+        aggregate === "avg" ||
+        aggregate === "sum"
+    ) {
 
-    if (aggregate === "sum") {
         value = Number(value).toFixed(2);
-    }
 
+    }
 
     // -----------------------------------------
     // RENDER

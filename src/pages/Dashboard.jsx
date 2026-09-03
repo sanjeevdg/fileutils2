@@ -1156,62 +1156,12 @@ const newOrder = () => {
 
   }
 
-console.log("CONFIG FROM API:", config);
   /*
   =======================================================
   RENDER YAML
   =======================================================
   */
-/*
-  return (
-    <>
 
-      {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 2 }}
-        >
-          {error}
-        </Alert>
-      )}
-
-
-      {message && (
-        <Alert
-          severity="success"
-          sx={{ mb: 2 }}
-        >
-          {message}
-        </Alert>
-      )}
-
-
-      {config && (
-     <PageRenderer
-    config={config}
-    pageName="customer"
-    context={context}
-    handlers={handlers}
-/>
-      )}
-
-
-      {saving && (
-        <CircularProgress
-          size={24}
-          sx={{
-            position:
-              "fixed",
-            bottom: 20,
-            right: 20,
-          }}
-        />
-      )}
-
-    </>
-  );
-*/
-console.log("DASHBOARD CONTEXT:", context);
 return (
     <>
 

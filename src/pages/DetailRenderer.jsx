@@ -1,200 +1,123 @@
 import React from "react";
 
 import {
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Divider,
-    Stack,
-    Typography
+    Paper,
+    Typography,
+    Box
 } from "@mui/material";
 
-import FormRenderer from "./FormRenderer";
-import ListRenderer from "./ListRenderer";
-import WorkflowRenderer from "./WorkflowRenderer";
 
 export default function DetailRenderer({
-    page,
-    entity,
-    record,
-    config,
-    onNavigate,
-    onSave,
-    onDelete,
-    onAction
+    widget,
+    context = {}
 }) {
 
+    console.log("DETAIL RENDERER:", widget);
+    console.log("DETAIL CONTEXT:", context);
+
+    const title = widget.title || "Details";
+
+    const source = widget.source || {};
+
+    // -----------------------------------------
+    // GET SELECTED RECORD
+    // -----------------------------------------
+
+    let record = null;
+
+    if (source.binding) {
+
+        const parts = source.binding.split(".");
+
+        record = context;
+
+        for (const part of parts) {
+
+            if (
+                record === null ||
+                record === undefined
+            ) {
+                break;
+            }
+
+            record = record[part];
+        }
+    }
+
+    // -----------------------------------------
+    // NO RECORD SELECTED
+    // -----------------------------------------
+
     if (!record) {
+
         return (
-            <Typography>
-                Record not found
-            </Typography>
+            <Paper
+                elevation={2}
+                sx={{
+                    p: 3
+                }}
+            >
+
+                <Typography
+                    variant="h6"
+                    gutterBottom
+                >
+                    {title}
+                </Typography>
+
+                <Typography color="text.secondary">
+                    Select a customer
+                </Typography>
+
+            </Paper>
         );
     }
 
-    const sections = page.sections || [];
+    // -----------------------------------------
+    // RENDER FIELDS
+    // -----------------------------------------
+
+    const fields = widget.fields || [];
 
     return (
+        <Paper
+            elevation={2}
+            sx={{
+                p: 3
+            }}
+        >
 
-        <Box sx={{ width: "100%" }}>
-
-            <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{ mb: 3 }}
+            <Typography
+                variant="h6"
+                gutterBottom
             >
+                {title}
+            </Typography>
 
-                <Typography variant="h5">
-                    {page.title || `${entity.singular} Details`}
-                </Typography>
+            {fields.map((field, index) => (
 
-                <Button
-                    variant="outlined"
-                    onClick={() =>
-                        onNavigate?.({
-                            page: `${page.entity}-list`
-                        })
-                    }
+                <Box
+                    key={field.field || index}
+                    sx={{
+                        mb: 1
+                    }}
                 >
-                    Back
-                </Button>
 
-            </Stack>
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                    >
+                        {field.label || field.field}
+                    </Typography>
 
+                    <Typography>
+                        {record[field.field] ?? ""}
+                    </Typography>
 
-            <Stack spacing={3}>
+                </Box>
 
-                {sections.map((section, index) => {
+            ))}
 
-                    switch (section.type) {
-
-                        case "form":
-
-                            return (
-                                <Card key={index}>
-                                    <CardContent>
-
-                                        <FormRenderer
-                                            entity={
-                                                config.entities[
-                                                    section.entity
-                                                ]
-                                            }
-                                            config={config}
-                                            record={record}
-                                            readonly={
-                                                section.readonly ?? false
-                                            }
-                                            onSave={onSave}
-                                        />
-
-                                    </CardContent>
-                                </Card>
-                            );
-
-
-                        case "child-list": {
-
-                            const childEntity =
-                                config.entities[
-                                    section.entity
-                                ];
-
-                            if (!childEntity) {
-                                return null;
-                            }
-
-                            return (
-                                <Card key={index}>
-                                    <CardContent>
-
-                                        <Stack
-                                            direction="row"
-                                            justifyContent="space-between"
-                                            alignItems="center"
-                                            sx={{ mb: 2 }}
-                                        >
-
-                                            <Typography variant="h6">
-                                                {childEntity.label}
-                                            </Typography>
-
-                                            <Button
-                                                variant="contained"
-                                                size="small"
-                                                onClick={() =>
-                                                    onNavigate?.({
-                                                        page: `${section.entity}-form`,
-                                                        parentId:
-                                                            record[
-                                                                entity.key
-                                                            ]
-                                                    })
-                                                }
-                                            >
-                                                New {
-                                                    childEntity.singular
-                                                }
-                                            </Button>
-
-                                        </Stack>
-
-                                        <Divider sx={{ mb: 2 }} />
-
-                                        <ListRenderer
-                                            page={{
-                                                type: "list",
-                                                entity: section.entity,
-                                                columns:
-                                                    childEntity.list
-                                                        ?.columns
-                                            }}
-                                            entity={childEntity}
-                                            data={[]}
-                                            onNavigate={
-                                                onNavigate
-                                            }
-                                        />
-
-                                    </CardContent>
-                                </Card>
-                            );
-                        }
-
-
-                        case "workflow":
-
-                            return (
-                                <Card key={index}>
-                                    <CardContent>
-
-                                        <WorkflowRenderer
-                                            entity={
-                                                config.entities[
-                                                    section.entity
-                                                ]
-                                            }
-                                            record={record}
-                                            onAction={
-                                                onAction
-                                            }
-                                        />
-
-                                    </CardContent>
-                                </Card>
-                            );
-
-
-                        default:
-                            return null;
-                    }
-
-                })}
-
-            </Stack>
-
-        </Box>
+        </Paper>
     );
 }
