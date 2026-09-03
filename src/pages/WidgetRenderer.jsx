@@ -25,10 +25,10 @@ console.log("WIDGET RENDERER:", widget);
     switch (widget.type) {
 
         case "chart":
-
             return (
                 <ChartRenderer
                     chart={widget.chart || widget}
+                    widget={widget}
                     context={context}
                     handlers={handlers}
                 />

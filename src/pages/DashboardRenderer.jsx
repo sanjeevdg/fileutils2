@@ -40,12 +40,7 @@ export default function DashboardRenderer({
                     {node.widgets.map((widget, index) => (
                         <Grid
                             key={widget.id || index}
-                            size={
-                                widget.type === "table" ||
-                                widget.type === "detail"
-                                    ? { xs: 12 }
-                                    : { xs: 12, sm: 6, md: 3 }
-                            }
+                            size={widget.layout || { xs: 12 }}
                         >
 
                             <WidgetRenderer

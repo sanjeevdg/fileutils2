@@ -12,7 +12,9 @@ import {
 
 
 export default function ChartRenderer({
-    chart
+    chart,
+    context = {},
+    widget = {}
 }) {
 
     const [data, setData] = useState([]);
@@ -36,6 +38,34 @@ export default function ChartRenderer({
                     x: chart.x,
                     y: chart.y
                 });
+
+                const filter = widget.filter;
+
+                if (filter?.field && filter?.binding) {
+
+                    const parts = filter.binding.split(".");
+
+                    let filterValue = context;
+
+                    for (const part of parts) {
+                        if (
+                            filterValue === null ||
+                            filterValue === undefined
+                        ) {
+                            break;
+                        }
+
+                        filterValue = filterValue[part];
+                    }
+
+                    if (
+                        filterValue !== null &&
+                        filterValue !== undefined
+                    ) {
+                        params.set("filter_field", filter.field);
+                        params.set("filter_value", filterValue);
+                    }
+                }
 
                 const response = await fetch(
                     `${import.meta.env.VITE_API_URL}/api/chart?${params}`
@@ -68,7 +98,7 @@ export default function ChartRenderer({
 
         loadChart();
 
-    }, [chart]);
+    }, [chart, context, widget.filter]);
 
 
     if (error) {
