@@ -6,9 +6,8 @@ import {
     Typography
 } from "@mui/material";
 
-import {
-    LineChart
-} from "@mui/x-charts/LineChart";
+import { LineChart } from "@mui/x-charts/LineChart";
+import { BarChart } from "@mui/x-charts/BarChart";
 
 
 export default function ChartRenderer({
@@ -159,28 +158,53 @@ export default function ChartRenderer({
                 }}
             >
 
-                <LineChart
-                    height={350}
+                {chart.type === "bar" ? (
+                    <BarChart
+                        height={350}
 
-                    xAxis={[
-                        {
-                            scaleType: "point",
-                            data: xData
-                        }
-                    ]}
+                        xAxis={[
+                            {
+                                scaleType: "band",
+                                data: xData
+                            }
+                        ]}
 
-                    series={[
-                        {
-                            data: yData,
-                            label: chart.y
-                        }
-                    ]}
+                        series={[
+                            {
+                                data: yData,
+                                label: chart.y
+                            }
+                        ]}
 
-                    grid={{
-                        vertical: false,
-                        horizontal: true
-                    }}
-                />
+                        grid={{
+                            vertical: false,
+                            horizontal: true
+                        }}
+                    />
+                ) : (
+                    <LineChart
+                        height={350}
+
+                        xAxis={[
+                            {
+                                scaleType: "point",
+                                data: xData
+                            }
+                        ]}
+
+                        series={[
+                            {
+                                data: yData,
+                                label: chart.y
+                            }
+                        ]}
+
+                        grid={{
+                            vertical: false,
+                            horizontal: true
+                        }}
+                    />
+                )}
 
             </Box>
 
