@@ -11,11 +11,9 @@ import WidgetRenderer from "./WidgetRenderer";
 export default function DashboardRenderer({
     node,
     context = {},
-    handlers = {}
+    handlers = {},
+    onWidgetSelect = null
 }) {
-
-    console.log("DASHBOARD NODE:", node);
-    console.log("DASHBOARD WIDGETS:", node?.widgets);
 
     return (
         <Box
@@ -28,31 +26,86 @@ export default function DashboardRenderer({
         >
 
             {/* Dashboard title */}
-            <Typography variant="h4" gutterBottom>
+
+            <Typography
+                variant="h4"
+                gutterBottom
+            >
                 {node?.title || "Dashboard"}
             </Typography>
 
 
-            {/* Generic dashboard widgets */}
+            {/* Dashboard widgets */}
+
             {node?.widgets?.length > 0 && (
-                <Grid container spacing={2}>
 
-                    {node.widgets.map((widget, index) => (
-                        <Grid
-                            key={widget.id || index}
-                            size={widget.layout || { xs: 12 }}
-                        >
+                <Grid
+                    container
+                    spacing={2}
+                >
 
-                            <WidgetRenderer
-                                widget={widget}
-                                context={context}
-                                handlers={handlers}
-                            />
+                    {node.widgets.map(
+                        (widget, index) => (
 
-                        </Grid>
-                    ))}
+                            <Grid
+                                key={
+                                    widget.id || index
+                                }
+                                size={
+                                    widget.layout || {
+                                        xs: 12
+                                    }
+                                }
+
+                                onClick={(event) => {
+
+                                    /*
+                                     * Only intercept clicks
+                                     * when the designer has
+                                     * supplied a callback.
+                                     */
+
+                                    if (onWidgetSelect) {
+
+                                        event.stopPropagation();
+
+                                        onWidgetSelect(
+                                            widget
+                                        );
+                                    }
+
+                                }}
+
+                                sx={
+                                    onWidgetSelect
+                                        ? {
+                                            cursor: "pointer",
+                                            outline:
+                                                "1px solid transparent",
+                                            "&:hover": {
+                                                outline:
+                                                    "2px solid",
+                                                outlineOffset:
+                                                    "2px"
+                                            }
+                                        }
+                                        : undefined
+                                }
+                            >
+
+                                <WidgetRenderer
+                                    widget={widget}
+                                    context={context}
+                                    handlers={handlers}
+                                />
+
+                            </Grid>
+
+                        )
+                    )}
 
                 </Grid>
+
             )}
 
         </Box>

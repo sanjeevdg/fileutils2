@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import { useParams } from "react-router-dom";
 import {
   Container,
   Box,
@@ -133,8 +133,9 @@ USER MASTER / DETAIL
 export default function CustomerMasterDetail() {
 
 
-
-
+const { name } = useParams();
+const configName =
+    name || "customer_master_detail";
   /*
   -------------------------------------------------------
   YAML configuration
@@ -293,28 +294,25 @@ const updateField = (
   async function loadYaml() {
 
     const response =
-      await fetch(
-        `${API_URL}/api/config?name=customer_master_detail`
-      );
-
+        await fetch(
+            `${API_URL}/api/config?name=${configName}`
+        );
 
     if (!response.ok) {
 
-      throw new Error(
-        `Failed to load YAML configuration: ${response.status}`
-      );
+        throw new Error(
+            `Failed to load YAML configuration: ${response.status}`
+        );
 
     }
 
-
     const config =
-      await response.json();
-
+        await response.json();
 
     setConfig(config);
 
     return config;
-  }
+}
 
 
   /*
@@ -436,7 +434,7 @@ async function selectUser(event, user) {
 
     initialize();
 
-  }, []);
+  }, [configName]);
 
 
   /*

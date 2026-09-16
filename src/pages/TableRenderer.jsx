@@ -1,99 +1,203 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import {
     Paper,
-    Typography,
-    Table,
-    TableHead,
-    TableBody,
-    TableRow,
-    TableCell
+    Typography
 } from "@mui/material";
+
+import {
+    DataGrid
+} from "@mui/x-data-grid";
 
 
 export default function TableRenderer({
     widget,
     context = {},
     handlers = {}
+
 }) {
 
-    console.log("TABLE RENDERER:", widget);
-    console.log("TABLE CONTEXT:", context);
+    const [rows, setRows] = useState([]);
+    const [error, setError] = useState("");
 
-    const title = widget.title || "Table";
-
-    const source = widget.source || {};
+    const source = widget?.source || {};
 
     const entity = source.entity;
-    const limit = source.limit || 10;
+
     const columns = source.columns || [];
 
-    // -----------------------------------------
-    // GET DATA
-    // -----------------------------------------
+    const limit = source.limit || 10;
 
-    let rows = context[entity] || [];
 
-    // -----------------------------------------
-    // APPLY FILTER
-    // -----------------------------------------
+    useEffect(() => {
 
-    const filter = widget.filter;
+        if (!entity) {
+            setRows([]);
+            return;
+        }
 
-    if (filter?.field) {
+        const loadData = async () => {
 
-        let filterValue = null;
+            try {
 
-        // Example:
-        // binding: selectedUser.id
+                setError("");
 
-        if (filter.binding) {
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/${entity}`
+                );
 
-            const parts = filter.binding.split(".");
+                if (!response.ok) {
 
-            filterValue = context;
-
-            for (const part of parts) {
-
-                if (
-                    filterValue === null ||
-                    filterValue === undefined
-                ) {
-                    break;
+                    throw new Error(
+                        `Table request failed: ${response.status}`
+                    );
                 }
 
-                filterValue = filterValue[part];
+                const result = await response.json();
+
+                setRows(
+                    Array.isArray(result)
+                        ? result.slice(0, limit)
+                        : []
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "Table error:",
+                    err
+                );
+
+                setError(err.message);
+
             }
-        }
 
-        if (
-            filterValue !== null &&
-            filterValue !== undefined
-        ) {
+        };
 
-            rows = rows.filter(row =>
-                String(row[filter.field]) ===
-                String(filterValue)
-            );
+        loadData();
 
-        }
+    }, [entity, limit]);
+
+
+    if (error) {
+
+        return (
+            <Typography color="error">
+                {error}
+            </Typography>
+        );
     }
 
-    // -----------------------------------------
-    // LIMIT
-    // -----------------------------------------
 
-    rows = rows.slice(0, limit);
+    if (!entity) {
 
-    // -----------------------------------------
-    // RENDER
-    // -----------------------------------------
+        return (
+            <Typography color="text.secondary">
+                No table entity selected
+            </Typography>
+        );
+    }
+
+
+    /*
+     * If no columns have been explicitly selected,
+     * derive them from the first row.
+     */
+
+    const visibleColumns =
+    columns.length > 0
+        ? columns
+        : rows.length > 0
+            ? Object.keys(rows[0]).map(
+                field => ({
+                    field,
+                    label: field
+                })
+            )
+            : [];
+
+
+    const gridColumns = visibleColumns.map(
+                column => {
+
+                    const field =
+                        typeof column === "string"
+                            ? column
+                            : column.field;
+
+                    const label =
+                        typeof column === "string"
+                            ? column
+                            : column.label || column.field;
+
+                    const format =
+                        typeof column === "string"
+                            ? "none"
+                            : column.format || "none";
+
+                    return {
+                        field,
+                        headerName: label,
+                        flex: 1,
+                        minWidth: 120,
+
+                        valueFormatter: (value) => {
+
+                            if (
+                                value === null ||
+                                value === undefined ||
+                                value === ""
+                            ) {
+                                return "";
+                            }
+
+                            switch (format) {
+
+                                case "number":
+                                    return Number(value)
+                                        .toLocaleString();
+
+                                case "currency":
+                                    return Number(value)
+                                        .toLocaleString(
+                                            undefined,
+                                            {
+                                                style: "currency",
+                                                currency: "USD"
+                                            }
+                                        );
+
+                                case "date":
+                                    return new Date(value)
+                                        .toLocaleDateString();
+
+                                case "none":
+                                default:
+                                    return value;
+                            }
+                        }
+                    };
+                }
+            );
+
+
+    const gridRows = rows.map(
+        (row, index) => ({
+            ...row,
+            _gridId:
+                row.id ??
+                index
+        })
+    );
+
 
     return (
+
         <Paper
             elevation={2}
             sx={{
-                p: 3
+                p: 2,
+                mt: 3
             }}
         >
 
@@ -101,87 +205,49 @@ export default function TableRenderer({
                 variant="h6"
                 gutterBottom
             >
-                {title}
+                {widget.title || entity}
             </Typography>
 
-            <Table size="small">
 
-                <TableHead>
+            <DataGrid
+                rows={gridRows}
+                columns={gridColumns}
+                getRowId={(row) =>
+                    row._gridId
+                }
+                autoHeight
+                onRowClick={(params) => {
 
-                    <TableRow>
+                     console.log("TABLE ROW SELECTED:", params.row);
+    console.log("TABLE ENTITY:", entity);
+    console.log("SELECT RECORD HANDLER:", handlers.selectRecord);
 
-                        {columns.map((column, index) => (
+                    if (handlers.selectRecord) {
 
-                            <TableCell
-                                key={
-                                    column.field ||
-                                    index
-                                }
-                            >
-                                {column.label ||
-                                    column.field}
-                            </TableCell>
+                        handlers.selectRecord(
+                            params.row
+                        );
 
-                        ))}
+                    }
 
-                    </TableRow>
-
-                </TableHead>
-
-
-                <TableBody>
-
-                    {rows.map((row, rowIndex) => (
-
-                        <TableRow
-                            key={row.id ?? rowIndex}
-                            hover
-                            selected={
-                                context.selectedUser?.id === row.id
-                            }
-                            onClick={() => {
-
-                                const action =
-                                    widget.select?.action;
-
-                                if (
-                                    action &&
-                                    handlers[action]
-                                ) {
-                                    handlers[action](row);
-                                }
-
-                            }}
-                            sx={{
-                                cursor:
-                                    widget.select?.action
-                                        ? "pointer"
-                                        : "default"
-                            }}
-                        >
-
-                            {columns.map(
-                                (column, columnIndex) => (
-
-                                    <TableCell
-                                        key={
-                                            column.field ||
-                                            columnIndex
-                                        }
-                                    >
-                                        {row[column.field]}
-                                    </TableCell>
-
-                                )
-                            )}
-
-                        </TableRow>
-
-                    ))}
-
-                </TableBody>
-
-            </Table>
+                }}
+                pageSizeOptions={[
+                    5,
+                    10,
+                    25
+                ]}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: Math.min(
+                                limit,
+                                10
+                            ),
+                            page: 0
+                        }
+                    }
+                }}
+            />
 
         </Paper>
     );

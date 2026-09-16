@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import {
     Card,
@@ -6,6 +6,7 @@ import {
     Typography
 } from "@mui/material";
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function StatRenderer({
     widget,
@@ -16,7 +17,6 @@ export default function StatRenderer({
     console.log("STAT CONTEXT:", context);
 
     const title = widget.title || "Stat";
-
     const source = widget.source || {};
 
     const entity = source.entity;
@@ -24,153 +24,143 @@ export default function StatRenderer({
     const field = source.field;
     const sourceValue = source.value;
 
-    // -----------------------------------------
-    // GET DATA FROM CONTEXT
-    // -----------------------------------------
+    const [value, setValue] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    let rows = context[entity] || [];
+    useEffect(() => {
 
-    // -----------------------------------------
-    // APPLY FILTER
-    // -----------------------------------------
+        if (!entity || !aggregate) {
+            setValue(0);
+            return;
+        }
 
-    const filter = widget.filter;
+        async function loadStat() {
 
-    if (filter?.field) {
+            try {
 
-        let filterValue = null;
+                setLoading(true);
+                setError("");
 
-        // Resolve binding such as:
-        // selectedUser.id
-        if (filter.binding) {
+                const stat = {
+                    title,
+                    entity,
+                    aggregate
+                };
 
-            const parts = filter.binding.split(".");
-
-            filterValue = context;
-
-            for (const part of parts) {
-
-                if (
-                    filterValue === null ||
-                    filterValue === undefined
-                ) {
-                    break;
+                /*
+                 * SUM/AVG/MIN/MAX require a field.
+                 */
+                if (field) {
+                    stat.field = field;
                 }
 
-                filterValue = filterValue[part];
+                /*
+                 * Optional YAML value filter.
+                 */
+                if (
+                    field &&
+                    sourceValue !== undefined &&
+                    sourceValue !== null
+                ) {
+                    stat.value = sourceValue;
+                }
+
+                /*
+                 * Optional widget filter.
+                 */
+                if (widget.filter) {
+                    stat.filter = widget.filter;
+                }
+
+                console.log(
+                    "STAT API REQUEST:",
+                    stat
+                );
+
+                const response = await fetch(
+                    `${API_URL}/api/stats`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            stats: [stat],
+                            selectedCustomerId:
+                                context?.selectedRecord?.id ?? null
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+
+                    const errorData =
+                        await response.json()
+                            .catch(() => null);
+
+                    throw new Error(
+                        errorData?.detail ||
+                        `Stats request failed: ${response.status}`
+                    );
+                }
+
+                const result =
+                    await response.json();
+
+                console.log(
+                    "STAT API RESPONSE:",
+                    result
+                );
+
+                const statResult =
+                    result?.[0];
+
+                setValue(
+                    statResult?.value ?? 0
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "STAT API ERROR:",
+                    err
+                );
+
+                setError(err.message);
+                setValue(0);
+
+            } finally {
+
+                setLoading(false);
             }
         }
 
-        // Apply filter only when we have a value
-        if (
-            filterValue !== null &&
-            filterValue !== undefined
-        ) {
+        loadStat();
 
-            rows = rows.filter(row =>
-                String(row[filter.field]) ===
-                String(filterValue)
-            );
-
-        }
-    }
-
-    // -----------------------------------------
-    // APPLY SOURCE VALUE FILTER
-    //
-    // Example:
-    //
-    // field: status
-    // value: submitted
-    //
-    // -----------------------------------------
-
-    if (
-        field &&
-        sourceValue !== undefined &&
-        sourceValue !== null
-    ) {
-
-        rows = rows.filter(row =>
-            String(row[field]) ===
-            String(sourceValue)
-        );
-
-    }
-
-    // -----------------------------------------
-    // CALCULATE VALUE
-    // -----------------------------------------
-
-    let value = 0;
-
-    if (aggregate === "count") {
-
-        value = rows.length;
-
-    } else if (aggregate === "sum") {
-
-        value = rows.reduce(
-            (total, row) =>
-                total + Number(row[field] || 0),
-            0
-        );
-
-    } else if (aggregate === "avg") {
-
-        if (rows.length > 0) {
-
-            const total = rows.reduce(
-                (sum, row) =>
-                    sum + Number(row[field] || 0),
-                0
-            );
-
-            value = total / rows.length;
-
-        } else {
-
-            value = 0;
-
-        }
-
-    } else if (aggregate === "min") {
-
-        if (rows.length > 0) {
-
-            value = Math.min(
-                ...rows.map(row =>
-                    Number(row[field] || 0)
-                )
-            );
-
-        }
-
-    } else if (aggregate === "max") {
-
-        if (rows.length > 0) {
-
-            value = Math.max(
-                ...rows.map(row =>
-                    Number(row[field] || 0)
-                )
-            );
-
-        }
-
-    }
+    }, [
+        entity,
+        aggregate,
+        field,
+        sourceValue,
+        widget.filter,
+        context?.selectedRecord?.id,
+        title
+    ]);
 
     // -----------------------------------------
     // FORMAT
     // -----------------------------------------
 
+    let displayValue = value;
+
     if (
-        aggregate === "avg" ||
-        aggregate === "sum"
+        aggregate === "sum" ||
+        aggregate === "avg"
     ) {
 
-        value = Number(value).toFixed(2);
-
+        displayValue =
+            Number(value || 0).toFixed(2);
     }
 
     // -----------------------------------------
@@ -190,8 +180,21 @@ export default function StatRenderer({
                 </Typography>
 
                 <Typography variant="h4">
-                    {value}
+
+                    {loading
+                        ? "..."
+                        : displayValue}
+
                 </Typography>
+
+                {error && (
+                    <Typography
+                        variant="caption"
+                        color="error"
+                    >
+                        {error}
+                    </Typography>
+                )}
 
             </CardContent>
 

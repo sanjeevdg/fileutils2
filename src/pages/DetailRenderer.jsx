@@ -25,24 +25,30 @@ export default function DetailRenderer({
 
     let record = null;
 
-    if (source.binding) {
+        // -----------------------------------------
+        // GET SELECTED RECORD
+        // -----------------------------------------
 
-        const parts = source.binding.split(".");
+        if (source.binding) {
 
-        record = context;
+            const parts = source.binding.split(".");
 
-        for (const part of parts) {
+            record = context;
 
-            if (
-                record === null ||
-                record === undefined
-            ) {
-                break;
+            for (const part of parts) {
+
+                if (
+                    record === null ||
+                    record === undefined
+                ) {
+                    break;
+                }
+
+                record = record[part];
             }
-
-            record = record[part];
         }
-    }
+
+        
 
     // -----------------------------------------
     // NO RECORD SELECTED
@@ -66,7 +72,11 @@ export default function DetailRenderer({
                 </Typography>
 
                 <Typography color="text.secondary">
-                    Select a customer
+                    Select a {source.entity === "customers"
+                        ? "customer"
+                        : source.entity === "orders"
+                            ? "order"
+                            : "record"}
                 </Typography>
 
             </Paper>

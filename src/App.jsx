@@ -13,11 +13,26 @@ import Dashboard from './pages/Dashboard';
 import LoginRenderer from './pages/LoginRenderer'
 import TestPicker from './pages/TestPicker';
 import PasswordPage from './pages/PasswordPage';
-
+import Designer from './designer/Designer';
 
 import "./App.css";
 
+
+
 export default function App() {
+
+
+
+/*
+
+                        config={config}
+                        context={context}
+                        handlers={handlers}
+                        */
+
+
+
+
   return (
     <div className="app">
 
@@ -33,6 +48,18 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/file-reader" element={<FileReaderPage />} />
             <Route path="/about" element={<About />} />
+            <Route
+                path="/designer/:name"
+                element={<Designer />}
+            />
+            <Route
+                            path="/designer"
+                            element={<Designer />}
+                        />
+           <Route
+                path="/dashboard/:name"
+                element={<Dashboard />}
+            />
             <Route path="/testpicker" element={<TestPicker />} />
             <Route path="/userformrenderer" element={<UserFormRenderer />} />
             <Route path="/change-password" element={<PasswordPage />} />

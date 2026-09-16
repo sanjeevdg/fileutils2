@@ -147,7 +147,7 @@ export default function ChartRenderer({
                 variant="h6"
                 gutterBottom
             >
-                {chart.title || `${chart.y} by ${chart.x}`}
+                {widget.title || `${chart.y} by ${chart.x}`}
             </Typography>
 
 
