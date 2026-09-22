@@ -81,11 +81,73 @@ export default function Designer({
     const [selectedRecord, setSelectedRecord] = useState(null);   
 
 
+    const [formData, setFormData] = useState({});
+    const [formRecord, setFormRecord] = useState(null);
 
+    const updateField = (fieldName, value) => {
+
+        setFormData(prev => ({
+            ...(prev || {}),
+            [fieldName]: value
+        }));
+
+    };    
     /*
      * Keep designerConfig synchronized if the
      * parent loads a different YAML configuration.
      */
+
+
+
+  const savePage = async () => {
+    if (!configName.trim()) {
+        alert("Please enter a configuration name");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/api/config/save`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: configName
+                        .trim()
+                        .replace(/^['"]+|['"]+$/g, ""),
+                    config: designerConfig
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Save failed: ${response.status}`
+            );
+        }
+
+        const result = await response.json();
+
+        console.log("CONFIG SAVED:", result);
+
+        alert(
+            `Dashboard saved successfully as ${result.name}`
+        );
+
+    } catch (err) {
+
+        console.error("SAVE CONFIG ERROR:", err);
+
+        alert(
+            `Failed to save dashboard: ${err.message}`
+        );
+    }
+};
+
+
+    
     useEffect(() => {
 
     async function initializeDesigner() {
@@ -302,7 +364,25 @@ export default function Designer({
                         }));
 
             }
+            if (type === "typography") {
 
+                newWidget.text = "New Text";
+
+                newWidget.props = {
+                    variant: "body1"
+                };
+
+            }
+
+            if (type === "button") {
+
+                newWidget.text = "Button";
+
+                newWidget.props = {
+                    variant: "contained"
+                };
+
+            }
             setDesignerConfig(prev => ({
                 ...prev,
                 pages: {
@@ -385,61 +465,45 @@ export default function Designer({
         setSelectedWidgetId(null);
     };
 
+    /*
+ * Move widget up or down
+ */
+    const moveWidget = (index, direction) => {
 
-    const savePage = async () => {
+        setDesignerConfig(prev => {
 
+            const next = structuredClone(prev);
 
-         if (!configName.trim()) {
-        alert("Please enter a configuration name");
-        return;
-    }
+            const widgets =
+                next.pages.dashboard.widgets || [];
 
-    try {
+            const newIndex =
+                direction === "up"
+                    ? index - 1
+                    : index + 1;
 
-        const response = await fetch(
-            `${API_URL}/api/config/save`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: configName.trim().replace(/^['"]+|['"]+$/g, ""),
-                    config: designerConfig
-                })
+            // Already at the boundary
+            if (
+                newIndex < 0 ||
+                newIndex >= widgets.length
+            ) {
+                return prev;
             }
-        );
 
-        if (!response.ok) {
-            throw new Error(
-                `Save failed: ${response.status}`
-            );
-        }
+            // Swap widgets
+            [
+                widgets[index],
+                widgets[newIndex]
+            ] = [
+                widgets[newIndex],
+                widgets[index]
+            ];
 
-        const result = await response.json();
+            return next;
+        });
+    };
 
-        console.log("SAVE RESULT:", result);
-
-        alert(
-            `Dashboard saved successfully as ${result.name}`
-        );
-
-    } catch (err) {
-
-        console.error("SAVE ERROR:", err);
-
-        alert(
-            `Failed to save dashboard: ${err.message}`
-        );
-    }
-
-        console.log("SAVE RESULT:", result);
-
-        alert("Dashboard saved successfully");
-
-    
-};
-
+   
     /*
      * IMPORTANT:
      *
@@ -474,8 +538,11 @@ if (configError) {
     );
 }
 
-
-
+console.log("DESIGNER HANDLERS:", {
+    updateField,
+    formData
+});
+console.log("FORM DATA:", formData);
 console.log("DESIGNER CONFIG:", designerConfig);
 console.log("ENTITY METADATA:", entityMetadata);
 console.log("DESIGNER SELECTED RECORD:", selectedRecord);
@@ -582,32 +649,33 @@ console.log("DESIGNER SELECTED RECORD:", selectedRecord);
                     }}
                 >
 
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            minHeight: "100%",
-                            p: 2,
-                            bgcolor: "white"
-                        }}
-                    >
-
-                        <DashboardRenderer
-						    node={dashboard}
-						    context={{
-						        ...context,
-                                selectedRecord,
-						        config: designerConfig
-						    }}
-						    handlers={{
-                                ...handlers,
-                                selectRecord: setSelectedRecord
-                            }}
-						    onWidgetSelect={(widget) =>
-						        setSelectedWidgetId(widget.id)
-						    }
-						/>
-
-                    </Paper>
+                        <Paper
+                                elevation={0}
+                                sx={{
+                                    minHeight: "100%",
+                                    p: 2,
+                                    bgcolor: "white"
+                                }}
+                            >
+                                <DashboardRenderer
+                                    node={dashboard}
+                                    context={{
+                                        ...context,
+                                        formData,
+                                        config: designerConfig
+                                    }}
+                                    handlers={{
+                                        ...handlers,
+                                        updateField,
+                                        selectRecord: setSelectedRecord
+                                    }}
+                                    onWidgetSelect={(widget) =>
+                                        setSelectedWidgetId(widget.id)
+                                    }
+                                    onWidgetMove={moveWidget}
+                                    selectedWidgetId={selectedWidgetId}
+                                />
+                            </Paper>
 
                 </Box>
 

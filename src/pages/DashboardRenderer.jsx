@@ -3,7 +3,7 @@ import React from "react";
 import {
     Box,
     Typography,
-    Grid
+    Grid, Button
 } from "@mui/material";
 
 import WidgetRenderer from "./WidgetRenderer";
@@ -12,7 +12,9 @@ export default function DashboardRenderer({
     node,
     context = {},
     handlers = {},
-    onWidgetSelect = null
+    onWidgetSelect = null,
+    onWidgetMove,
+    selectedWidgetId = null
 }) {
 
     return (
@@ -39,70 +41,119 @@ export default function DashboardRenderer({
 
             {node?.widgets?.length > 0 && (
 
-                <Grid
-                    container
-                    spacing={2}
-                >
-
-                    {node.widgets.map(
-                        (widget, index) => (
-
                             <Grid
-                                key={
-                                    widget.id || index
-                                }
-                                size={
-                                    widget.layout || {
-                                        xs: 12
-                                    }
-                                }
-
-                                onClick={(event) => {
-
-                                    /*
-                                     * Only intercept clicks
-                                     * when the designer has
-                                     * supplied a callback.
-                                     */
-
-                                    if (onWidgetSelect) {
-
-                                        event.stopPropagation();
-
-                                        onWidgetSelect(
-                                            widget
-                                        );
-                                    }
-
-                                }}
-
-                                sx={
-                                    onWidgetSelect
-                                        ? {
-                                            cursor: "pointer",
-                                            outline:
-                                                "1px solid transparent",
-                                            "&:hover": {
-                                                outline:
-                                                    "2px solid",
-                                                outlineOffset:
-                                                    "2px"
-                                            }
-                                        }
-                                        : undefined
-                                }
+                                container
+                                spacing={2}
                             >
 
-                                <WidgetRenderer
-                                    widget={widget}
-                                    context={context}
-                                    handlers={handlers}
-                                />
+                                {node.widgets.map((widget, index) => {
 
-                            </Grid>
+                                        const isSelected =
+                                            widget.id === selectedWidgetId;
 
-                        )
-                    )}
+                                        return (
+                                            <Grid
+                                                key={widget.id || index}
+                                                size={widget.layout || { xs: 12 }}
+
+                                                onClick={(event) => {
+
+                                                    if (onWidgetSelect) {
+
+                                                        event.stopPropagation();
+
+                                                        onWidgetSelect(widget);
+                                                    }
+
+                                                }}
+
+                                                sx={{
+                                                    ...(onWidgetSelect
+                                                        ? {
+                                                            cursor: "pointer"
+                                                        }
+                                                        : {}),
+
+                                                    ...(isSelected
+                                                        ? {
+                                                            outline: "2px solid",
+                                                            outlineOffset: "2px",
+                                                            borderRadius: 1
+                                                        }
+                                                        : {
+                                                            outline: "1px solid transparent"
+                                                        }),
+
+                                                    "&:hover": onWidgetSelect
+                                                        ? {
+                                                            outline: "2px solid",
+                                                            outlineOffset: "2px"
+                                                        }
+                                                        : undefined
+                                                }}
+                                            >
+
+                                                {/* Re-order controls */}
+
+                                                {onWidgetMove && isSelected && (
+                                                    <Box
+                                                        sx={{
+                                                            display: "flex",
+                                                            justifyContent: "flex-end",
+                                                            alignItems: "center",
+                                                            gap: 0.5,
+                                                            mb: 0.5
+                                                        }}
+                                                    >
+
+                                                        <Typography
+                                                            variant="caption"
+                                                            color="text.secondary"
+                                                            sx={{ mr: 0.5 }}
+                                                        >
+                                                            {widget.type}
+                                                        </Typography>
+
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            disabled={index === 0}
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                onWidgetMove(index, "up");
+                                                            }}
+                                                        >
+                                                            ↑
+                                                        </Button>
+
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            disabled={
+                                                                index ===
+                                                                node.widgets.length - 1
+                                                            }
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                onWidgetMove(index, "down");
+                                                            }}
+                                                        >
+                                                            ↓
+                                                        </Button>
+
+                                                    </Box>
+                                                )}
+
+                                                <WidgetRenderer
+                                                    widget={widget}
+                                                    context={context}
+                                                    handlers={handlers}
+                                                    onSelect={onWidgetSelect}
+                                                />
+
+                                            </Grid>
+                                        );
+                                    })}
 
                 </Grid>
 

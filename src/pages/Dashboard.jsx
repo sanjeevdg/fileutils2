@@ -134,6 +134,11 @@ export default function CustomerMasterDetail() {
 
 
 const { name } = useParams();
+
+const [formData, setFormData] = useState({});
+
+const [dataVersion, setDataVersion] = useState(0);
+
 const configName =
     name || "customer_master_detail";
   /*
@@ -181,50 +186,21 @@ const [
     setOrders,
 ] = useState([]);
 
-const updateField = (
-    binding,
-    fieldName,
-    value
-) => {
+const updateField = (field, value) => {
 
     console.log(
         "UPDATE FIELD:",
-        binding,
-        fieldName,
+        field,
         value
     );
 
-    if (binding !== "selectedUser") {
-        return;
-    }
-
-    setSelectedUser(previous => {
-
-        if (!previous) {
-            return previous;
-        }
-
-        const updatedUser = {
-            ...previous,
-            [fieldName]: value
-        };
-
-        console.log(
-            "UPDATED USER:",
-            updatedUser
-        );
-
-        setUsers(previousUsers =>
-            previousUsers.map(user =>
-                user.id === updatedUser.id
-                    ? updatedUser
-                    : user
-            )
-        );
-
-        return updatedUser;
-    });
+    setFormData(previous => ({
+        ...previous,
+        [field]: value
+    }));
 };
+
+
   /*
   -------------------------------------------------------
   Search
@@ -390,6 +366,20 @@ async function selectUser(event, user) {
 
     setSelectedUser(user);
 }
+
+
+
+const selectRecord = (record) => {
+    console.log("SELECTED RECORD:", record);
+
+    const {
+        _gridId,
+        ...cleanRecord
+    } = record;
+
+    setFormData(cleanRecord);
+};
+
 
   /*
   =======================================================
@@ -586,6 +576,119 @@ async function saveOrder(formData) {
         setSaving(false);
     }
 }
+ 
+
+async function save(buttonWidget) {
+
+    console.log("=== SAVE CALLED ===");
+    console.log("FORM DATA:", formData);
+
+    if (!formData || Object.keys(formData).length === 0) {
+        setError( buttonWidget?.feedback?.error ||
+            "Please enter customer data first.");
+        return;
+    }
+
+    try {
+
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        const isNew =
+            formData.id === null ||
+            formData.id === undefined;
+
+        const url = isNew
+            ? `${API_URL}/api/customers`
+            : `${API_URL}/api/customers/${formData.id}`;
+
+        const method = isNew
+            ? "POST"
+            : "PUT";
+
+        
+        
+
+
+        console.log("SAVE MODE:", isNew ? "CREATE" : "EDIT");
+        console.log("SAVE URL:", url);
+        console.log("METHOD:", method);
+
+        const response = await fetch(
+            url,
+            {
+                method,
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify(formData)
+            }
+        );
+
+        if (!response.ok) {
+
+            const errorText =
+                await response.text();
+
+            throw new Error(
+                `Failed to save customer: ${response.status} ${errorText}`
+            );
+        }
+
+        const savedCustomer =
+            await response.json();
+
+        console.log(
+            "CUSTOMER SAVED:",
+            savedCustomer
+        );
+        const successMessage =
+            buttonWidget?.feedback?.success ||
+            (
+                isNew
+                    ? "Customer created successfully."
+                    : "Customer updated successfully."
+            );
+        setMessage(successMessage);
+
+        /*
+         * Refresh DataGrid
+         */
+        setDataVersion(
+            previous => previous + 1
+        );
+
+        /*
+         * Keep the saved record
+         * in the form.
+         */
+        setFormData(
+            savedCustomer
+        );
+
+    }
+    catch (err) {
+
+        console.error(
+            "SAVE CUSTOMER ERROR:",
+            err
+        );
+        const errorMessage =
+            buttonWidget?.feedback?.error ||
+            "Failed to save customer.";  
+        setError(errorMessage);
+
+    }
+    finally {
+
+        setSaving(false);
+    }
+}
+
+
   /*
   =======================================================
   CHANGE DETAIL FIELD
@@ -1011,7 +1114,10 @@ const context = {
     selectedUser,
     selectedOrder,
     search,
+    formData,
+    dataVersion
 };
+console.log("DASHBOARD FORM DATA:", formData);
   console.log(
       "RENDER CONTEXT:",
       context
@@ -1104,7 +1210,9 @@ const newOrder = () => {
 
     updateOrderField,
 
-    saveOrder
+    saveOrder,
+    save,
+    selectRecord
 
   };
 

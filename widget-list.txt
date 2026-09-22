@@ -1,0 +1,74 @@
+You already have:
+
+Table
+Detail
+Stat
+Chart
+
+I'd expand that to:
+
+DataGrid
+
+Use MUI X DataGrid rather than your current table renderer.
+
+
+Input/form widgets
+
+This is where I think your framework can become really powerful.
+
+Widget                MUI component
+Text Field            TextField
+Number Field          TextField type="number"
+Select                Select
+Autocomplete          Autocomplete
+Checkbox              Checkbox
+Switch                Switch
+Radio Group           RadioGroup
+Date Picker           MUI X DatePicker
+Date/Time Picker      MUI X DateTimePicker
+Time Picker           MUI X TimePicker
+Date Range Picker     MUI X DateRangePicker
+Slider                Slider
+
+
+
+Layout Widgets - 
+
+Container
+Grid
+Stack
+Card
+Accordion
+Tabs
+Drawer
+Dialog
+
+. Navigation widgets
+
+Once you're supporting any page, navigation becomes useful:
+
+AppBar
+Toolbar
+Menu
+Breadcrumbs
+Tabs
+Navigation List
+Button
+Link
+
+
+6. Feedback / interaction
+
+I'd also add:
+
+Dialog
+Snackbar
+Alert
+Progress
+CircularProgress
+LinearProgress
+Skeleton
+Tooltip
+Confirmation dialog
+
+These become useful once widgets can trigger actions.

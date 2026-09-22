@@ -5,7 +5,16 @@ const COMPONENTS = [
     { type: "stat", label: "Stat" },
     { type: "chart", label: "Chart" },
     { type: "table", label: "Table" },
-    { type: "detail", label: "Detail" }
+    { type: "datagrid", label: "Data Grid" },
+    { type: "detail", label: "Detail" },
+
+    { type: "textfield", label: "Text Field" },
+    { type: "select", label: "Select" },
+    { type: "radio", label: "Radio" },
+    { type: "checkbox", label: "Checkbox" },
+
+    { type: "typography", label: "Typography" },
+    { type: "button", label: "Button" }
 ];
 
 export default function ComponentPalette({ onAdd }) {
@@ -36,5 +45,4 @@ export default function ComponentPalette({ onAdd }) {
         </Box>
     );
 }
-
 
