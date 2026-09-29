@@ -10,16 +10,21 @@ import TextFieldRenderer from "./TextFieldRenderer";
 import SelectRenderer from "./SelectRenderer";
 import CheckboxRenderer from "./CheckboxRenderer";
 import RadioRenderer from "./RadioRenderer";
+import AccordionRenderer from "./AccordionRenderer";
+
+
+
 import {
     Button,
-    Typography
+    Typography,Box
 } from "@mui/material";
 
 
 export default function WidgetRenderer({
     widget,
     context = {},
-    handlers = {}
+    handlers = {},
+    onSelect = null
 }) {
 console.log("WIDGET RENDERER:", widget);
     if (!widget) {
@@ -153,6 +158,57 @@ console.log("WIDGET RENDERER:", widget);
                     {widget.text || "Button"}
                 </Button>
             );   
+        case "accordion":
+            return (
+                <AccordionRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                    onSelect={onSelect}
+                />
+            );
+                
+        case "container":
+                return (
+                    <Box
+                        sx={{
+                            border: "1px dashed",
+                            borderColor: "grey.400",
+                            borderRadius: 1,
+                            p: 2,
+                            minHeight: 100
+                        }}
+                    >
+                        {widget.children?.map(child => (
+                            <Box
+                                key={child.id}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+
+                                    if (onSelect) {
+                                        onSelect(child);
+                                    }
+                                }}
+                                sx={{
+                                    position: "relative",
+                                    mb: 2,
+                                    ...(onSelect
+                                        ? {
+                                            cursor: "pointer"
+                                        }
+                                        : {})
+                                }}
+                            >
+                                <WidgetRenderer
+                                    widget={child}
+                                    context={context}
+                                    handlers={handlers}
+                                    onSelect={onSelect}
+                                />
+                            </Box>
+                        ))}
+                    </Box>
+                );    
             
         default:
 

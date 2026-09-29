@@ -14,7 +14,9 @@ const COMPONENTS = [
     { type: "checkbox", label: "Checkbox" },
 
     { type: "typography", label: "Typography" },
-    { type: "button", label: "Button" }
+    { type: "button", label: "Button" },
+    { type: "container", label: "Container" },
+    { type: "accordion", label: "Accordion" },
 ];
 
 export default function ComponentPalette({ onAdd }) {

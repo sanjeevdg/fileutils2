@@ -2162,6 +2162,179 @@ console.log(
 
 
             {/* Layout */}
+
+            {/* -------------------------------- */}
+            {/* ACCORDION PROPERTIES */}
+            {/* -------------------------------- */}
+
+            {widget.type === "accordion" && (
+                        <>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    mt: 3,
+                                    mb: 1
+                                }}
+                            >
+                                Accordion Properties
+                            </Typography>
+
+                            {/* Sections */}
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mb: 1 }}
+                            >
+                                Sections
+                            </Typography>
+
+                            {(widget.sections || []).map(
+                                (section, index) => (
+                                    <Box
+                                        key={section.id || index}
+                                        sx={{
+                                            mb: 2,
+                                            p: 1.5,
+                                            border: "1px solid #ddd",
+                                            borderRadius: 1
+                                        }}
+                                    >
+
+                                        <TextField
+                                            fullWidth
+                                            size="small"
+                                            label={`Section ${index + 1} Title`}
+                                            value={
+                                                section.title || ""
+                                            }
+                                            onChange={(e) => {
+
+                                                const sections =
+                                                    structuredClone(
+                                                        widget.sections || []
+                                                    );
+
+                                                sections[index].title =
+                                                    e.target.value;
+
+                                                onChange(
+                                                    "sections",
+                                                    sections
+                                                );
+
+                                            }}
+                                            sx={{ mb: 1 }}
+                                        />
+
+
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            size="small"
+                                            label="Initially Expanded"
+                                            value={
+                                                section.expanded
+                                                    ? "yes"
+                                                    : "no"
+                                            }
+                                            onChange={(e) => {
+
+                                                const sections =
+                                                    structuredClone(
+                                                        widget.sections || []
+                                                    );
+
+                                                sections[index].expanded =
+                                                    e.target.value === "yes";
+
+                                                onChange(
+                                                    "sections",
+                                                    sections
+                                                );
+
+                                            }}
+                                            sx={{ mb: 1 }}
+                                        >
+                                            <MenuItem value="yes">
+                                                Yes
+                                            </MenuItem>
+
+                                            <MenuItem value="no">
+                                                No
+                                            </MenuItem>
+                                        </TextField>
+
+
+                                        {/* Delete Section */}
+
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            size="small"
+                                            fullWidth
+                                            disabled={
+                                                (widget.sections || [])
+                                                    .length <= 1
+                                            }
+                                            onClick={() => {
+
+                                                const sections =
+                                                    (widget.sections || [])
+                                                        .filter(
+                                                            (_, i) =>
+                                                                i !== index
+                                                        );
+
+                                                onChange(
+                                                    "sections",
+                                                    sections
+                                                );
+
+                                            }}
+                                        >
+                                            Delete Section
+                                        </Button>
+
+                                    </Box>
+                                )
+                            )}
+
+
+                            {/* Add Section */}
+
+                            <Button
+                                variant="outlined"
+                                fullWidth
+                                onClick={() => {
+
+                                    const sections =
+                                        structuredClone(
+                                            widget.sections || []
+                                        );
+
+                                    sections.push({
+                                        id: `section_${Date.now()}`,
+                                        title:
+                                            `Section ${sections.length + 1}`,
+                                        expanded: false,
+                                        widgets: []
+                                    });
+
+                                    onChange(
+                                        "sections",
+                                        sections
+                                    );
+
+                                }}
+                            >
+                                + Add Section
+                            </Button>
+
+                        </>
+                    )}
+
+
             <Typography
                 variant="subtitle1"
                 sx={{ mt: 3, mb: 1 }}

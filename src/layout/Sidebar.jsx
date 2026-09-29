@@ -1,8 +1,8 @@
 import { NavLink } from "react-router-dom";
 
-export default function Sidebar() {
+export default function Sidebar({isOpen}) {
   return (
-    <aside className="sidebar">
+    <aside  className={`sidebar ${isOpen ? "open" : "collapsed"}`}>
 
       <NavLink to="/">
         Home
@@ -28,9 +28,6 @@ export default function Sidebar() {
         Dashboard 
       </NavLink>
 
-<NavLink to="/master-detail">
-        Master/Detail 
-      </NavLink>
 
 <NavLink to="/change-password">
         Change Password 

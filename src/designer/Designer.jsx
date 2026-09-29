@@ -79,7 +79,7 @@ export default function Designer({
         useState(null);
 
     const [selectedRecord, setSelectedRecord] = useState(null);   
-
+    const [selectedAccordionSection, setSelectedAccordionSection] =  useState(null);
 
     const [formData, setFormData] = useState({});
     const [formRecord, setFormRecord] = useState(null);
@@ -287,6 +287,97 @@ export default function Designer({
         };
     };
 
+
+    const addWidgetToSelectedParent = (widgets, selectedId, newWidget) => {
+
+        for (const widget of widgets) {
+
+            // -----------------------------
+            // Container
+            // -----------------------------
+            if (
+                widget.id === selectedId &&
+                widget.type === "container"
+            ) {
+                if (!widget.children) {
+                    widget.children = [];
+                }
+
+                widget.children.push(newWidget);
+                return true;
+            }
+
+            // -----------------------------
+            // Accordion
+            // -----------------------------
+            if (
+                widget.id === selectedId &&
+                widget.type === "accordion"
+            ) {
+                if (!widget.sections) {
+                    widget.sections = [];
+                }
+
+                if (!widget.sections[0]) {
+                    widget.sections.push({
+                        id: `section_${Date.now()}`,
+                        title: "Section 1",
+                        widgets: []
+                    });
+                }
+
+                if (!widget.sections[0].widgets) {
+                    widget.sections[0].widgets = [];
+                }
+
+                widget.sections[0].widgets.push(newWidget);
+
+                return true;
+            }
+
+            // -----------------------------
+            // Existing container children
+            // -----------------------------
+            if (widget.children?.length) {
+
+                if (
+                    addWidgetToSelectedParent(
+                        widget.children,
+                        selectedId,
+                        newWidget
+                    )
+                ) {
+                    return true;
+                }
+            }
+
+            // -----------------------------
+            // Accordion sections
+            // -----------------------------
+            if (widget.sections?.length) {
+
+                for (const section of widget.sections) {
+
+                    if (!section.widgets) {
+                        section.widgets = [];
+                    }
+
+                    if (
+                        addWidgetToSelectedParent(
+                            section.widgets,
+                            selectedId,
+                            newWidget
+                        )
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    };
+
     /*
      * Add a new widget
      */
@@ -383,60 +474,361 @@ export default function Designer({
                 };
 
             }
-            setDesignerConfig(prev => ({
-                ...prev,
-                pages: {
-                    ...prev.pages,
-                    dashboard: {
-                        ...prev.pages.dashboard,
-                        widgets: [
-                            ...(prev.pages.dashboard.widgets || []),
-                            newWidget
-                        ]
-                    }
+            if (type === "container") {
+                    newWidget.props = {
+                        title: "Container"
+                    };
+
+                    newWidget.children = [];
                 }
-            }));
+
+            if (type === "accordion") {
+                    newWidget.sections = [
+                        {
+                            id: `section_${Date.now()}`,
+                            title: "Section 1",
+                            widgets: []
+                        }
+                    ];
+                }    
+
+
+
+
+
+
+
+
+
+
+
+
+
+           setDesignerConfig(prev => {
+
+                    const next = structuredClone(prev);
+
+                    const widgets =
+                        next.pages.dashboard.widgets || [];
+
+                    /*
+                     * First priority:
+                     * Add to the currently selected Accordion section.
+                     */
+                    if (selectedAccordionSection) {
+
+                        const {
+                            accordionId,
+                            sectionId
+                        } = selectedAccordionSection;
+
+                        next.pages.dashboard.widgets =
+                            addWidgetToAccordionSection(
+                                widgets,
+                                accordionId,
+                                sectionId,
+                                newWidget
+                            );
+
+                        return next;
+                    }
+
+                    /*
+                     * Normal widget/container behaviour
+                     */
+                    const addedToParent =
+                        selectedWidgetId &&
+                        addWidgetToSelectedParent(
+                            widgets,
+                            selectedWidgetId,
+                            newWidget
+                        );
+
+                    if (!addedToParent) {
+                        widgets.push(newWidget);
+                    }
+
+                    next.pages.dashboard.widgets = widgets;
+
+                    return next;
+                });
+
+
+
 
             setSelectedWidgetId(id);
         };
+
+
+        const findWidgetById = (widgets, id) => {
+            for (const widget of widgets || []) {
+
+                if (widget.id === id) {
+                    return widget;
+                }
+
+                // Normal nested children
+                if (widget.children) {
+                    const found = findWidgetById(widget.children, id);
+
+                    if (found) {
+                        return found;
+                    }
+                }
+
+                // Accordion sections
+                if (widget.type === "accordion" && widget.sections) {
+
+                    for (const section of widget.sections) {
+
+                        const found = findWidgetById(
+                            section.widgets || [],
+                            id
+                        );
+
+                        if (found) {
+                            return found;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        };
+
+
+        const updateWidgetInTree = (widgets, id, updates) => {
+
+            return (widgets || []).map(widget => {
+
+                // This is the widget being edited
+                if (widget.id === id) {
+                    return {
+                        ...widget,
+                        ...updates
+                    };
+                }
+
+                let updatedWidget = widget;
+
+                // Normal nested children
+                if (widget.children) {
+
+                    const updatedChildren = updateWidgetInTree(
+                        widget.children,
+                        id,
+                        updates
+                    );
+
+                    updatedWidget = {
+                        ...updatedWidget,
+                        children: updatedChildren
+                    };
+                }
+
+                // Accordion sections
+                if (
+                    widget.type === "accordion" &&
+                    widget.sections
+                ) {
+
+                    const updatedSections = widget.sections.map(section => {
+
+                        const updatedWidgets = updateWidgetInTree(
+                            section.widgets || [],
+                            id,
+                            updates
+                        );
+
+                        return {
+                            ...section,
+                            widgets: updatedWidgets
+                        };
+                    });
+
+                    updatedWidget = {
+                        ...updatedWidget,
+                        sections: updatedSections
+                    };
+                }
+
+                return updatedWidget;
+            });
+        };
+
+
+
+
+
+        const addWidgetToAccordionSection = (
+                widgets,
+                accordionId,
+                sectionId,
+                newWidget
+            ) => {
+
+                return (widgets || []).map(widget => {
+
+                    if (
+                        widget.id === accordionId &&
+                        widget.type === "accordion"
+                    ) {
+
+                        return {
+                            ...widget,
+
+                            sections: (widget.sections || []).map(section => {
+
+                                if (section.id !== sectionId) {
+                                    return section;
+                                }
+
+                                return {
+                                    ...section,
+                                    widgets: [
+                                        ...(section.widgets || []),
+                                        newWidget
+                                    ]
+                                };
+                            })
+                        };
+                    }
+
+                    // Continue searching inside normal containers
+                    if (widget.children) {
+
+                        return {
+                            ...widget,
+
+                            children: addWidgetToAccordionSection(
+                                widget.children,
+                                accordionId,
+                                sectionId,
+                                newWidget
+                            )
+                        };
+                    }
+
+                    // Continue searching inside nested accordions
+                    if (
+                        widget.type === "accordion" &&
+                        widget.sections
+                    ) {
+
+                        return {
+                            ...widget,
+
+                            sections: widget.sections.map(section => {
+
+                                return {
+                                    ...section,
+
+                                    widgets: addWidgetToAccordionSection(
+                                        section.widgets || [],
+                                        accordionId,
+                                        sectionId,
+                                        newWidget
+                                    )
+                                };
+                            })
+                        };
+                    }
+
+                    return widget;
+                });
+            };
+
+
+
+
+
+
+        const deleteWidgetFromTree = (widgets, id) => {
+
+            return (widgets || [])
+                .filter(widget => widget.id !== id)
+                .map(widget => {
+
+                    let updatedWidget = widget;
+
+                    // Normal nested children
+                    if (widget.children) {
+
+                        updatedWidget = {
+                            ...updatedWidget,
+                            children: deleteWidgetFromTree(
+                                widget.children,
+                                id
+                            )
+                        };
+                    }
+
+                    // Accordion sections
+                    if (
+                        widget.type === "accordion" &&
+                        widget.sections
+                    ) {
+
+                        const updatedSections = widget.sections.map(section => {
+
+                            return {
+                                ...section,
+                                widgets: deleteWidgetFromTree(
+                                    section.widgets || [],
+                                    id
+                                )
+                            };
+                        });
+
+                        updatedWidget = {
+                            ...updatedWidget,
+                            sections: updatedSections
+                        };
+                    }
+
+                    return updatedWidget;
+                });
+        };
+
 
 
     /*
      * Find currently selected widget
      */
     const selectedWidget =
-        widgets.find(
-            widget =>
-                widget.id === selectedWidgetId
+        findWidgetById(
+            designerConfig?.pages?.dashboard?.widgets || [],
+            selectedWidgetId
         );
 
         console.log("SELECTED WIDGET:", selectedWidget);
     /*
      * Change a property of selected widget
      */
-    const updateWidget = (property, value) => {
+    const updateWidget = (key, value) => {
 
-        if (!selectedWidgetId) {
-            return;
-        }
+            setDesignerConfig(prev => {
 
-        setDesignerConfig(prev => {
+                const next = structuredClone(prev);
 
-            const next =
-                structuredClone(prev);
+                const widgets =
+                    next.pages.dashboard.widgets || [];
 
-            const widget =
-                next.pages.dashboard.widgets.find(
-                    w => w.id === selectedWidgetId
-                );
+                const updatedWidgets =
+                    updateWidgetInTree(
+                        widgets,
+                        selectedWidgetId,
+                        {
+                            [key]: value
+                        }
+                    );
 
-            if (widget) {
-                widget[property] = value;
-            }
+                next.pages.dashboard.widgets =
+                    updatedWidgets;
 
-            return next;
-        });
-    };
+                return next;
+            });
+        };
 
 
     /*
@@ -444,26 +836,28 @@ export default function Designer({
      */
     const deleteWidget = () => {
 
-        if (!selectedWidgetId) {
-            return;
-        }
+            if (!selectedWidgetId) {
+                return;
+            }
 
-        setDesignerConfig(prev => {
+            setDesignerConfig(prev => {
 
-            const next =
-                structuredClone(prev);
+                const next = structuredClone(prev);
 
-            next.pages.dashboard.widgets =
-                next.pages.dashboard.widgets.filter(
-                    widget =>
-                        widget.id !== selectedWidgetId
-                );
+                const widgets =
+                    next.pages.dashboard.widgets || [];
 
-            return next;
-        });
+                next.pages.dashboard.widgets =
+                    deleteWidgetFromTree(
+                        widgets,
+                        selectedWidgetId
+                    );
 
-        setSelectedWidgetId(null);
-    };
+                return next;
+            });
+
+            setSelectedWidgetId(null);
+        };
 
     /*
  * Move widget up or down
@@ -669,9 +1063,23 @@ console.log("DESIGNER SELECTED RECORD:", selectedRecord);
                                         updateField,
                                         selectRecord: setSelectedRecord
                                     }}
-                                    onWidgetSelect={(widget) =>
-                                        setSelectedWidgetId(widget.id)
-                                    }
+                                    onWidgetSelect={(widget, sectionInfo) => {
+
+                                            if (sectionInfo) {
+
+                                                setSelectedAccordionSection(sectionInfo);
+
+                                            } else {
+
+                                                setSelectedAccordionSection(null);
+                                            }
+
+                                            if (widget) {
+                                                setSelectedWidgetId(widget.id);
+                                            } else {
+                                                setSelectedWidgetId(null);
+                                            }
+                                        }}
                                     onWidgetMove={moveWidget}
                                     selectedWidgetId={selectedWidgetId}
                                 />

@@ -16,13 +16,12 @@ body,
 
 .header {
     width: 100%;
-    height: 60px;
-
+    height: 90px;
     display: flex;
     align-items: center;
 
-    padding: 0 20px;
-
+    padding: 20px 0 20px 10px;
+    
     background: #333;
     color: white;
 
@@ -36,16 +35,31 @@ body,
 
 .sidebar {
     width: 220px;
-    background: #efefef;
+    transition: width 0.25s ease;
+    overflow: hidden;
+}
 
-    display: flex;
-    flex-direction: column;
+.sidebar.collapsed {
+    width: 0;
+}
+
+.sidebar.open {
+    width: 220px;
 }
 
 .sidebar a {
-    padding: 15px;
+    display: block;
+    padding: 10px 15px;
     text-decoration: none;
-    color: black;
+}
+
+.hamburger {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    margin-right: 15px;
 }
 
 .sidebar a.active {
