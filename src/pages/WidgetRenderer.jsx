@@ -11,7 +11,9 @@ import SelectRenderer from "./SelectRenderer";
 import CheckboxRenderer from "./CheckboxRenderer";
 import RadioRenderer from "./RadioRenderer";
 import AccordionRenderer from "./AccordionRenderer";
-
+import MultiSelectRenderer from "./MultiSelectRenderer";
+import DetailGridRenderer from "./DetailGridRenderer";
+import DatePickerRenderer from "./DatePickerRenderer";
 
 
 import {
@@ -26,11 +28,14 @@ export default function WidgetRenderer({
     handlers = {},
     onSelect = null
 }) {
-console.log("WIDGET RENDERER:", widget);
+    
+     const formData = context?.formData || {};
+
+    console.log("WIDGET RENDERER:", widget);
+
     if (!widget) {
         return null;
     }
-
 
     // -----------------------------------------
     // WIDGET TYPE
@@ -87,6 +92,14 @@ console.log("WIDGET RENDERER:", widget);
                     handlers={handlers}
                 />
             );    
+        case "detailGrid":
+            return (
+                <DetailGridRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );    
         case "textfield":
             return (
                 <TextFieldRenderer
@@ -114,6 +127,23 @@ console.log("WIDGET RENDERER:", widget);
                         handlers={handlers}
                     />
                 );
+        case "datePicker":
+                return (
+                    <DatePickerRenderer
+                        widget={widget}
+                        context={context}
+                        handlers={handlers}
+                    />
+                );        
+        case "multiselect":
+
+            return (
+                <MultiSelectRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );        
          case "checkbox":
             return (
                 <CheckboxRenderer
@@ -144,20 +174,30 @@ console.log("WIDGET RENDERER:", widget);
 
         case "button":
 
-            return (
-                <Button
-                    {...(widget.props || {})}
-                    onClick={() => {
-                        const action = widget.events?.onClick;
+                return (
+                    <Button
+                        {...(widget.props || {})}
+                        onClick={() => {
+                            const action = widget.events?.onClick;
 
-                        if (action && handlers?.[action]) {
-                            handlers[action](widget);
-                        }
-                    }}
-                >
-                    {widget.text || "Button"}
-                </Button>
-            );   
+                            if (
+                                action &&
+                                handlers?.[action]
+                            ) {
+                                if (action === "saveOrder") {
+                                    handlers[action](
+                                        context?.formData || {},
+                                        widget
+                                    );
+                                } else {
+                                    handlers[action](widget);
+                                }
+                            }
+                        }}
+                    >
+                        {widget.text || "Button"}
+                    </Button>
+                );
         case "accordion":
             return (
                 <AccordionRenderer

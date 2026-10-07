@@ -7,9 +7,11 @@ const COMPONENTS = [
     { type: "table", label: "Table" },
     { type: "datagrid", label: "Data Grid" },
     { type: "detail", label: "Detail" },
-
+    { type: "detailGrid", label: "Detail Grid" },
     { type: "textfield", label: "Text Field" },
     { type: "select", label: "Select" },
+    { type: "datePicker", label: "Date Picker" },
+    { type: "multiselect", label: "Multi Select" },
     { type: "radio", label: "Radio" },
     { type: "checkbox", label: "Checkbox" },
 

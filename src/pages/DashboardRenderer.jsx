@@ -17,6 +17,8 @@ export default function DashboardRenderer({
     selectedWidgetId = null
 }) {
 
+
+
     return (
         <Box
             sx={{

@@ -369,7 +369,7 @@ async function selectUser(event, user) {
 
 
 
-const selectRecord = (record) => {
+const selectRecord = async (record) => {
     console.log("SELECTED RECORD:", record);
 
     const {
@@ -377,7 +377,42 @@ const selectRecord = (record) => {
         ...cleanRecord
     } = record;
 
-    setFormData(cleanRecord);
+    try {
+        const response = await fetch(
+            `${API_URL}/api/order_items?order_id=${cleanRecord.id}`
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Failed to load order items: ${response.status}`
+            );
+        }
+
+        const result = await response.json();
+
+        console.log(
+            "LOADED ORDER ITEMS:",
+            result
+        );
+
+        setFormData({
+            ...cleanRecord,
+            orderItems: Array.isArray(result)
+                ? result
+                : []
+        });
+
+    } catch (err) {
+        console.error(
+            "LOAD ORDER ITEMS ERROR:",
+            err
+        );
+
+        setFormData({
+            ...cleanRecord,
+            orderItems: []
+        });
+    }
 };
 
 
@@ -425,6 +460,69 @@ const selectRecord = (record) => {
     initialize();
 
   }, [configName]);
+
+
+
+
+
+        useEffect(() => {
+            if (
+                !formData.product_id ||
+                !formData.quantity
+            ) {
+                return;
+            }
+
+            const calculateAmount = async () => {
+                try {
+                    const response = await fetch(
+                        `${API_URL}/api/inventory/${formData.product_id}`
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `Failed to load product: ${response.status}`
+                        );
+                    }
+
+                    const product = await response.json();
+
+                    const quantity =
+                        Number(formData.quantity);
+
+                    const price =
+                        Number(product.price);
+
+                    if (
+                        !Number.isFinite(quantity) ||
+                        !Number.isFinite(price)
+                    ) {
+                        return;
+                    }
+
+                    const amount =
+                        price * quantity;
+
+                    setFormData(previous => ({
+                        ...previous,
+                        amount
+                    }));
+
+                } catch (err) {
+                    console.error(
+                        "AMOUNT CALCULATION ERROR:",
+                        err
+                    );
+                }
+            };
+
+            calculateAmount();
+
+        }, [formData.product_id, formData.quantity]);
+
+
+
+
 
 
   /*
@@ -491,10 +589,10 @@ const selectRecord = (record) => {
     }
   }
 
-async function saveOrder(formData) {
+async function saveOrder(formData, buttonWidget) {
 
     console.log("=== SAVE ORDER CALLED ===");
-    console.log("FORM DATA RECEIVED:", formData);
+    console.log("CURRENT FORM DATA:", formData);
     console.log("SELECTED ORDER:", selectedOrder);
 
     if (!formData) {
@@ -507,18 +605,25 @@ async function saveOrder(formData) {
         setSaving(true);
         setError(null);
         setMessage(null);
-
+        const today = new Date().toISOString().split("T")[0];
+        /*
+         * Only fields belonging to the orders table.
+         */
+        //new Date().toISOString().split("T")[0]
         const orderToSave = {
-            ...formData,
-
-            // Preserve the ID when editing.
-            // New orders will have no ID.
-            ...(selectedOrder?.id != null
-                ? { id: selectedOrder.id }
-                : {})
+            customer_id: formData.customer_id,
+            order_date:formData.order_date,
+            status: formData.status
         };
 
-        console.log("ORDER TO SAVE:", orderToSave);
+        if (formData?.id != null) {
+            orderToSave.id = formData.id;
+        }
+
+        console.log(
+            "ORDER HEADER TO SAVE:",
+            orderToSave
+        );
 
         const isNew =
             orderToSave.id === null ||
@@ -528,13 +633,24 @@ async function saveOrder(formData) {
             ? `${API_URL}/api/orders`
             : `${API_URL}/api/orders/${orderToSave.id}`;
 
-        console.log("SAVE URL:", url);
-        console.log("METHOD:", isNew ? "POST" : "PUT");
+        const method = isNew
+            ? "POST"
+            : "PUT";
+
+        console.log(
+            "SAVE URL:",
+            url
+        );
+
+        console.log(
+            "METHOD:",
+            method
+        );
 
         const response = await fetch(
             url,
             {
-                method: isNew ? "POST" : "PUT",
+                method,
 
                 headers: {
                     "Content-Type": "application/json"
@@ -544,30 +660,152 @@ async function saveOrder(formData) {
             }
         );
 
-        console.log("RESPONSE STATUS:", response.status);
+        console.log(
+            "RESPONSE STATUS:",
+            response.status
+        );
 
         if (!response.ok) {
 
-            const errorText = await response.text();
+            const errorText =
+                await response.text();
 
             throw new Error(
                 `Failed to save order: ${response.status} ${errorText}`
             );
         }
 
-        const savedOrder = await response.json();
+        const savedOrder =
+            await response.json();
 
-        console.log("ORDER SAVED:", savedOrder);
+        console.log(
+            "ORDER SAVED:",
+            savedOrder
+        );
+
+            // --------------------------------------------------
+            // Save order items
+            // --------------------------------------------------
+
+            const orderItems = formData.orderItems || [];
+
+            //
+            // If this is an existing order, remove its
+            // existing detail rows first.
+            //
+            if (!isNew) {
+
+                console.log(
+                    "DELETING EXISTING ORDER ITEMS FOR ORDER:",
+                    savedOrder.id
+                );
+
+                const existingItemsResponse =
+                    await fetch(
+                        `${API_URL}/api/order_items?order_id=${savedOrder.id}`
+                    );
+
+                if (!existingItemsResponse.ok) {
+                    throw new Error(
+                        `Failed to load existing order items: ${existingItemsResponse.status}`
+                    );
+                }
+
+                const existingItems =
+                    await existingItemsResponse.json();
+
+                console.log(
+                    "EXISTING ORDER ITEMS:",
+                    existingItems
+                );
+
+                for (const existingItem of existingItems) {
+
+                    const deleteResponse =
+                        await fetch(
+                            `${API_URL}/api/order_items/${existingItem.id}`,
+                            {
+                                method: "DELETE"
+                            }
+                        );
+
+                    if (!deleteResponse.ok) {
+                        const errorText =
+                            await deleteResponse.text();
+
+                        throw new Error(
+                            `Failed to delete order item ${existingItem.id}: ${deleteResponse.status} ${errorText}`
+                        );
+                    }
+
+                    console.log(
+                        "DELETED ORDER ITEM:",
+                        existingItem.id
+                    );
+                }
+            }
+
+            //
+            // Insert the current set of order items.
+            //
+            for (const item of orderItems) {
+
+                const orderItem = {
+                    order_id: savedOrder.id,
+                    product_id: item.product_id,
+                    quantity: Number(item.quantity),
+                    amount: Number(item.amount)
+                };
+
+                console.log(
+                    "ORDER ITEM TO SAVE:",
+                    orderItem
+                );
+
+                const itemResponse =
+                    await fetch(
+                        `${API_URL}/api/order_items`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(orderItem)
+                        }
+                    );
+
+                if (!itemResponse.ok) {
+                    const errorText =
+                        await itemResponse.text();
+
+                    throw new Error(
+                        `Failed to save order item: ${itemResponse.status} ${errorText}`
+                    );
+                }
+
+                const savedOrderItem =
+                    await itemResponse.json();
+
+                console.log(
+                    "ORDER ITEM SAVED:",
+                    savedOrderItem
+                );
+            }
 
         setSelectedOrder(null);
 
-        setMessage("Order saved successfully.");
+        setMessage(
+            "Order saved successfully."
+        );
 
         await loadOrders();
 
     } catch (err) {
 
-        console.error("SAVE ORDER ERROR:", err);
+        console.error(
+            "SAVE ORDER ERROR:",
+            err
+        );
 
         setError(err.message);
 

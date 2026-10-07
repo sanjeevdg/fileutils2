@@ -1,15 +1,17 @@
 import React from "react";
 import { TextField } from "@mui/material";
 
-export default function TextFieldRenderer({
+export default function DatePickerRenderer({
     widget,
     context = {},
     handlers = {}
 }) {
     const props = widget?.props || {};
+
     const field = props.field || "";
 
-    const formData = context?.formData || {};
+    const formData =
+        context?.formData || {};
 
     const value =
         formData[field] ??
@@ -19,12 +21,12 @@ export default function TextFieldRenderer({
     return (
         <TextField
             fullWidth
+            type="date"
             label={
                 props.label ||
                 widget.title ||
-                "Text Field"
+                "Date"
             }
-            placeholder={props.placeholder || ""}
             value={value}
             onChange={(event) => {
                 handlers?.updateField?.(
@@ -32,15 +34,13 @@ export default function TextFieldRenderer({
                     event.target.value
                 );
             }}
-            variant={props.variant || "outlined"}
-            required={props.required || false}
-            multiline={props.multiline || false}
-            rows={
-                props.multiline
-                    ? props.rows || 3
-                    : undefined
+            required={
+                props.required || false
             }
             slotProps={{
+                inputLabel: {
+                    shrink: true
+                },
                 htmlInput: {
                     readOnly:
                         props.readOnly || false

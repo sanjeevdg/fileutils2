@@ -84,14 +84,14 @@ export default function Designer({
     const [formData, setFormData] = useState({});
     const [formRecord, setFormRecord] = useState(null);
 
-    const updateField = (fieldName, value) => {
+        const updateField = (fieldName, value) => {
 
-        setFormData(prev => ({
-            ...(prev || {}),
-            [fieldName]: value
-        }));
+            setFormData(prev => ({
+                ...(prev || {}),
+                [fieldName]: value
+            }));
 
-    };    
+        };    
     /*
      * Keep designerConfig synchronized if the
      * parent loads a different YAML configuration.
@@ -492,9 +492,32 @@ export default function Designer({
                     ];
                 }    
 
+            if (type === "detailGrid") {
 
+                    newWidget.title = "Order Items";
 
+                    newWidget.props = {
+                        detailField: "orderItems",
+                        source: {
+                            entity: "inventory",
+                            valueField: "id",
+                            labelField: "name"
+                        }
+                    };
+                }    
 
+            if (type === "datePicker") {
+
+                    newWidget.title = "Date";
+
+                    newWidget.props = {
+                        field: "",
+                        label: "Date",
+                        defaultValue: "",
+                        required: false,
+                        readOnly: false
+                    };
+                }    
 
 
 

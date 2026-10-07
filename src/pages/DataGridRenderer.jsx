@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 
 import {
     Paper,
-    Typography
+    Typography,IconButton,
+    Tooltip,Box
 } from "@mui/material";
 
 import {
     DataGrid
 } from "@mui/x-data-grid";
-
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 export default function DataGridRenderer({
     widget,
@@ -18,6 +19,7 @@ export default function DataGridRenderer({
 
     const [rows, setRows] = useState([]);
     const [error, setError] = useState("");
+    const [refreshKey, setRefreshKey] = useState(0);
     const dataVersion = context?.dataVersion || 0;
     const source = widget?.source || {};
 
@@ -75,7 +77,7 @@ export default function DataGridRenderer({
 
         loadData();
 
-    }, [entity, limit, dataVersion]);
+    }, [entity, limit, dataVersion, refreshKey]);
 
 
     if (error) {
@@ -174,12 +176,31 @@ export default function DataGridRenderer({
             }}
         >
 
-            <Typography
-                variant="h6"
-                gutterBottom
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 1
+                }}
             >
-                {widget.title || entity}
-            </Typography>
+                <Typography variant="h6">
+                    {widget.title || entity}
+                </Typography>
+
+                <Tooltip title="Refresh">
+                    <IconButton
+                        onClick={() =>
+                            setRefreshKey(
+                                previous => previous + 1
+                            )
+                        }
+                        size="small"
+                    >
+                        <RefreshIcon />
+                    </IconButton>
+                </Tooltip>
+            </Box>
 
 
             <DataGrid

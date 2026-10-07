@@ -5,7 +5,7 @@ import {
     TextField,
     Button,
     MenuItem,
-    Checkbox
+    Checkbox,FormControlLabel
 } from "@mui/material";
 
 export default function PropertyPanel({
@@ -53,7 +53,9 @@ const widgetProps =
     widget.props || {};
 
 const availableEntityFields =
-    entityMetadata[widgetProps.entity || defaultEntity] || [];
+    entityMetadata[
+        widgetProps.formEntity || defaultEntity
+    ] || [];
 
 
 const tableFields =
@@ -384,6 +386,10 @@ console.log(
 
                         <MenuItem value="save">
                             Save
+                        </MenuItem>
+
+                        <MenuItem value="saveOrder">
+                            SaveOrder
                         </MenuItem>
 
                         <MenuItem value="new">
@@ -1216,58 +1222,94 @@ console.log(
 
 
 
-            {widget.type === "textfield" && (
-                    <>
-                        <Typography
-                            variant="subtitle1"
-                            sx={{
-                                mt: 3,
-                                mb: 1
-                            }}
-                        >
-                            Text Field Properties
-                        </Typography>
-
-
-                        <TextField
-                            fullWidth
-                            label="Label"
-                            value={
-                                widget.props?.label || ""
-                            }
-                            onChange={(e) =>
-                                onChange("props", {
-                                    ...(widget.props || {}),
-                                    label: e.target.value
-                                })
-                            }
-                            sx={{ mb: 2 }}
-                        />
-
-                        <TextField
-                            select
-                            label="Field"
-                            value={widget.props?.field || ""}
-                            fullWidth
-                            size="small"
-                            onChange={(e) =>
-                                onChange("props", {
-                                    ...(widget.props || {}),
-                                    field: e.target.value
-                                })
-                            }
-                            sx={{ mb: 2 }}
-                        >
-                            {availableEntityFields.map((field) => (
-                                <MenuItem
-                                    key={field.name}
-                                    value={field.name}
+                        {widget.type === "textfield" && (
+                            <>
+                                <Typography
+                                    variant="subtitle1"
+                                    sx={{
+                                        mt: 3,
+                                        mb: 1
+                                    }}
                                 >
-                                    {field.label || field.name}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                        <TextField
+                                    Text Field Properties
+                                </Typography>
+
+                                {/* Form Entity */}
+                                <TextField
+                                    select
+                                    label="Form Entity"
+                                    value={
+                                        widget.props?.formEntity || ""
+                                    }
+                                    fullWidth
+                                    size="small"
+                                    onChange={(e) => {
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            formEntity: e.target.value,
+                                            field: ""
+                                        });
+                                    }}
+                                    sx={{ mb: 2 }}
+                                >
+                                    <MenuItem value="">
+                                        <em>Select entity</em>
+                                    </MenuItem>
+
+                                    {availableEntities.map((entity) => (
+                                        <MenuItem
+                                            key={entity}
+                                            value={entity}
+                                        >
+                                            {entity}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+
+                                {/* Label */}
+                                <TextField
+                                    fullWidth
+                                    label="Label"
+                                    value={
+                                        widget.props?.label || ""
+                                    }
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            label: e.target.value
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                />
+
+                                {/* Field */}
+                                <TextField
+                                    select
+                                    label="Field"
+                                    value={
+                                        widget.props?.field || ""
+                                    }
+                                    fullWidth
+                                    size="small"
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            field: e.target.value
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                >
+                                    {availableEntityFields.map((field) => (
+                                        <MenuItem
+                                            key={field.name}
+                                            value={field.name}
+                                        >
+                                            {field.label || field.name}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+
+            <TextField
                             fullWidth
                             label="Placeholder"
                             value={
@@ -1356,6 +1398,40 @@ console.log(
                         </Box>
 
 
+
+
+
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                mb: 1
+                            }}
+                        >
+                            <Checkbox
+                                checked={
+                                    widget.props?.readOnly ||
+                                    false
+                                }
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        readOnly:
+                                            e.target.checked
+                                    })
+                                }
+                            />
+
+                            <Typography>
+                                Read Only
+                            </Typography>
+                        </Box>
+
+
+
+
+
                         <Box
                             sx={{
                                 display: "flex",
@@ -1428,230 +1504,519 @@ console.log(
 
 
 
-                {widget.type === "select" && (
-                    <>
-                        <Typography
-                            variant="subtitle1"
-                            sx={{
-                                mt: 3,
-                                mb: 1
-                            }}
-                        >
-                            Select Properties
-                        </Typography>
-
-                        <TextField
-                            select
-                            label="Field"
-                            value={widget.props?.field || ""}
-                            fullWidth
-                            size="small"
-                            onChange={(e) =>
-                                onChange("props", {
-                                    ...(widget.props || {}),
-                                    field: e.target.value
-                                })
-                            }
-                            sx={{ mb: 2 }}
-                        >
-                            {availableEntityFields.map((field) => (
-                                <MenuItem
-                                    key={field.name}
-                                    value={field.name}
+                        {widget.type === "select" && (
+                            <>
+                                <Typography
+                                    variant="subtitle1"
+                                    sx={{
+                                        mt: 3,
+                                        mb: 1
+                                    }}
                                 >
-                                    {field.label || field.name}
+                                    Select Properties
+                                </Typography>
+
+                                {/* Label */}
+                                <TextField
+                                    fullWidth
+                                    label="Label"
+                                    value={widget.props?.label || ""}
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            label: e.target.value
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                />
+
+
+
+                            <TextField
+                                select
+                                label="Form Entity"
+                                value={widget.props?.formEntity || ""}
+                                fullWidth
+                                size="small"
+                                onChange={(e) => {
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        formEntity: e.target.value,
+                                        field: ""
+                                    });
+                                }}
+                                sx={{ mb: 2 }}
+                            >
+                                <MenuItem value="">
+                                    <em>Select entity</em>
                                 </MenuItem>
-                            ))}
-                        </TextField>
-                        <TextField
-                            fullWidth
-                            label="Label"
-                            value={
-                                widget.props?.label || ""
-                            }
-                            onChange={(e) =>
-                                onChange("props", {
-                                    ...(widget.props || {}),
-                                    label: e.target.value
-                                })
-                            }
-                            sx={{ mb: 2 }}
-                        />
 
-
-                        <TextField
-                            fullWidth
-                            label="Default Value"
-                            value={
-                                widget.props?.defaultValue || ""
-                            }
-                            onChange={(e) =>
-                                onChange("props", {
-                                    ...(widget.props || {}),
-                                    defaultValue:
-                                        e.target.value
-                                })
-                            }
-                            sx={{ mb: 2 }}
-                        />
-
-
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mb: 1 }}
-                        >
-                            Options
-                        </Typography>
-
-
-                        {(widget.props?.options || []).map(
-                            (option, index) => {
-
-                                const optionValue =
-                                    typeof option === "string"
-                                        ? option
-                                        : option.value;
-
-                                const optionLabel =
-                                    typeof option === "string"
-                                        ? option
-                                        : option.label ||
-                                          option.value;
-
-                                return (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            display: "flex",
-                                            gap: 1,
-                                            mb: 1
-                                        }}
+                                {availableEntities.map((entity) => (
+                                    <MenuItem
+                                        key={entity}
+                                        value={entity}
                                     >
-
-                                        <TextField
-                                            size="small"
-                                            label="Value"
-                                            value={
-                                                optionValue || ""
-                                            }
-                                            onChange={(e) => {
-
-                                                const options = [
-                                                    ...(widget.props?.options || [])
-                                                ];
-
-                                                options[index] = {
-                                                    value:
-                                                        e.target.value,
-                                                    label:
-                                                        optionLabel
-                                                };
-
-                                                onChange("props", {
-                                                    ...(widget.props || {}),
-                                                    options
-                                                });
-
-                                            }}
-                                            sx={{
-                                                flex: 1
-                                            }}
-                                        />
+                                        {entity}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
 
 
-                                        <TextField
-                                            size="small"
-                                            label="Label"
-                                            value={
-                                                optionLabel || ""
-                                            }
-                                            onChange={(e) => {
-
-                                                const options = [
-                                                    ...(widget.props?.options || [])
-                                                ];
-
-                                                options[index] = {
-                                                    value:
-                                                        optionValue,
-                                                    label:
-                                                        e.target.value
-                                                };
-
-                                                onChange("props", {
-                                                    ...(widget.props || {}),
-                                                    options
-                                                });
-
-                                            }}
-                                            sx={{
-                                                flex: 1
-                                            }}
-                                        />
 
 
-                                        <Button
-                                            variant="outlined"
-                                            color="error"
-                                            onClick={() => {
 
-                                                const options = [
-                                                    ...(widget.props?.options || [])
-                                                ];
-
-                                                options.splice(
-                                                    index,
-                                                    1
-                                                );
-
-                                                onChange("props", {
-                                                    ...(widget.props || {}),
-                                                    options
-                                                });
-
-                                            }}
+                                {/* Field */}
+                                <TextField
+                                    select
+                                    label="Field"
+                                    value={widget.props?.field || ""}
+                                    fullWidth
+                                    size="small"
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            field: e.target.value
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                >
+                                    {availableEntityFields.map((field) => (
+                                        <MenuItem
+                                            key={field.name}
+                                            value={field.name}
                                         >
-                                            ×
-                                        </Button>
+                                            {field.label || field.name}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
 
-                                    </Box>
-                                );
+                                {/* Entity */}
+                                <TextField select 
+                                label="Entity" 
+                                value={widget.props?.source?.entity || ""} 
+                                fullWidth 
+                                size="small" 
+                                onChange={(e) => { 
+                                    const entity = e.target.value; onChange("props", { ...(widget.props || {}), source: entity ? { ...(widget.props?.source || {}), entity, valueField: "", labelField: "" } : undefined }); }} 
+                                    sx={{ mb: 2 }} > {/* No entity / static options */} 
+                                    <MenuItem value=""> 
+                                        <em>None — use static options</em> 
+                                    </MenuItem>
+                                    
+                                    {availableEntities.map((entity) => (
+                                        <MenuItem
+                                            key={entity}
+                                            value={entity}
+                                        >
+                                            {entity}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
 
-                            }
+                                {/* Value Field + Label Field */}
+                                {widget.props?.source?.entity && (
+                                    <>
+                                        <TextField
+                                            select
+                                            label="Value Field"
+                                            value={
+                                                widget.props?.source?.valueField || ""
+                                            }
+                                            fullWidth
+                                            size="small"
+                                            onChange={(e) =>
+                                                onChange("props", {
+                                                    ...(widget.props || {}),
+                                                    source: {
+                                                        ...(widget.props?.source || {}),
+                                                        valueField:
+                                                            e.target.value
+                                                    }
+                                                })
+                                            }
+                                            sx={{ mb: 2 }}
+                                        >
+                                            {(
+                                                entityMetadata[
+                                                    widget.props.source.entity
+                                                ] || []
+                                            ).map((field) => (
+                                                <MenuItem
+                                                    key={field.name}
+                                                    value={field.name}
+                                                >
+                                                    {field.label || field.name}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+
+                                        <TextField
+                                            select
+                                            label="Label Field"
+                                            value={
+                                                widget.props?.source?.labelField || ""
+                                            }
+                                            fullWidth
+                                            size="small"
+                                            onChange={(e) =>
+                                                onChange("props", {
+                                                    ...(widget.props || {}),
+                                                    source: {
+                                                        ...(widget.props?.source || {}),
+                                                        labelField:
+                                                            e.target.value
+                                                    }
+                                                })
+                                            }
+                                            sx={{ mb: 2 }}
+                                        >
+                                            {(
+                                                entityMetadata[
+                                                    widget.props.source.entity
+                                                ] || []
+                                            ).map((field) => (
+                                                <MenuItem
+                                                    key={field.name}
+                                                    value={field.name}
+                                                >
+                                                    {field.label || field.name}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    </>
+                                )}
+
+                                {/* Default Value */}
+                                <TextField
+                                    fullWidth
+                                    label="Default Value"
+                                    value={
+                                        widget.props?.defaultValue || ""
+                                    }
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            defaultValue:
+                                                e.target.value
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                />
+
+                                {/* Static Options */}
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ mb: 1 }}
+                                >
+                                    Static Options
+                                </Typography>
+
+                                {(widget.props?.options || []).map(
+                                    (option, index) => {
+                                        const optionValue =
+                                            typeof option === "string"
+                                                ? option
+                                                : option.value;
+
+                                        const optionLabel =
+                                            typeof option === "string"
+                                                ? option
+                                                : option.label ||
+                                                  option.value;
+
+                                        return (
+                                            <Box
+                                                key={index}
+                                                sx={{
+                                                    display: "flex",
+                                                    gap: 1,
+                                                    mb: 1
+                                                }}
+                                            >
+                                                <TextField
+                                                    size="small"
+                                                    label="Value"
+                                                    value={
+                                                        optionValue || ""
+                                                    }
+                                                    onChange={(e) => {
+                                                        const options = [
+                                                            ...(widget.props?.options || [])
+                                                        ];
+
+                                                        options[index] = {
+                                                            value:
+                                                                e.target.value,
+                                                            label:
+                                                                optionLabel
+                                                        };
+
+                                                        onChange("props", {
+                                                            ...(widget.props || {}),
+                                                            options
+                                                        });
+                                                    }}
+                                                    sx={{
+                                                        flex: 1
+                                                    }}
+                                                />
+
+                                                <TextField
+                                                    size="small"
+                                                    label="Label"
+                                                    value={
+                                                        optionLabel || ""
+                                                    }
+                                                    onChange={(e) => {
+                                                        const options = [
+                                                            ...(widget.props?.options || [])
+                                                        ];
+
+                                                        options[index] = {
+                                                            value:
+                                                                optionValue,
+                                                            label:
+                                                                e.target.value
+                                                        };
+
+                                                        onChange("props", {
+                                                            ...(widget.props || {}),
+                                                            options
+                                                        });
+                                                    }}
+                                                    sx={{
+                                                        flex: 1
+                                                    }}
+                                                />
+
+                                                <Button
+                                                    variant="outlined"
+                                                    color="error"
+                                                    onClick={() => {
+                                                        const options = [
+                                                            ...(widget.props?.options || [])
+                                                        ];
+
+                                                        options.splice(
+                                                            index,
+                                                            1
+                                                        );
+
+                                                        onChange("props", {
+                                                            ...(widget.props || {}),
+                                                            options
+                                                        });
+                                                    }}
+                                                >
+                                                    ×
+                                                </Button>
+                                            </Box>
+                                        );
+                                    }
+                                )}
+
+                                <Button
+                                    variant="outlined"
+                                    fullWidth
+                                    sx={{ mt: 1 }}
+                                    onClick={() => {
+                                        const options = [
+                                            ...(widget.props?.options || [])
+                                        ];
+
+                                        options.push({
+                                            value: "",
+                                            label: ""
+                                        });
+
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            options
+                                        });
+                                    }}
+                                >
+                                    + Add Option
+                                </Button>
+                            </>
                         )}
 
 
-                        <Button
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mt: 1 }}
-                            onClick={() => {
-
-                                const options = [
-                                    ...(widget.props?.options || [])
-                                ];
-
-                                options.push({
-                                    value: "",
-                                    label: ""
-                                });
-
-                                onChange("props", {
-                                    ...(widget.props || {}),
-                                    options
-                                });
-
-                            }}
-                        >
-                            + Add Option
-                        </Button>
-
-                    </>
-                )}
 
 
 
+
+
+
+
+
+
+                {widget.type === "multiselect" && (
+                        <>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    mt: 3,
+                                    mb: 1
+                                }}
+                            >
+                                Multi Select Properties
+                            </Typography>
+
+                            {/* Label */}
+
+                            <TextField
+                                fullWidth
+                                label="Label"
+                                value={
+                                    widget.props?.label || ""
+                                }
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        label: e.target.value
+                                    })
+                                }
+                                sx={{ mb: 2 }}
+                            />
+
+                            {/* Field */}
+
+                            <TextField
+                                fullWidth
+                                label="Field"
+                                value={
+                                    widget.props?.field || ""
+                                }
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        field: e.target.value
+                                    })
+                                }
+                                sx={{ mb: 2 }}
+                            />
+
+                            {/* Entity */}
+
+                            <TextField
+                                select
+                                label="Entity"
+                                value={
+                                    widget.props?.source?.entity || ""
+                                }
+                                fullWidth
+                                size="small"
+                                onChange={(e) => {
+
+                                    const entity =
+                                        e.target.value;
+
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        source: {
+                                            ...(widget.props?.source || {}),
+                                            entity,
+
+                                            // Reset fields when
+                                            // entity changes
+                                            valueField: "",
+                                            labelField: ""
+                                        }
+                                    });
+
+                                }}
+                                sx={{ mb: 2 }}
+                            >
+                                {availableEntities.map((entity) => (
+                                    <MenuItem
+                                        key={entity}
+                                        value={entity}
+                                    >
+                                        {entity}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+
+                            {/* Fields for selected entity */}
+
+                            {widget.props?.source?.entity && (
+                                            <>
+                            {/* Value Field */}
+
+                            <TextField
+                                select
+                                label="Value Field"
+                                value={
+                                    widget.props?.source?.valueField || ""
+                                }
+                                fullWidth
+                                size="small"
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        source: {
+                                            ...(widget.props?.source || {}),
+                                            valueField:
+                                                e.target.value
+                                        }
+                                    })
+                                }
+                                sx={{ mb: 2 }}
+                            >
+                                {(
+                                    entityMetadata[
+                                        widget.props.source.entity
+                                    ] || []
+                                ).map((field) => (
+                                    <MenuItem
+                                        key={field.name}
+                                        value={field.name}
+                                    >
+                                        {field.label || field.name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+
+                            {/* Label Field */}
+
+                            <TextField
+                                select
+                                label="Label Field"
+                                value={
+                                    widget.props?.source?.labelField || ""
+                                }
+                                fullWidth
+                                size="small"
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        source: {
+                                            ...(widget.props?.source || {}),
+                                            labelField:
+                                                e.target.value
+                                        }
+                                    })
+                                }
+                                sx={{ mb: 2 }}
+                            >
+                                {(
+                                    entityMetadata[
+                                        widget.props.source.entity
+                                    ] || []
+                                ).map((field) => (
+                                    <MenuItem
+                                        key={field.name}
+                                        value={field.name}
+                                    >
+                                        {field.label || field.name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </>
+                    )}
+                </>
+            )}
 
 
 
@@ -2155,6 +2520,324 @@ console.log(
                     )}
                 </>
             )}
+
+
+
+            {widget.type === "datePicker" && (
+                            <>
+                                <Typography
+                                    variant="subtitle1"
+                                    sx={{ mt: 3, mb: 1 }}
+                                >
+                                    Date Picker Properties
+                                </Typography>
+
+                                <TextField
+                                    fullWidth
+                                    select
+                                    label="Entity"
+                                    value={
+                                        widget.props?.entity || ""
+                                    }
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            entity: e.target.value,
+                                            field: ""
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                >
+                                    <MenuItem value="">
+                                        <em>Select entity</em>
+                                    </MenuItem>
+
+                                    {availableEntities.map(
+                                        (entity) => (
+                                            <MenuItem
+                                                key={entity}
+                                                value={entity}
+                                            >
+                                                {entity}
+                                            </MenuItem>
+                                        )
+                                    )}
+                                </TextField>
+
+                                {widget.props?.entity && (
+                                    <TextField
+                                        fullWidth
+                                        select
+                                        label="Date Field"
+                                        value={
+                                            widget.props?.field || ""
+                                        }
+                                        onChange={(e) =>
+                                            onChange("props", {
+                                                ...(widget.props || {}),
+                                                field: e.target.value
+                                            })
+                                        }
+                                        sx={{ mb: 2 }}
+                                    >
+                                        <MenuItem value="">
+                                            <em>Select date field</em>
+                                        </MenuItem>
+
+                                        {(
+                                            entityMetadata[
+                                                widget.props.entity
+                                            ] || []
+                                        )
+                                            .filter(
+                                                (field) =>
+                                                    field.type === "date"
+                                            )
+                                            .map((field) => (
+                                                <MenuItem
+                                                    key={field.name}
+                                                    value={field.name}
+                                                >
+                                                    {field.label ||
+                                                        field.name}
+                                                </MenuItem>
+                                            ))}
+                                    </TextField>
+                                )}
+
+                                <TextField
+                                    fullWidth
+                                    label="Label"
+                                    value={
+                                        widget.props?.label || ""
+                                    }
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            label: e.target.value
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    fullWidth
+                                    label="Default Value"
+                                    type="date"
+                                    value={
+                                        widget.props?.defaultValue ||
+                                        ""
+                                    }
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            defaultValue:
+                                                e.target.value
+                                        })
+                                    }
+                                    slotProps={{
+                                        inputLabel: {
+                                            shrink: true
+                                        }
+                                    }}
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={
+                                                widget.props?.required ||
+                                                false
+                                            }
+                                            onChange={(e) =>
+                                                onChange("props", {
+                                                    ...(widget.props || {}),
+                                                    required:
+                                                        e.target.checked
+                                                })
+                                            }
+                                        />
+                                    }
+                                    label="Required"
+                                />
+
+                             <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={
+                                                widget.props?.readOnly ||
+                                                false
+                                            }
+                                            onChange={(e) =>
+                                                onChange("props", {
+                                                    ...(widget.props || {}),
+                                                    readOnly:
+                                                        e.target.checked
+                                                })
+                                            }
+                                        />
+                                    }
+                                    label="Read Only"
+                                />
+                            </>
+                        )}
+
+
+
+
+
+
+
+
+            {widget.type === "detailGrid" && (
+                            <>
+                                <Typography
+                                    variant="subtitle1"
+                                    sx={{ mt: 3, mb: 1 }}
+                                >
+                                    Detail Grid Properties
+                                </Typography>
+
+                                <TextField
+                                    fullWidth
+                                    label="Detail Field"
+                                    value={
+                                        widget.props?.detailField ||
+                                        "orderItems"
+                                    }
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            detailField: e.target.value
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    select
+                                    fullWidth
+                                    label="Source Entity"
+                                    value={
+                                        widget.props?.source?.entity ||
+                                        ""
+                                    }
+                                    onChange={(e) =>
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            source: {
+                                                ...(widget.props?.source || {}),
+                                                entity: e.target.value,
+                                                valueField: "",
+                                                labelField: ""
+                                            }
+                                        })
+                                    }
+                                    sx={{ mb: 2 }}
+                                >
+                                    <MenuItem value="">
+                                        <em>Select entity</em>
+                                    </MenuItem>
+
+                                    {availableEntities.map((entity) => (
+                                        <MenuItem
+                                            key={entity}
+                                            value={entity}
+                                        >
+                                            {entity}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                                {widget.props?.source?.entity && (
+                                            <>
+                                                <TextField
+                                                    select
+                                                    fullWidth
+                                                    label="Value Field"
+                                                    value={
+                                                        widget.props?.source?.valueField ||
+                                                        ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        onChange("props", {
+                                                            ...(widget.props || {}),
+                                                            source: {
+                                                                ...(widget.props?.source || {}),
+                                                                valueField: e.target.value
+                                                            }
+                                                        })
+                                                    }
+                                                    sx={{ mb: 2 }}
+                                                >
+                                                    <MenuItem value="">
+                                                        <em>Select value field</em>
+                                                    </MenuItem>
+
+                                                    {(
+                                                        entityMetadata[
+                                                            widget.props.source.entity
+                                                        ] || []
+                                                    ).map((field) => (
+                                                        <MenuItem
+                                                            key={field.name}
+                                                            value={field.name}
+                                                        >
+                                                            {field.label || field.name}
+                                                        </MenuItem>
+                                                    ))}
+                                                </TextField>
+
+                                                <TextField
+                                                    select
+                                                    fullWidth
+                                                    label="Label Field"
+                                                    value={
+                                                        widget.props?.source?.labelField ||
+                                                        ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        onChange("props", {
+                                                            ...(widget.props || {}),
+                                                            source: {
+                                                                ...(widget.props?.source || {}),
+                                                                labelField: e.target.value
+                                                            }
+                                                        })
+                                                    }
+                                                    sx={{ mb: 2 }}
+                                                >
+                                                    <MenuItem value="">
+                                                        <em>Select label field</em>
+                                                    </MenuItem>
+
+                                                    {(
+                                                        entityMetadata[
+                                                            widget.props.source.entity
+                                                        ] || []
+                                                    ).map((field) => (
+                                                        <MenuItem
+                                                            key={field.name}
+                                                            value={field.name}
+                                                        >
+                                                            {field.label || field.name}
+                                                        </MenuItem>
+                                                    ))}
+                                                </TextField>
+                                            </>
+                                        )}
+                            </>
+                        )}
+
+
+
+
+
+                    
+
+
+
+
 
 
 
