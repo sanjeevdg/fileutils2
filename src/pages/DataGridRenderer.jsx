@@ -28,56 +28,150 @@ export default function DataGridRenderer({
     const columns = source.columns || [];
 
     const limit = source.limit || 10;
+    const filter = source.filter || {};
+
+
+    const filterValue =
+    filter.valueFrom === "formData.id"
+        ? context?.formData?.id
+        : filter.valueFrom?.startsWith("formData.")
+            ? context?.formData?.[
+                filter.valueFrom.substring(
+                    "formData.".length
+                )
+            ]
+            : undefined;
 
 
     useEffect(() => {
 
-        if (!entity) {
-            setRows([]);
-            return;
-        }
-
-        const loadData = async () => {
-
-            try {
-
-                setError("");
-
-                const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/${entity}`
-                );
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        `Data Grid request failed: ${response.status}`
-                    );
-                }
-
-                const result = await response.json();
-
-                setRows(
-                    Array.isArray(result)
-                        ? result.slice(0, limit)
-                        : []
-                );
-
-            } catch (err) {
-
-                console.error(
-                    "Data Grid error:",
-                    err
-                );
-
-                setError(err.message);
-
+            if (!entity) {
+                setRows([]);
+                return;
             }
 
-        };
+            const loadData = async () => {
 
-        loadData();
+                try {
 
-    }, [entity, limit, dataVersion, refreshKey]);
+                    setError("");
+
+                    let url =
+                        `${import.meta.env.VITE_API_URL}/api/${entity}`;
+
+                    if (
+                        filter.field &&
+                        filter.valueFrom
+                    ) {
+
+                        let value;
+
+                        if (
+                            filter.valueFrom ===
+                            "formData.id"
+                        ) {
+
+                            value =
+                                context?.formData?.id;
+
+                        } else if (
+                            filter.valueFrom.startsWith(
+                                "formData."
+                            )
+                        ) {
+
+                            const field =
+                                filter.valueFrom.substring(
+                                    "formData.".length
+                                );
+
+                            value =
+                                context?.formData?.[field];
+                        }
+
+                        // -------------------------------------------------
+                        // If a filter is configured but its value is not
+                        // available yet, don't load any data.
+                        //
+                        // Example:
+                        // filter:
+                        //   field: order_id
+                        //   valueFrom: formData.id
+                        //
+                        // Before an order is selected, formData.id is empty.
+                        // Therefore the grid should remain empty.
+                        // -------------------------------------------------
+
+                        if (filter.field && filter.valueFrom) {
+
+                            if (
+                                filterValue === undefined ||
+                                filterValue === null ||
+                                filterValue === ""
+                            ) {
+                                setRows([]);
+                                return;
+                            }
+
+                            const params =
+                                new URLSearchParams();
+
+                            params.set(
+                                filter.field,
+                                filterValue
+                            );
+
+                            url += `?${params.toString()}`;
+                        }
+                    }
+
+                    console.log(
+                        "DATAGRID FETCH:",
+                        url
+                    );
+
+                    const response =
+                        await fetch(url);
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            `Data Grid request failed: ${response.status}`
+                        );
+                    }
+
+                    const result =
+                        await response.json();
+
+                    setRows(
+                        Array.isArray(result)
+                            ? result.slice(0, limit)
+                            : []
+                    );
+
+                } catch (err) {
+
+                    console.error(
+                        "Data Grid error:",
+                        err
+                    );
+
+                    setError(err.message);
+                }
+
+            };
+
+            loadData();
+
+        }, [
+            entity,
+            limit,
+            dataVersion,
+            refreshKey,
+            filter.field,
+            filter.valueFrom,
+            filterValue
+        ]);
 
 
     if (error) {
