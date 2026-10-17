@@ -284,7 +284,8 @@ const updateField = (field, value) => {
 
     const config =
         await response.json();
-
+  //  console.log("LOADED YAML CONFIG KEYS:", Object.keys(config || {}));
+  //  console.log("LOADED YAML ENTITIES:", config?.entities);    
     setConfig(config);
 
     return config;
@@ -369,13 +370,21 @@ async function selectUser(event, user) {
 
 
 
-const selectRecord = async (record) => {
+
+const selectRecord = async (record, entity) => {
     console.log("SELECTED RECORD:", record);
+    console.log("SELECTED ENTITY:", entity);
 
     const {
         _gridId,
         ...cleanRecord
     } = record;
+
+    // Only orders need their order items loaded.
+    if (entity !== "orders") {
+        setFormData(cleanRecord);
+        return;
+    }
 
     try {
         const response = await fetch(
@@ -390,11 +399,6 @@ const selectRecord = async (record) => {
 
         const result = await response.json();
 
-        console.log(
-            "LOADED ORDER ITEMS:",
-            result
-        );
-
         setFormData({
             ...cleanRecord,
             orderItems: Array.isArray(result)
@@ -403,10 +407,7 @@ const selectRecord = async (record) => {
         });
 
     } catch (err) {
-        console.error(
-            "LOAD ORDER ITEMS ERROR:",
-            err
-        );
+        console.error("LOAD ORDER ITEMS ERROR:", err);
 
         setFormData({
             ...cleanRecord,
@@ -814,10 +815,22 @@ async function saveOrder(formData, buttonWidget) {
         setSaving(false);
     }
 }
- 
 
-async function save(buttonWidget) {
+function resetCustomerForm() {
+    setFormData({
+        first_name: "",
+        last_name: "",
+        email: "",
+        age: "",
+        gender: "",
+        city: "",
+        active: true
+    });
+} 
 
+async function saveCustomer(buttonWidget) {
+
+    console.log('THE SAVE BUTTONWDIGET FUNCTION CALLED');
     console.log("=== SAVE CALLED ===");
     console.log("FORM DATA:", formData);
 
@@ -833,9 +846,13 @@ async function save(buttonWidget) {
         setError(null);
         setMessage(null);
 
+        console.log("FORM ID:", formData.id);
+        console.log("FORM DATA KEYS:", Object.keys(formData));
+
         const isNew =
             formData.id === null ||
-            formData.id === undefined;
+            formData.id === undefined ||
+            formData.id === "";
 
         const url = isNew
             ? `${API_URL}/api/customers`
@@ -903,9 +920,13 @@ async function save(buttonWidget) {
          * Keep the saved record
          * in the form.
          */
-        setFormData(
-            savedCustomer
-        );
+        /*
+ * Reset form after successful create or edit
+ */
+resetCustomerForm();
+
+//        setFormData(savedCustomer
+    //    );
 
     }
     catch (err) {
@@ -981,7 +1002,11 @@ const handleBindingChange = (
   =======================================================
   */
 
-  async function saveCustomer() {
+async function save() {
+
+
+    console.log('THIS SAVE FUNCTION CALLED');
+
 
     if (!selectedUser) {
 
@@ -998,9 +1023,36 @@ const handleBindingChange = (
         setError(null);
         setMessage(null);
 
+        console.log("FORM ID22222222:", formData.id);
+        console.log("FORM DATA KEYS22222222222:", Object.keys(formData));
+
         const isNew =
-            selectedUser.id === null ||
-            selectedUser.id === undefined;
+            formData.id === null ||
+            formData.id === undefined ||
+            formData.id === "";
+
+
+        /*
+        =====================================================
+        CUSTOMER PAYLOAD
+        =====================================================
+
+        selectedUser may contain UI-only properties such as
+        orderItems.
+
+        Only send fields that belong to the customers entity.
+        */
+
+        const customerPayload = {
+            id: selectedUser.id,
+            first_name: selectedUser.first_name,
+            last_name: selectedUser.last_name,
+            email: selectedUser.email,
+            age: selectedUser.age,
+            gender: selectedUser.gender,
+            city: selectedUser.city,
+            active: selectedUser.active
+        };
 
 
         /*
@@ -1010,6 +1062,13 @@ const handleBindingChange = (
         */
 
         if (isNew) {
+
+            /*
+             * Don't send id when creating a new record.
+             */
+
+            delete customerPayload.id;
+
 
             const response =
                 await fetch(
@@ -1024,7 +1083,7 @@ const handleBindingChange = (
 
                         body:
                             JSON.stringify(
-                                selectedUser
+                                customerPayload
                             ),
                     }
                 );
@@ -1051,8 +1110,8 @@ const handleBindingChange = (
 
 
             /*
-            * Add new customer to master list
-            */
+             * Add new customer to master list
+             */
 
             setUsers(
                 previousUsers => [
@@ -1063,8 +1122,8 @@ const handleBindingChange = (
 
 
             /*
-            * Select newly created customer
-            */
+             * Select newly created customer
+             */
 
             setSelectedUser(
                 created
@@ -1098,7 +1157,7 @@ const handleBindingChange = (
 
                     body:
                         JSON.stringify(
-                            selectedUser
+                            customerPayload
                         ),
                 }
             );
@@ -1125,8 +1184,8 @@ const handleBindingChange = (
 
 
         /*
-        * Update master list
-        */
+         * Update master list
+         */
 
         setUsers(
             previousUsers =>
@@ -1140,8 +1199,8 @@ const handleBindingChange = (
 
 
         /*
-        * Keep detail synchronized
-        */
+         * Keep detail synchronized
+         */
 
         setSelectedUser(
             updated
@@ -1176,92 +1235,55 @@ const handleBindingChange = (
 
   async function deleteCustomer() {
 
-    if (!selectedUser) {
-
-      setError(
-        "Please select a user first."
-      );
-
+    if (!formData?.id) {
+      setError("Please select a customer first.");
       return;
     }
 
-
-    const confirmed =
-      window.confirm(
-        `Delete ${selectedUser.first_name} ${selectedUser.last_name}?`
-      );
-
+    const confirmed = window.confirm(
+      `Delete ${formData.first_name} ${formData.last_name}?`
+    );
 
     if (!confirmed) {
       return;
     }
 
-
     try {
-
       setError(null);
-
       setMessage(null);
 
+      const deletedId = formData.id;
 
-      const response =
-        await fetch(
-          `${API_URL}/api/customers/${selectedUser.id}`,
-          {
-            method: "DELETE",
-          }
-        );
-
+      const response = await fetch(
+        `${API_URL}/api/customers/${deletedId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
-
         throw new Error(
-          `Failed to delete user: ${response.status}`
+          `Failed to delete customer: ${response.status}`
         );
-
       }
 
-
-      const deletedId =
-        selectedUser.id;
-
-
-      const remaining =
-        users.filter(
-          user =>
-            user.id !==
-            deletedId
-        );
-
-
-      setUsers(
-        remaining
+      // Remove the deleted customer from the customer list.
+      const remaining = users.filter(
+        user => user.id !== deletedId
       );
 
+      setUsers(remaining);
 
-      setSelectedUser(
-        remaining.length > 0
-          ? remaining[0]
-          : null
-      );
+      setSelectedUser(remaining.length > 0 ? remaining[0] : null);
+      setDataVersion(previous => previous + 1);
+      resetCustomerForm();
+      setMessage("Customer deleted successfully.");
 
-
-      setMessage(
-        "User deleted successfully."
-      );
-
-    }
-    catch (err) {
-
+    } catch (err) {
       console.error(err);
-
-      setError(
-        err.message
-      );
-
+      setError(err.message);
     }
-
-  }
+}
 
 async function selectOrder(
     event,
@@ -1365,7 +1387,7 @@ console.log("DASHBOARD FORM DATA:", formData);
   =======================================================
   HANDLERS AVAILABLE TO YAML
   =======================================================
-  */
+  
 
 const newCustomer = () => {
 
@@ -1379,7 +1401,7 @@ const newCustomer = () => {
         active: true
     });
 
-};
+};*/
 function updateOrderField(fieldName, value) {
 
     setSelectedOrder(previous => {
@@ -1432,15 +1454,13 @@ const newOrder = () => {
 
     selectCustomer,
 
-    newCustomer,
+   // newCustomer,
 
     newOrder,
 
     selectOrder,
 
     handleBindingChange,
-
-    saveCustomer,
 
     deleteCustomer,
 
@@ -1449,12 +1469,12 @@ const newOrder = () => {
     updateOrderField,
 
     saveOrder,
-    save,
+    saveCustomer,
     selectRecord
 
   };
 
-
+//saveCustomer,
   /*
   =======================================================
   LOADING

@@ -323,7 +323,8 @@ export default function DataGridRenderer({
                     if (handlers.selectRecord) {
 
                         handlers.selectRecord(
-                            params.row
+                            params.row,
+                            source.entity
                         );
 
                     }

@@ -1,4 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, {
+    useEffect,
+    useState
+} from "react";
+
 import {
     Box,
     Button,
@@ -6,10 +10,13 @@ import {
     TextField,
     Typography
 } from "@mui/material";
+
 import MenuItem from "@mui/material/MenuItem";
+
 
 const API_URL =
     import.meta.env.VITE_API_URL;
+
 
 export default function DetailGridRenderer({
     widget,
@@ -17,19 +24,38 @@ export default function DetailGridRenderer({
     handlers = {}
 }) {
 
-    const props = widget?.props || {};
+    const props =
+        widget?.props || {};
+
+    const config = context?.config || {};
+
+    const entities = config?.entities || {};    
 
     const detailField =
-        props.detailField || "orderItems";
+        props.detailField ||
+        "orderItems";
 
     const source =
         props.source || {};
 
-    const productEntity =
-        source.entity || "inventory";
+    const entity =
+        source.entity || "";
 
-    const [products, setProducts] =
-        useState([]);
+    const columns =
+        props.columns || [];
+
+    // -------------------------------------------------
+    // Reference data
+    //
+    // For the moment we retain the existing behavior:
+    // product_id -> inventory
+    //
+    // We will make this generic in the next step.
+    // -------------------------------------------------
+
+    //const [products, setProducts] =   useState([]);
+
+    const [referenceOptions, setReferenceOptions] = useState({});    
 
     const [items, setItems] =
         useState(
@@ -37,55 +63,94 @@ export default function DetailGridRenderer({
         );
 
 
-    /*
-     * Load products
-     */
-    useEffect(() => {
+            // -------------------------------------------------
+            // Load reference data
+            //
+            // Temporary compatibility with the existing
+            // Order Items implementation.
+            // -------------------------------------------------
 
-        const loadProducts = async () => {
+            
+        useEffect(() => {
+            const entityFields =
+                context?.config?.entities?.[entity]?.fields || [];
+            console.log("DETAIL GRID ENTITY:", entity);
+            console.log("DETAIL GRID ENTITY FIELDS:", entityFields);
+            console.log("DETAIL GRID COLUMNS:", columns);    
+            const referenceFields = columns
+                .map(column =>
+                    typeof column === "string"
+                        ? column
+                        : column.field
+                )
+                .map(fieldName =>
+                    entityFields.find(
+                        field => field.name === fieldName
+                    )
+                )
+                .filter(field => field?.type === "reference");
 
-            try {
+            let cancelled = false;
 
-                const response =
-                    await fetch(
-                        `${API_URL}/api/${productEntity}`
-                    );
+            const loadReferenceOptions = async () => {
+                const optionsByField = {};
 
-                if (!response.ok) {
-                    throw new Error(
-                        `Failed to load ${productEntity}: ${response.status}`
-                    );
+                await Promise.all(
+                    referenceFields.map(async field => {
+                        const reference = field.reference || {};
+                        const referenceEntity = reference.entity;
+
+                        if (!referenceEntity) return;
+
+                        try {
+                            const response = await fetch(
+                                `${API_URL}/api/${referenceEntity}`
+                            );
+
+                            if (!response.ok) {
+                                throw new Error(
+                                    `Failed to load ${referenceEntity}: ${response.status}`
+                                );
+                            }
+
+                            const records = await response.json();
+
+                            optionsByField[field.name] = {
+                                valueField: reference.valueField || "id",
+                                labelField:
+                                    reference.labelField ||
+                                    reference.valueField ||
+                                    "id",
+                                records: Array.isArray(records)
+                                    ? records
+                                    : []
+                            };
+                        } catch (err) {
+                            console.error(
+                                `REFERENCE OPTIONS ERROR (${field.name}):`,
+                                err
+                            );
+                        }
+                    })
+                );
+                console.log("DETAIL GRID REFERENCE OPTIONS:", optionsByField);
+                if (!cancelled) {
+                    setReferenceOptions(optionsByField);
                 }
+            };
 
-                const result =
-                    await response.json();
+            loadReferenceOptions();
 
-                setProducts(
-                    Array.isArray(result)
-                        ? result
-                        : []
-                );
-
-            } catch (err) {
-
-                console.error(
-                    "DETAIL GRID PRODUCT ERROR:",
-                    err
-                );
-
-            }
-
-        };
-
-        loadProducts();
-
-    }, [productEntity]);
+            return () => {
+                cancelled = true;
+            };
+        }, [entity, columns, context?.config?.entities]);
 
 
-    /*
-     * Keep local items synchronized
-     * with formData when needed.
-     */
+    // -------------------------------------------------
+    // Keep local items synchronized with formData
+    // -------------------------------------------------
+
     useEffect(() => {
 
         setItems(
@@ -98,12 +163,11 @@ export default function DetailGridRenderer({
     ]);
 
 
-    /*
-     * Update parent formData
-     */
-    const updateItems = (
-        newItems
-    ) => {
+    // -------------------------------------------------
+    // Update detail records
+    // -------------------------------------------------
+
+    const updateItems = (newItems) => {
 
         setItems(newItems);
 
@@ -115,26 +179,54 @@ export default function DetailGridRenderer({
     };
 
 
-    /*
-     * Add a new blank item
-     */
+    // -------------------------------------------------
+    // Add detail record
+    // -------------------------------------------------
+
     const addItem = () => {
+
+        const newItem = {};
+
+        columns.forEach(column => {
+
+            const field =
+                typeof column === "string"
+                    ? column
+                    : column.field;
+
+            if (!field) {
+                return;
+            }
+
+            if (field === "quantity") {
+
+                newItem[field] = 1;
+
+            } else if (field === "amount") {
+
+                newItem[field] = 0;
+
+            } else {
+
+                newItem[field] = "";
+
+            }
+
+        });
+
 
         updateItems([
             ...items,
-            {
-                product_id: "",
-                quantity: 1,
-                amount: 0
-            }
+            newItem
         ]);
 
     };
 
 
-    /*
-     * Remove item
-     */
+    // -------------------------------------------------
+    // Remove detail record
+    // -------------------------------------------------
+
     const removeItem = (index) => {
 
         updateItems(
@@ -147,55 +239,49 @@ export default function DetailGridRenderer({
     };
 
 
-    /*
-     * Change product
-     */
-    const changeProduct = (
-        index,
-        productId
-    ) => {
+    // -------------------------------------------------
+    // Product change
+    //
+    // Temporary compatibility with the existing
+    // product_id / inventory relationship.
+    // -------------------------------------------------
 
-        const product =
-            products.find(
-                p =>
-                    String(p.id) ===
-                    String(productId)
+            
+        const changeReference = (index, field, value) => {
+            const options = referenceOptions[field];
+
+            const selectedRecord = options?.records.find(
+                record =>
+                    String(record[options.valueField]) === String(value)
             );
 
-        const quantity =
-            Number(
-                items[index]?.quantity || 1
-            );
+            const newItems = items.map((item, itemIndex) => {
+                if (itemIndex !== index) return item;
 
-        const price =
-            Number(
-                product?.price || 0
-            );
+                const updatedItem = {
+                    ...item,
+                    [field]: value
+                };
 
-        const amount =
-            price * quantity;
+                // Preserve the existing product amount calculation.
+                if (field === "product_id") {
+                    const quantity = Number(item.quantity || 1);
+                    const price = Number(selectedRecord?.price || 0);
 
-        const newItems =
-            items.map(
-                (item, itemIndex) =>
-                    itemIndex === index
-                        ? {
-                            ...item,
-                            product_id:
-                                productId,
-                            amount
-                        }
-                        : item
-            );
+                    updatedItem.amount = price * quantity;
+                }
 
-        updateItems(newItems);
+                return updatedItem;
+            });
 
-    };
+            updateItems(newItems);
+        };
 
 
-    /*
-     * Change quantity
-     */
+    // -------------------------------------------------
+    // Quantity change
+    // -------------------------------------------------
+
     const changeQuantity = (
         index,
         quantityValue
@@ -204,23 +290,27 @@ export default function DetailGridRenderer({
         const quantity =
             Number(quantityValue);
 
-        const productId =
-            items[index]?.product_id;
 
-        const product =
-            products.find(
-                p =>
-                    String(p.id) ===
-                    String(productId)
-            );
+       
+        const productId = items[index]?.product_id;
+        const productOptions = referenceOptions.product_id;
+
+        const product = productOptions?.records.find(
+            record =>
+                String(record[productOptions.valueField]) ===
+                String(productId)
+        );
+
 
         const price =
             Number(
                 product?.price || 0
             );
 
+
         const amount =
             price * quantity;
+
 
         const newItems =
             items.map(
@@ -234,18 +324,193 @@ export default function DetailGridRenderer({
                         : item
             );
 
+
         updateItems(newItems);
 
     };
 
 
+    // -------------------------------------------------
+    // Total
+    // -------------------------------------------------
+
     const total =
         items.reduce(
             (sum, item) =>
                 sum +
-                Number(item.amount || 0),
+                Number(
+                    item.amount || 0
+                ),
             0
         );
+
+
+    // -------------------------------------------------
+    // Nothing configured
+    // -------------------------------------------------
+
+    if (!columns.length) {
+
+        return (
+            <Typography
+                color="text.secondary"
+            >
+                No Detail Grid columns configured.
+            </Typography>
+        );
+
+    }
+
+
+    // -------------------------------------------------
+    // Render a column
+    // -------------------------------------------------
+
+    const renderField = (
+        column,
+        item,
+        index
+    ) => {
+
+        const field =
+            typeof column === "string"
+                ? column
+                : column.field;
+
+
+        const label =
+            typeof column === "string"
+                ? column
+                : column.label ||
+                  column.field;
+
+
+        // ---------------------------------------------
+        // Product reference
+        //
+        // Temporary compatibility with current
+        // order_items configuration.
+        // ---------------------------------------------
+
+        
+            const reference = referenceOptions[field];
+
+            if (reference) {
+                return (
+                    <TextField
+                        key={field}
+                        select
+                        fullWidth
+                        label={label}
+                        value={item[field] ?? ""}
+                        onChange={event =>
+                            changeReference(
+                                index,
+                                field,
+                                event.target.value
+                            )
+                        }
+                    >
+                        {reference.records.map(record => (
+                            <MenuItem
+                                key={record[reference.valueField]}
+                                value={record[reference.valueField]}
+                            >
+                                {record[reference.labelField]}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                );
+            }
+
+
+        // ---------------------------------------------
+        // Quantity
+        // ---------------------------------------------
+
+        if (field === "quantity") {
+
+            return (
+                <TextField
+                    key={field}
+                    type="number"
+                    label={label}
+                    value={
+                        item[field] ?? ""
+                    }
+                    onChange={(event) =>
+                        changeQuantity(
+                            index,
+                            event.target.value
+                        )
+                    }
+                />
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Amount
+        // ---------------------------------------------
+
+        if (field === "amount") {
+
+            return (
+                <TextField
+                    key={field}
+                    label={label}
+                    value={
+                        item[field] ?? 0
+                    }
+                    slotProps={{
+                        htmlInput: {
+                            readOnly: true
+                        }
+                    }}
+                />
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Generic field
+        // ---------------------------------------------
+
+        return (
+            <TextField
+                key={field}
+                fullWidth
+                label={label}
+                value={
+                    item[field] ?? ""
+                }
+                onChange={(event) => {
+
+                    const value =
+                        event.target.value;
+
+                    const newItems =
+                        items.map(
+                            (currentItem,
+                                itemIndex) =>
+                                itemIndex === index
+                                    ? {
+                                        ...currentItem,
+                                        [field]:
+                                            value
+                                    }
+                                    : currentItem
+                        );
+
+                    updateItems(newItems);
+
+                }}
+            />
+        );
+
+    };
 
 
     return (
@@ -263,7 +528,7 @@ export default function DetailGridRenderer({
                 gutterBottom
             >
                 {widget.title ||
-                    "Order Items"}
+                    "Detail Grid"}
             </Typography>
 
 
@@ -275,7 +540,13 @@ export default function DetailGridRenderer({
                         sx={{
                             display: "grid",
                             gridTemplateColumns:
-                                "2fr 1fr 1fr auto",
+                                `repeat(
+                                    ${Math.min(
+                                        columns.length,
+                                        4
+                                    )},
+                                    1fr
+                                ) auto`,
                             gap: 2,
                             mb: 2,
                             alignItems:
@@ -283,76 +554,23 @@ export default function DetailGridRenderer({
                         }}
                     >
 
-                        <TextField
-                            select
-                            fullWidth
-                            label="Product"
-                            value={
-                                item.product_id ??
-                                ""
-                            }
-                            onChange={(event) =>
-                                changeProduct(
-                                    index,
-                                    event.target.value
+                        {columns.map(
+                            column =>
+                                renderField(
+                                    column,
+                                    item,
+                                    index
                                 )
-                            }
-                        >
-
-                            {products.map(
-                                product => (
-
-                                    <MenuItem
-                                        key={
-                                            product.id
-                                        }
-                                        value={
-                                            product.id
-                                        }
-                                    >
-                                        {product.name}
-                                    </MenuItem>
-
-                                )
-                            )}
-
-                        </TextField>
-
-
-                        <TextField
-                            type="number"
-                            label="Quantity"
-                            value={
-                                item.quantity ??
-                                ""
-                            }
-                            onChange={(event) =>
-                                changeQuantity(
-                                    index,
-                                    event.target.value
-                                )
-                            }
-                        />
-
-
-                        <TextField
-                            label="Amount"
-                            value={
-                                item.amount ?? 0
-                            }
-                            slotProps={{
-                                htmlInput: {
-                                    readOnly: true
-                                }
-                            }}
-                        />
+                        )}
 
 
                         <Button
                             color="error"
                             variant="outlined"
                             onClick={() =>
-                                removeItem(index)
+                                removeItem(
+                                    index
+                                )
                             }
                         >
                             Remove
@@ -379,9 +597,12 @@ export default function DetailGridRenderer({
                     textAlign: "right"
                 }}
             >
-                Total: {total.toFixed(2)}
+                Total:{" "}
+                {total.toFixed(2)}
             </Typography>
 
         </Paper>
+
     );
+
 }

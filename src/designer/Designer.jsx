@@ -11,7 +11,7 @@ import DashboardRenderer from "../pages/DashboardRenderer";
 import ComponentPalette from "./ComponentPalette";
 import PropertyPanel from "./PropertyPanel";
 const API_URL = import.meta.env.VITE_API_URL;
-
+import availableActions from "../config/availableActions";
 
 
 export default function Designer({
@@ -28,7 +28,7 @@ export default function Designer({
         const [configName, setConfigName] =
     useState(initialConfigName);
 
-
+   // const availableActions = Object.keys(handlers);
 
     const getDashboardTitle = (name) => {
         if (!name) return "";
@@ -1118,6 +1118,7 @@ console.log("DESIGNER SELECTED RECORD:", selectedRecord);
                     onChange={updateWidget}
                     onDelete={deleteWidget}
                     entityMetadata={entityMetadata}
+                    availableActions={availableActions}
                 />
 
             </Box>

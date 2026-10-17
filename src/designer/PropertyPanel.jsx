@@ -12,7 +12,8 @@ export default function PropertyPanel({
     widget,
     onChange,
     onDelete,
-    entityMetadata = {}
+    entityMetadata = {},
+    availableActions = []
 }) {
 
     if (!widget) {
@@ -384,25 +385,11 @@ console.log(
                             None
                         </MenuItem>
 
-                        <MenuItem value="save">
-                            Save
-                        </MenuItem>
-
-                        <MenuItem value="saveOrder">
-                            SaveOrder
-                        </MenuItem>
-
-                        <MenuItem value="new">
-                            New
-                        </MenuItem>
-
-                        <MenuItem value="edit">
-                            Edit
-                        </MenuItem>
-
-                        <MenuItem value="delete">
-                            Delete
-                        </MenuItem>
+                        {availableActions.map((action) => (
+                            <MenuItem key={action.name} value={action.name}>
+                                {action.name}
+                            </MenuItem>
+                        ))}
                     </TextField>
 
                     {/* SUCCESS MESSAGE */}

@@ -31,7 +31,7 @@ export default function WidgetRenderer({
     
      const formData = context?.formData || {};
 
-    console.log("WIDGET RENDERER:", widget);
+//    console.log("WIDGET RENDERER:", widget);
 
     if (!widget) {
         return null;

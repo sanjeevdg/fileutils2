@@ -13,7 +13,9 @@ export default function SelectRenderer({
     handlers = {}
 }) {
     const props = widget?.props || {};
+
     console.log("SELECT WIDGET PROPS:", props);
+
     const field = props.field || "";
 
     const formData = context?.formData || {};
@@ -23,21 +25,97 @@ export default function SelectRenderer({
         props.defaultValue ??
         "";
 
+    /*
+     * ---------------------------------------------------------
+     * Find the field definition in the YAML schema
+     * ---------------------------------------------------------
+     *
+     * Example:
+     *
+     * entities:
+     *   customers:
+     *     fields:
+     *       - name: gender
+     *         type: select
+     *         options:
+     *           - Male
+     *           - Female
+     *           - Other
+     */
+    const formEntity = props.formEntity || "";
+
+    const entities =
+        context?.config?.entities || {};
+
+    const entityConfig =
+        entities?.[formEntity];
+
+    const fieldConfig =
+        entityConfig?.fields?.find(
+            (f) => f.name === field
+        );
+
+    console.log(
+        "SELECT FIELD CONFIG:",
+        formEntity,
+        field,
+        fieldConfig
+    );
+
+    /*
+     * ---------------------------------------------------------
+     * YAML-defined static options
+     * ---------------------------------------------------------
+     *
+     * If the schema defines options, use those directly.
+     *
+     * This prevents things like:
+     *
+     * Male
+     * Female
+     * Male
+     * Male
+     *
+     * because we are no longer deriving the choices
+     * from customer records.
+     */
+    const yamlOptions =
+        Array.isArray(fieldConfig?.options)
+            ? fieldConfig.options
+            : null;
+
+    /*
+     * ---------------------------------------------------------
+     * Entity-backed options
+     * ---------------------------------------------------------
+     *
+     * Only fetch the entity when the YAML field does NOT
+     * define its own static options.
+     */
     const source = props.source || {};
 
-    const entity = source.entity;
-    const valueField = source.valueField || "id";
-    const labelField = source.labelField || "name";
+    const sourceEntity = source.entity;
+
+    const valueField =
+        source.valueField || "id";
+
+    const labelField =
+        source.labelField || "name";
 
     const [entityOptions, setEntityOptions] =
         useState([]);
 
-    /*
-     * Load options when an Entity is configured.
-     */
     useEffect(() => {
 
-        if (!entity) {
+        /*
+         * Static YAML options don't need an API call.
+         */
+        if (yamlOptions) {
+            setEntityOptions([]);
+            return;
+        }
+
+        if (!sourceEntity) {
             setEntityOptions([]);
             return;
         }
@@ -47,7 +125,7 @@ export default function SelectRenderer({
             try {
 
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/${entity}`
+                    `${import.meta.env.VITE_API_URL}/api/${sourceEntity}`
                 );
 
                 if (!response.ok) {
@@ -60,8 +138,8 @@ export default function SelectRenderer({
                     await response.json();
 
                 console.log(
-                    "SELECT OPTIONS:",
-                    entity,
+                    "SELECT ENTITY OPTIONS:",
+                    sourceEntity,
                     result
                 );
 
@@ -84,20 +162,24 @@ export default function SelectRenderer({
 
         loadOptions();
 
-    }, [entity]);
+    }, [sourceEntity, yamlOptions]);
 
     /*
-     * Determine which options to display.
+     * ---------------------------------------------------------
+     * Determine the actual options
+     * ---------------------------------------------------------
      *
-     * Entity configured:
-     *     use API results
+     * Priority:
      *
-     * No Entity:
-     *     use static props.options
+     * 1. YAML field options
+     * 2. Entity source
+     * 3. Widget props.options
      */
-    const options = entity
-        ? entityOptions
-        : (props.options || []);
+    const options =
+        yamlOptions ||
+        (sourceEntity
+            ? entityOptions
+            : (props.options || []));
 
     return (
         <FormControl fullWidth>
@@ -123,16 +205,14 @@ export default function SelectRenderer({
                 {options.map((option, index) => {
 
                     /*
+                     * -------------------------------------------------
                      * Entity-backed option
-                     *
-                     * Example:
-                     *
-                     * {
-                     *     id: 1,
-                     *     first_name: "John"
-                     * }
+                     * -------------------------------------------------
                      */
-                    if (entity) {
+                    if (
+                        sourceEntity &&
+                        !yamlOptions
+                    ) {
 
                         const optionValue =
                             option[valueField];
@@ -142,7 +222,9 @@ export default function SelectRenderer({
 
                         return (
                             <MenuItem
-                                key={optionValue}
+                                key={
+                                    `${optionValue}-${index}`
+                                }
                                 value={optionValue}
                             >
                                 {optionLabel}
@@ -151,14 +233,16 @@ export default function SelectRenderer({
                     }
 
                     /*
-                     * Static option
+                     * -------------------------------------------------
+                     * Static YAML option
+                     * -------------------------------------------------
                      *
-                     * Example:
+                     * YAML:
                      *
-                     * {
-                     *     value: "draft",
-                     *     label: "Draft"
-                     * }
+                     * options:
+                     *   - Male
+                     *   - Female
+                     *   - Other
                      */
                     const optionValue =
                         typeof option === "string"
@@ -187,4 +271,3 @@ export default function SelectRenderer({
         </FormControl>
     );
 }
-
