@@ -1,10 +1,12 @@
+
 import React, { useEffect, useState } from "react";
 
 import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    FormHelperText
 } from "@mui/material";
 
 export default function SelectRenderer({
@@ -14,10 +16,7 @@ export default function SelectRenderer({
 }) {
     const props = widget?.props || {};
 
-    console.log("SELECT WIDGET PROPS:", props);
-
     const field = props.field || "";
-
     const formData = context?.formData || {};
 
     const value =
@@ -25,91 +24,30 @@ export default function SelectRenderer({
         props.defaultValue ??
         "";
 
-    /*
-     * ---------------------------------------------------------
-     * Find the field definition in the YAML schema
-     * ---------------------------------------------------------
-     *
-     * Example:
-     *
-     * entities:
-     *   customers:
-     *     fields:
-     *       - name: gender
-     *         type: select
-     *         options:
-     *           - Male
-     *           - Female
-     *           - Other
-     */
+    const errorMessage =
+        context?.validationErrors?.[field] || "";
+
     const formEntity = props.formEntity || "";
 
-    const entities =
-        context?.config?.entities || {};
+    const entities = context?.config?.entities || {};
+    const entityConfig = entities?.[formEntity];
 
-    const entityConfig =
-        entities?.[formEntity];
-
-    const fieldConfig =
-        entityConfig?.fields?.find(
-            (f) => f.name === field
-        );
-
-    console.log(
-        "SELECT FIELD CONFIG:",
-        formEntity,
-        field,
-        fieldConfig
+    const fieldConfig = entityConfig?.fields?.find(
+        (f) => f.name === field
     );
 
-    /*
-     * ---------------------------------------------------------
-     * YAML-defined static options
-     * ---------------------------------------------------------
-     *
-     * If the schema defines options, use those directly.
-     *
-     * This prevents things like:
-     *
-     * Male
-     * Female
-     * Male
-     * Male
-     *
-     * because we are no longer deriving the choices
-     * from customer records.
-     */
-    const yamlOptions =
-        Array.isArray(fieldConfig?.options)
-            ? fieldConfig.options
-            : null;
+    const yamlOptions = Array.isArray(fieldConfig?.options)
+        ? fieldConfig.options
+        : null;
 
-    /*
-     * ---------------------------------------------------------
-     * Entity-backed options
-     * ---------------------------------------------------------
-     *
-     * Only fetch the entity when the YAML field does NOT
-     * define its own static options.
-     */
     const source = props.source || {};
-
     const sourceEntity = source.entity;
+    const valueField = source.valueField || "id";
+    const labelField = source.labelField || "name";
 
-    const valueField =
-        source.valueField || "id";
-
-    const labelField =
-        source.labelField || "name";
-
-    const [entityOptions, setEntityOptions] =
-        useState([]);
+    const [entityOptions, setEntityOptions] = useState([]);
 
     useEffect(() => {
-
-        /*
-         * Static YAML options don't need an API call.
-         */
         if (yamlOptions) {
             setEntityOptions([]);
             return;
@@ -121,9 +59,7 @@ export default function SelectRenderer({
         }
 
         const loadOptions = async () => {
-
             try {
-
                 const response = await fetch(
                     `${import.meta.env.VITE_API_URL}/api/${sourceEntity}`
                 );
@@ -134,97 +70,58 @@ export default function SelectRenderer({
                     );
                 }
 
-                const result =
-                    await response.json();
-
-                console.log(
-                    "SELECT ENTITY OPTIONS:",
-                    sourceEntity,
-                    result
-                );
+                const result = await response.json();
 
                 setEntityOptions(
-                    Array.isArray(result)
-                        ? result
-                        : []
+                    Array.isArray(result) ? result : []
                 );
-
             } catch (err) {
-
-                console.error(
-                    "Select error:",
-                    err
-                );
-
+                console.error("Select error:", err);
                 setEntityOptions([]);
             }
         };
 
         loadOptions();
-
     }, [sourceEntity, yamlOptions]);
 
-    /*
-     * ---------------------------------------------------------
-     * Determine the actual options
-     * ---------------------------------------------------------
-     *
-     * Priority:
-     *
-     * 1. YAML field options
-     * 2. Entity source
-     * 3. Widget props.options
-     */
     const options =
         yamlOptions ||
         (sourceEntity
             ? entityOptions
-            : (props.options || []));
+            : props.options || []);
+
+    const labelId = `${widget?.id || field}-label`;
 
     return (
-        <FormControl fullWidth>
-
-            <InputLabel>
+        <FormControl
+            fullWidth
+            required={Boolean(props.required)}
+            error={Boolean(errorMessage)}
+        >
+            <InputLabel id={labelId}>
                 {props.label || "Select"}
             </InputLabel>
 
             <Select
+                labelId={labelId}
+                id={`${widget?.id || field}-select`}
                 value={value}
                 label={props.label || "Select"}
-
                 onChange={(event) => {
-
                     handlers?.updateField?.(
                         field,
                         event.target.value
                     );
-
                 }}
             >
-
                 {options.map((option, index) => {
-
-                    /*
-                     * -------------------------------------------------
-                     * Entity-backed option
-                     * -------------------------------------------------
-                     */
-                    if (
-                        sourceEntity &&
-                        !yamlOptions
-                    ) {
-
-                        const optionValue =
-                            option[valueField];
-
-                        const optionLabel =
-                            option[labelField];
+                    if (sourceEntity && !yamlOptions) {
+                        const optionValue = option[valueField];
+                        const optionLabel = option[labelField];
 
                         return (
                             <MenuItem
-                                key={
-                                    `${optionValue}-${index}`
-                                }
+                                key={`${optionValue}-${index}`}
                                 value={optionValue}
                             >
                                 {optionLabel}
@@ -232,18 +129,6 @@ export default function SelectRenderer({
                         );
                     }
 
-                    /*
-                     * -------------------------------------------------
-                     * Static YAML option
-                     * -------------------------------------------------
-                     *
-                     * YAML:
-                     *
-                     * options:
-                     *   - Male
-                     *   - Female
-                     *   - Other
-                     */
                     const optionValue =
                         typeof option === "string"
                             ? option
@@ -252,8 +137,7 @@ export default function SelectRenderer({
                     const optionLabel =
                         typeof option === "string"
                             ? option
-                            : option.label ||
-                              option.value;
+                            : option.label || option.value;
 
                     return (
                         <MenuItem
@@ -263,11 +147,14 @@ export default function SelectRenderer({
                             {optionLabel}
                         </MenuItem>
                     );
-
                 })}
-
             </Select>
 
+            {errorMessage && (
+                <FormHelperText>
+                    {errorMessage}
+                </FormHelperText>
+            )}
         </FormControl>
     );
 }

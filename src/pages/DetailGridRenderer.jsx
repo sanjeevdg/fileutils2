@@ -24,25 +24,33 @@ export default function DetailGridRenderer({
     handlers = {}
 }) {
 
-    const props =
-        widget?.props || {};
+        const props =
+            widget?.props || {};
 
-    const config = context?.config || {};
+        const config = context?.config || {};
 
-    const entities = config?.entities || {};    
+        const entities = config?.entities || {};    
 
-    const detailField =
-        props.detailField ||
-        "orderItems";
+            const detailField =
+            props.detailField ||
+            "orderItems";
 
-    const source =
-        props.source || {};
+        const source =
+            props.source || {};
 
-    const entity =
-        source.entity || "";
+        const entity =
+            source.entity || "";
 
-    const columns =
-        props.columns || [];
+        const columns =
+            props.columns || [];
+
+        const validationErrors =
+            context?.validationErrors || {};
+
+        const errorMessage = validationErrors[detailField] || "";
+
+
+
 
     // -------------------------------------------------
     // Reference data
@@ -384,7 +392,8 @@ export default function DetailGridRenderer({
                 : column.label ||
                   column.field;
 
-
+        const errorMessage =
+    validationErrors[`${detailField}.${index}.${field}`] || "";          
         // ---------------------------------------------
         // Product reference
         //
@@ -403,6 +412,8 @@ export default function DetailGridRenderer({
                         fullWidth
                         label={label}
                         value={item[field] ?? ""}
+                        error={Boolean(errorMessage)}
+                        helperText={errorMessage}
                         onChange={event =>
                             changeReference(
                                 index,

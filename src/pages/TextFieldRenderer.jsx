@@ -9,6 +9,11 @@ export default function TextFieldRenderer({
     const props = widget?.props || {};
     const field = props.field || "";
 
+const validationErrors =
+    context?.validationErrors || {};
+
+const errorMessage = validationErrors[field] || "";
+
     const formData = context?.formData || {};
 
     const value =
@@ -32,7 +37,10 @@ export default function TextFieldRenderer({
                     event.target.value
                 );
             }}
+            error={Boolean(errorMessage)}
+            helperText={errorMessage}
             variant={props.variant || "outlined"}
+            type={props.numeric ? "number" : (props.type || "text")}
             required={props.required || false}
             multiline={props.multiline || false}
             rows={
@@ -46,6 +54,11 @@ export default function TextFieldRenderer({
                         props.readOnly || false
                 }
             }}
+            inputProps={
+                props.numeric
+                    ? { step: "any" }
+                    : undefined
+            }
         />
     );
 }

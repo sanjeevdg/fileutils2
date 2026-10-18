@@ -1358,6 +1358,29 @@ console.log(
                         </TextField>
 
 
+
+
+                        <TextField
+                            select
+                            fullWidth
+                            label="Input Type"
+                            value={widget.props?.type || "text"}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    type: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="text">Text</MenuItem>
+                            <MenuItem value="email">Email</MenuItem>
+                        </TextField>
+
+
+
+
+
                         <Box
                             sx={{
                                 display: "flex",
@@ -1385,6 +1408,28 @@ console.log(
                         </Box>
 
 
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                mb: 1
+                            }}
+                        >
+                            <Checkbox
+                                checked={widget.props?.numeric || false}
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        numeric: e.target.checked
+                                    })
+                                }
+                            />
+
+                            <Typography>
+                                Numeric
+                            </Typography>
+                        </Box>
 
 
 
@@ -1672,6 +1717,34 @@ console.log(
                                         </TextField>
                                     </>
                                 )}
+
+
+
+                                
+                                {/* Required */}
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        mb: 1
+                                    }}
+                                >
+                                    <Checkbox
+                                        checked={widget.props?.required || false}
+                                        onChange={(e) =>
+                                            onChange("props", {
+                                                ...(widget.props || {}),
+                                                required: e.target.checked
+                                            })
+                                        }
+                                    />
+
+                                    <Typography>
+                                        Required
+                                    </Typography>
+                                </Box>
+
+
 
                                 {/* Default Value */}
                                 <TextField

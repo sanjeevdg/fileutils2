@@ -10,6 +10,12 @@ export default function DatePickerRenderer({
 
     const field = props.field || "";
 
+
+    const validationErrors =
+        context?.validationErrors || {};
+
+    const errorMessage = validationErrors[field] || "";
+
     const formData =
         context?.formData || {};
 
@@ -37,6 +43,8 @@ export default function DatePickerRenderer({
             required={
                 props.required || false
             }
+            error={Boolean(errorMessage)}
+            helperText={errorMessage}            
             slotProps={{
                 inputLabel: {
                     shrink: true

@@ -100,6 +100,113 @@ function setValue(object, path, value) {
 
     return result;
 }
+
+
+
+
+
+
+function validateForm(formData, config) {
+    const errors = {};
+
+    const widgets =
+        config?.pages?.dashboard?.widgets ??
+        config?.widgets ??
+        [];
+
+    // Collect widgets recursively, including container children.
+    function collectWidgets(items) {
+        const result = [];
+
+        items.forEach((widget) => {
+            result.push(widget);
+
+            if (Array.isArray(widget.children)) {
+                result.push(...collectWidgets(widget.children));
+            }
+        });
+
+        return result;
+    }
+
+    const allWidgets = collectWidgets(widgets);
+
+    allWidgets.forEach((widget) => {
+        const props = widget.props ?? {};
+        const field = props.field;
+
+        // Only validate actual form fields.
+        if (!field || !props.formEntity) {
+            return;
+        }
+
+        const value = formData?.[field];
+        const label = props.label || field;
+
+        const empty =
+            value === null ||
+            value === undefined ||
+            String(value).trim() === "";
+
+        // Required validation
+        if (props.required && empty) {
+            errors[field] = `${label} is required`;
+            return;
+        }
+
+        // Skip other checks for optional empty fields.
+        if (empty) {
+            return;
+        }
+
+        // Email validation
+        if (props.type === "email") {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!emailPattern.test(String(value).trim())) {
+                errors[field] =
+                    "Please enter a valid email address";
+                return;
+            }
+        }
+
+        // Numeric validation
+        if (props.numeric) {
+            const number = Number(value);
+
+            if (!Number.isFinite(number)) {
+                errors[field] = `${label} must be a valid number`;
+            }
+        }
+    });
+
+    console.log("VALIDATION WIDGETS:", allWidgets);
+    console.log("VALIDATION ERRORS:", errors);
+
+    // Validate order items in the DetailGrid
+    const orderItems = formData?.orderItems ?? [];
+
+    orderItems.forEach((item, index) => {
+        const productId = item.product_id;
+
+        if (
+            productId === null ||
+            productId === undefined ||
+            String(productId).trim() === ""
+        ) {
+            errors[`orderItems.${index}.product_id`] =
+                `Product is required for order item ${index + 1}`;
+        }
+    });
+    console.log("VALIDATION ERRORS:", errors);
+    return errors;
+}
+
+
+
+
+
+
 /*
 =========================================================
 SET VALUE USING PATH
@@ -138,6 +245,10 @@ const { name } = useParams();
 const [formData, setFormData] = useState({});
 
 const [dataVersion, setDataVersion] = useState(0);
+
+
+const [validationErrors, setValidationErrors] = useState({});
+
 
 const configName =
     name || "customer_master_detail";
@@ -591,13 +702,37 @@ const selectRecord = async (record, entity) => {
   }
 
 async function saveOrder(formData, buttonWidget) {
+    
+      if (!formData) {
+        setError("Please enter order details before saving.");
+        setMessage(null);
+        return;
+    }
 
-    console.log("=== SAVE ORDER CALLED ===");
-    console.log("CURRENT FORM DATA:", formData);
-    console.log("SELECTED ORDER:", selectedOrder);
+    const errors = validateForm(formData, config);
+    setValidationErrors(errors);
 
-    if (!formData) {
-        setError("No order data received.");
+    if (Object.keys(errors).length > 0) {
+        setError("Please correct the highlighted fields.");
+        setMessage(null);
+        return;
+    }
+
+    // Extra safeguard: reject a completely empty order.
+    const hasOrderData = [
+        formData.customer_id,
+        formData.status,
+        formData.order_date
+    ].some(
+        value =>
+            value !== null &&
+            value !== undefined &&
+            String(value).trim() !== ""
+    );
+
+    if (!hasOrderData) {
+        setError("Please enter order details before saving.");
+        setMessage(null);
         return;
     }
 
@@ -828,17 +963,32 @@ function resetCustomerForm() {
     });
 } 
 
+
 async function saveCustomer(buttonWidget) {
 
-    console.log('THE SAVE BUTTONWDIGET FUNCTION CALLED');
+     const errors = validateForm(formData, config);
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+        setError("Please correct the highlighted fields.");
+        setMessage(null);
+        return;
+    }
+
+    console.log("THE SAVE BUTTONWIDGET FUNCTION CALLED");
     console.log("=== SAVE CALLED ===");
     console.log("FORM DATA:", formData);
 
     if (!formData || Object.keys(formData).length === 0) {
-        setError( buttonWidget?.feedback?.error ||
-            "Please enter customer data first.");
+        setError(
+            buttonWidget?.feedback?.error ||
+            "Please enter customer data first."
+        );
         return;
     }
+
+
+
 
     try {
 
@@ -1375,7 +1525,8 @@ const context = {
     selectedOrder,
     search,
     formData,
-    dataVersion
+    dataVersion,
+    validationErrors
 };
 console.log("DASHBOARD FORM DATA:", formData);
   console.log(
