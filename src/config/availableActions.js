@@ -10,7 +10,8 @@ const availableActions = [
     { name: "updateOrderField", label: "Update Order Field" },
     { name: "saveOrder", label: "Save Order" },
     { name: "saveCustomer", label: "Save Customer" },
-    { name: "selectRecord", label: "Select Record" }
+    { name: "selectRecord", label: "Select Record" },
+    { name: "saveInventory", label: "Save Inventory" }
 ];
 
 export default availableActions;

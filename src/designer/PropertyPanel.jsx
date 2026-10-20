@@ -2093,6 +2093,46 @@ console.log(
                                 Checkbox Properties
                             </Typography>
 
+
+
+                             {/* Form Entity */}
+                                <TextField
+                                    select
+                                    label="Form Entity"
+                                    value={
+                                        widget.props?.formEntity || ""
+                                    }
+                                    fullWidth
+                                    size="small"
+                                    onChange={(e) => {
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            formEntity: e.target.value,
+                                            field: ""
+                                        });
+                                    }}
+                                    sx={{ mb: 2 }}
+                                >
+                                    <MenuItem value="">
+                                        <em>Select entity</em>
+                                    </MenuItem>
+
+                                    {availableEntities.map((entity) => (
+                                        <MenuItem
+                                            key={entity}
+                                            value={entity}
+                                        >
+                                            {entity}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>    
+
+
+
+
+
+
+
                             <TextField
                                 select
                                 label="Field"

@@ -107,6 +107,9 @@ function setValue(object, path, value) {
 
 
 function validateForm(formData, config) {
+
+    console.log('entered validation methid');
+
     const errors = {};
 
     const widgets =
@@ -133,15 +136,27 @@ function validateForm(formData, config) {
 
     allWidgets.forEach((widget) => {
         const props = widget.props ?? {};
+       
         const field = props.field;
 
         // Only validate actual form fields.
-        if (!field || !props.formEntity) {
+        if (!field) {
+            return;
+        }
+
+        // Validate fields belonging to the current form entity,
+        // when an entity has been specified.
+        if (
+            props.formEntity &&
+            formData?._formEntity &&
+            props.formEntity !== formData._formEntity
+        ) {
             return;
         }
 
         const value = formData?.[field];
-        const label = props.label || field;
+        const label = props.label || widget.title || field;
+
 
         const empty =
             value === null ||
@@ -700,6 +715,108 @@ const selectRecord = async (record, entity) => {
 
     }
   }
+
+
+
+
+const saveInventory = async () => {
+   
+  console.log("=== SAVE INVENTORY CALLED ===");
+    console.log("inventory FORM DATA:", formData);
+
+const errors = validateForm(formData, config);
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+        setError("Please correct the highlighted fields.");
+        setMessage(null);
+        return;
+    }
+
+  
+    if (!formData || Object.keys(formData).length === 0) {
+        setError(
+            buttonWidget?.feedback?.error ||
+            "Please enter customer data first."
+        );
+        return;
+    }
+
+
+
+
+    try {
+        const payload = {
+            sku: formData.sku ?? "",
+            name: formData.name ?? "",
+            description: formData.description ?? "",
+            price:
+                formData.price === "" ||
+                formData.price == null
+                    ? null
+                    : Number(formData.price),
+            stock_quantity:
+                formData.stock_quantity === "" ||
+                formData.stock_quantity == null
+                    ? null
+                    : Number(formData.stock_quantity),
+            active: formData.active ?? true
+        };
+
+        // Determine whether this is a new or existing record
+        const isEdit = formData.id != null;
+
+        const url = isEdit
+            ? `${API_URL}/api/inventory/${formData.id}`
+            : `${API_URL}/api/inventory`;
+
+        const method = isEdit ? "PUT" : "POST";
+
+        console.log("SAVE INVENTORY:", {
+            method,
+            url,
+            payload
+        });
+
+        const response = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+        }
+
+        const result = await response.json();
+
+        console.log("SAVED INVENTORY:", result);
+
+        alert(
+            isEdit
+                ? "Inventory item updated successfully!"
+                : "Inventory item added successfully!"
+        );
+
+        // Clear the form for the next operation
+        setFormData({
+            active: true
+        });
+
+        // Refresh the datagrid, if your dashboard uses dataVersion
+        setDataVersion(prev => prev + 1);
+
+    } catch (error) {
+        console.error("SAVE INVENTORY ERROR:", error);
+        alert(`Failed to save inventory: ${error.message}`);
+    }
+};
+
+
+
 
 async function saveOrder(formData, buttonWidget) {
     
@@ -1621,7 +1738,8 @@ const newOrder = () => {
 
     saveOrder,
     saveCustomer,
-    selectRecord
+    selectRecord,
+    saveInventory
 
   };
 
