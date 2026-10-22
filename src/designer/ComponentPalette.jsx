@@ -41,6 +41,7 @@ const COMPONENT_GROUPS = [
         label: "Form",
         components: [
             { type: "textfield", label: "Text Field" },
+            { type: "images", label: "Multiple Images" },
             { type: "select", label: "Select" },
             { type: "datePicker", label: "Date Picker" },
             { type: "multiselect", label: "Multi Select" },

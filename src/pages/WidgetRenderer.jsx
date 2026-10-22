@@ -14,7 +14,7 @@ import AccordionRenderer from "./AccordionRenderer";
 import MultiSelectRenderer from "./MultiSelectRenderer";
 import DetailGridRenderer from "./DetailGridRenderer";
 import DatePickerRenderer from "./DatePickerRenderer";
-
+import ImagesRenderer from "./ImagesRenderer";
 
 import {
     Button,
@@ -108,7 +108,14 @@ export default function WidgetRenderer({
                     handlers={handlers}
                 />
             );    
-
+        case "images":
+            return (
+                <ImagesRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );    
         case "detail":
             console.log("DETAIL CASE HIT:", widget);
             console.log("DETAIL RENDERER COMPONENT:", DetailRenderer);

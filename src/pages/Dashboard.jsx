@@ -760,7 +760,10 @@ const errors = validateForm(formData, config);
                 formData.stock_quantity == null
                     ? null
                     : Number(formData.stock_quantity),
-            active: formData.active ?? true
+            active: formData.active ?? true,
+             images: Array.isArray(formData.images)
+                    ? formData.images
+                    : []
         };
 
         // Determine whether this is a new or existing record

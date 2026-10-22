@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 
 import {
@@ -8,6 +9,7 @@ import {
 
 import { LineChart } from "@mui/x-charts/LineChart";
 import { BarChart } from "@mui/x-charts/BarChart";
+import { PieChart } from "@mui/x-charts/PieChart";
 
 
 export default function ChartRenderer({
@@ -43,7 +45,6 @@ export default function ChartRenderer({
                 if (filter?.field && filter?.binding) {
 
                     const parts = filter.binding.split(".");
-
                     let filterValue = context;
 
                     for (const part of parts) {
@@ -73,7 +74,6 @@ export default function ChartRenderer({
                 const responseText = await response.text();
 
                 if (!response.ok) {
-
                     throw new Error(
                         `Chart request failed: ${response.status} - ${responseText}`
                     );
@@ -85,12 +85,9 @@ export default function ChartRenderer({
 
             } catch (err) {
 
-                console.error(
-                    "Chart error:",
-                    err
-                );
-
+                console.error("Chart error:", err);
                 setError(err.message);
+
             }
 
         };
@@ -101,7 +98,6 @@ export default function ChartRenderer({
 
 
     if (error) {
-
         return (
             <Typography color="error">
                 {error}
@@ -109,9 +105,7 @@ export default function ChartRenderer({
         );
     }
 
-
     if (!data.length) {
-
         return (
             <Typography color="text.secondary">
                 No chart data
@@ -121,16 +115,67 @@ export default function ChartRenderer({
 
 
     // -----------------------------------------
-    // DATA FOR MUI X CHART
+    // DATA FOR LINE AND BAR CHARTS
     // -----------------------------------------
 
-    const xData = data.map(
-        item => item.x
-    );
+    const xData = data.map(item => item.x);
+    const yData = data.map(item => item.y);
 
-    const yData = data.map(
-        item => item.y
-    );
+
+    // -----------------------------------------
+    // DATA FOR PIE CHART
+    // -----------------------------------------
+
+    let pieData = [];
+
+    if (chart.type === "pie") {
+
+        const yIsNumeric = data.every(
+            item =>
+                item.y !== null &&
+                item.y !== "" &&
+                typeof item.y !== "boolean" &&
+                Number.isFinite(Number(item.y))
+        );
+
+        if (yIsNumeric) {
+
+            // Numeric Y: use X as labels and Y as slice values.
+            pieData = data
+                .map((item, index) => ({
+                    id: index,
+                    label: String(item.x),
+                    value: Number(item.y)
+                }))
+                .filter(item => item.value > 0);
+
+        } else {
+
+            // Categorical Y: count occurrences of each category.
+            const counts = new Map();
+
+            data.forEach(item => {
+
+                const label = String(item.y);
+
+                counts.set(
+                    label,
+                    (counts.get(label) || 0) + 1
+                );
+
+            });
+
+            pieData = Array.from(
+                counts,
+                ([label, value], index) => ({
+                    id: index,
+                    label,
+                    value
+                })
+            );
+
+        }
+    }
 
 
     return (
@@ -150,7 +195,6 @@ export default function ChartRenderer({
                 {widget.title || `${chart.y} by ${chart.x}`}
             </Typography>
 
-
             <Box
                 sx={{
                     width: "100%",
@@ -158,52 +202,80 @@ export default function ChartRenderer({
                 }}
             >
 
-                {chart.type === "bar" ? (
+                {chart.type === "pie" ? (
+
+                    pieData.length > 0 ? (
+
+                        <PieChart
+                            height={350}
+                            series={[
+                                {
+                                    data: pieData,
+                                    highlightScope: {
+                                        faded: "global",
+                                        highlighted: "item"
+                                    },
+                                    faded: {
+                                        innerRadius: 30,
+                                        additionalRadius: -30,
+                                        color: "gray"
+                                    }
+                                }
+                            ]}
+                        />
+
+                    ) : (
+
+                        <Typography color="text.secondary">
+                            No positive values available for the pie chart.
+                        </Typography>
+
+                    )
+
+                ) : chart.type === "bar" ? (
+
                     <BarChart
                         height={350}
-
                         xAxis={[
                             {
                                 scaleType: "band",
                                 data: xData
                             }
                         ]}
-
                         series={[
                             {
                                 data: yData,
                                 label: chart.y
                             }
                         ]}
-
                         grid={{
                             vertical: false,
                             horizontal: true
                         }}
                     />
+
                 ) : (
+
                     <LineChart
                         height={350}
-
                         xAxis={[
                             {
                                 scaleType: "point",
                                 data: xData
                             }
                         ]}
-
                         series={[
                             {
                                 data: yData,
                                 label: chart.y
                             }
                         ]}
-
                         grid={{
                             vertical: false,
                             horizontal: true
                         }}
                     />
+
                 )}
 
             </Box>

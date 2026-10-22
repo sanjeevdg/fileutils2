@@ -435,7 +435,16 @@ export default function Designer({
                 };
 
             }
+            if (type === "images") {
+                newWidget.title = "Multiple Images";
 
+                newWidget.props = {
+                    label: "Multiple Images",
+                    formEntity: entity,
+                    field: "images",
+                    maxImages: 10
+                };
+            }
             if (type === "detail") {
 
                 const entityFields =

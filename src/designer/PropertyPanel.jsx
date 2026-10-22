@@ -627,6 +627,9 @@ console.log(
                     <MenuItem value="line">
                         Line
                     </MenuItem>
+                      <MenuItem value="pie">
+                        Pie
+                    </MenuItem>
                 </TextField>
 
                 {/* X Axis */}
@@ -2623,6 +2626,127 @@ console.log(
 
 
 
+
+
+
+        
+                {widget.type === "images" && (
+                    <>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{ mt: 3, mb: 1 }}
+                        >
+                            Multiple Images Properties
+                        </Typography>
+
+                        {/* Label */}
+                        <TextField
+                            fullWidth
+                            label="Label"
+                            value={widget.props?.label || ""}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    label: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        />
+
+                        {/* Form Entity */}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="Form Entity"
+                            value={widget.props?.formEntity || ""}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    formEntity: e.target.value,
+                                    field: ""
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="">
+                                <em>Select entity</em>
+                            </MenuItem>
+
+                            {availableEntities.map((entity) => (
+                                <MenuItem
+                                    key={entity}
+                                    value={entity}
+                                >
+                                    {entity}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+
+                        {/* Field */}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="Field"
+                            value={widget.props?.field || ""}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    field: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            {(entityMetadata[
+                                widget.props?.formEntity || ""
+                            ] || []).map((field) => (
+                                <MenuItem
+                                    key={field.name}
+                                    value={field.name}
+                                >
+                                    {field.label || field.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+
+                        {/* Maximum Images */}
+                        <TextField
+                            fullWidth
+                            type="number"
+                            label="Maximum Images"
+                            value={widget.props?.maxImages ?? 10}
+                            inputProps={{ min: 1, max: 10 }}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    maxImages: Math.max(
+                                        1,
+                                        Math.min(
+                                            10,
+                                            Number(e.target.value) || 1
+                                        )
+                                    )
+                                })
+                            }
+                            helperText="Choose between 1 and 10 images."
+                            sx={{ mb: 2 }}
+                        />
+                    </>
+                )}
+
+
+
+
+
+
+
+
+
+
+
+
+
             {widget.type === "datePicker" && (
                             <>
                                 <Typography
@@ -2950,7 +3074,7 @@ console.log(
             {/* ACCORDION PROPERTIES */}
             {/* -------------------------------- */}
 
-            {widget.type === "accordion" && (
+            { widget.type === "accordion" && (
                         <>
                             <Typography
                                 variant="subtitle1"
