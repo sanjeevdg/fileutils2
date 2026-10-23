@@ -464,6 +464,25 @@ export default function Designer({
                         }));
 
             }
+            
+            if (type === "productCard") {
+                newWidget.title = "Product Card";
+
+                newWidget.props = {
+                    entity: "inventory",
+                    titleField: "name",
+                    descriptionField: "description",
+                    priceField: "price",
+                    imageField: "images",
+                    skuField: "sku",
+                    stockField: "stock_quantity",
+                    columns: 3,
+                    imageMode: "thumbnails",
+                    showPrice: true,
+                    showStock: true
+                };
+            }
+
             if (type === "typography") {
 
                 newWidget.text = "New Text";

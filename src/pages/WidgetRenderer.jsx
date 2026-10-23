@@ -15,6 +15,7 @@ import MultiSelectRenderer from "./MultiSelectRenderer";
 import DetailGridRenderer from "./DetailGridRenderer";
 import DatePickerRenderer from "./DatePickerRenderer";
 import ImagesRenderer from "./ImagesRenderer";
+import ProductCardRenderer from "./ProductCardRenderer";
 
 import {
     Button,
@@ -111,6 +112,14 @@ export default function WidgetRenderer({
         case "images":
             return (
                 <ImagesRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );    
+        case "productCard":
+            return (
+                <ProductCardRenderer
                     widget={widget}
                     context={context}
                     handlers={handlers}

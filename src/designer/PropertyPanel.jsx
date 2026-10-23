@@ -2746,6 +2746,174 @@ console.log(
 
 
 
+            {widget.type === "productCard" && (
+                <>
+                    <Typography
+                        variant="subtitle1"
+                        sx={{ mt: 3, mb: 1 }}
+                    >
+                        Product Card Properties
+                    </Typography>
+
+                    {/* Entity */}
+                    <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        label="Data Entity"
+                        value={widgetProps.entity || ""}
+                        onChange={e =>
+                            onChange("props", {
+                                ...widgetProps,
+                                entity: e.target.value
+                            })
+                        }
+                        sx={{ mb: 2 }}
+                    >
+                        <MenuItem value="">
+                            <em>Select entity</em>
+                        </MenuItem>
+
+                        {availableEntities.map(entity => (
+                            <MenuItem key={entity} value={entity}>
+                                {entity}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+
+                    {/* Field mappings */}
+                    {[
+                        {
+                            key: "titleField",
+                            label: "Product Name Field"
+                        },
+                        {
+                            key: "descriptionField",
+                            label: "Description Field"
+                        },
+                        {
+                            key: "priceField",
+                            label: "Price Field"
+                        },
+                        {
+                            key: "imageField",
+                            label: "Images Field"
+                        },
+                        {
+                            key: "skuField",
+                            label: "SKU Field"
+                        },
+                        {
+                            key: "stockField",
+                            label: "Stock Quantity Field"
+                        }
+                    ].map(item => (
+                        <TextField
+                            key={item.key}
+                            select
+                            fullWidth
+                            size="small"
+                            label={item.label}
+                            value={widgetProps[item.key] || ""}
+                            onChange={e =>
+                                onChange("props", {
+                                    ...widgetProps,
+                                    [item.key]: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="">
+                                <em>Not configured</em>
+                            </MenuItem>
+
+                            {(
+                                entityMetadata[widgetProps.entity] || []
+                            ).map(field => (
+                                <MenuItem
+                                    key={field.name}
+                                    value={field.name}
+                                >
+                                    {field.label || field.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                    ))}
+
+                    {/* Number of columns */}
+                    <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        label="Cards per Row"
+                        value={String(widgetProps.columns ?? 3)}
+                        onChange={e =>
+                            onChange("props", {
+                                ...widgetProps,
+                                columns: Number(e.target.value)
+                            })
+                        }
+                        sx={{ mb: 2 }}
+                    >
+                        {[1, 2, 3, 4].map(count => (
+                            <MenuItem key={count} value={String(count)}>
+                                {count}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+
+                    {/* Display options */}
+                    {[
+                        {
+                            key: "showSku",
+                            label: "Show SKU",
+                            defaultValue: true
+                        },
+                        {
+                            key: "showPrice",
+                            label: "Show Price",
+                            defaultValue: true
+                        },
+                        {
+                            key: "showStock",
+                            label: "Show Stock",
+                            defaultValue: true
+                        }
+                    ].map(option => (
+                        <FormControlLabel
+                            key={option.key}
+                            sx={{ display: "flex", mb: 1 }}
+                            control={
+                                <Checkbox
+                                    checked={
+                                        widgetProps[option.key] ??
+                                        option.defaultValue
+                                    }
+                                    onChange={e =>
+                                        onChange("props", {
+                                            ...widgetProps,
+                                            [option.key]: e.target.checked
+                                        })
+                                    }
+                                />
+                            }
+                            label={option.label}
+                        />
+                    ))}
+                </>
+            )}
+
+
+
+
+
+
+
+
+
+
+
+
 
             {widget.type === "datePicker" && (
                             <>

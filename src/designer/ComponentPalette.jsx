@@ -50,7 +50,19 @@ const COMPONENT_GROUPS = [
             { type: "typography", label: "Typography" },
             { type: "button", label: "Button" }
         ]
-    }
+    },
+    
+    {
+        type: "display",
+        label: "Display",
+        components: [
+            {
+                type: "productCard",
+                label: "Product Card"
+            }
+        ]
+    },
+
 
 ];
 
