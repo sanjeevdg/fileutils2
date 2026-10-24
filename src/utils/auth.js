@@ -25,9 +25,18 @@ export function getAuthUser() {
 export function getAuthHeaders() {
     const token = getAuthToken();
 
-    return token
+    console.log("Auth token exists:", Boolean(token));
+
+    const headers = token
         ? { Authorization: `Bearer ${token}` }
         : {};
+
+    console.log(
+        "Auth header exists:",
+        Boolean(headers.Authorization)
+    );
+
+    return headers;
 }
 
 export function logout() {

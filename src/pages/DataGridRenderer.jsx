@@ -10,6 +10,8 @@ import {
     DataGrid
 } from "@mui/x-data-grid";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import { getAuthHeaders } from "../utils/auth";
+
 
 export default function DataGridRenderer({
     widget,
@@ -131,7 +133,11 @@ export default function DataGridRenderer({
                     );
 
                     const response =
-                        await fetch(url);
+                        await fetch(url, {
+                        headers: {
+                            ...getAuthHeaders()
+                        }
+                    });
 
                     if (!response.ok) {
 

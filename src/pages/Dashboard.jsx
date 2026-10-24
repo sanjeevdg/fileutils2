@@ -426,6 +426,15 @@ const updateField = (field, value) => {
   */
 
   async function loadUsers() {
+    
+    const authHeaders = getAuthHeaders();
+
+    if (!authHeaders.Authorization) {
+        console.log(
+            "Skipping customers request: user is not logged in"
+        );
+        return;
+    }
 
     const response =
       await fetch(
@@ -469,7 +478,14 @@ const updateField = (field, value) => {
   }
 
 async function loadOrders() {
+    const authHeaders = getAuthHeaders();
 
+    if (!authHeaders.Authorization) {
+        console.log(
+            "Skipping customers request: user is not logged in"
+        );
+        return;
+    }
     const response =
         await fetch(
             `${API_URL}/api/orders`

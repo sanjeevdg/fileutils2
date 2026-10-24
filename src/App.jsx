@@ -39,14 +39,15 @@ const isSignupPage =
 const isNewFrontendDashboard =
     location.pathname === "/dashboard/new_frontend";
 
-
+const isNewFrontendPayment =
+    location.pathname === "/dashboard/new_payment";
 
 
 
   return (
      <div className="app">
 
-        {!(isLoginPage || isSignupPage || isNewFrontendDashboard) && (
+        {!(isLoginPage || isSignupPage || isNewFrontendDashboard || isNewFrontendPayment) && (
             <Header
                 onMenuClick={() => setSidebarOpen(prev => !prev)}
             />
@@ -54,7 +55,7 @@ const isNewFrontendDashboard =
 
         <div className="body">
 
-            {!(isLoginPage || isSignupPage || isNewFrontendDashboard) && (
+            {!(isLoginPage || isSignupPage || isNewFrontendDashboard || isNewFrontendPayment) && (
                 <Sidebar isOpen={sidebarOpen} />
             )}
 

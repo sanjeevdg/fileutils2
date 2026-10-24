@@ -23,7 +23,7 @@ import {
     Alert
 } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
-
+import { getAuthHeaders } from "../utils/auth";
 
 
 export default function PaymentRenderer({
@@ -92,7 +92,11 @@ export default function PaymentRenderer({
 
             try {
                 const response = await fetch(
-                    `${apiUrl}/api/${entity}`
+                    `${apiUrl}/api/${entity}`, {
+                        headers: {
+                            ...getAuthHeaders()
+                        }
+                    }
                 );
 
                 if (!response.ok) {
