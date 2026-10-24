@@ -1,4 +1,4 @@
-import React from "react";
+    import React from "react";
 
 import DashboardRenderer from "./DashboardRenderer";
 import ChartRenderer from "./ChartRenderer";
@@ -16,7 +16,8 @@ import DetailGridRenderer from "./DetailGridRenderer";
 import DatePickerRenderer from "./DatePickerRenderer";
 import ImagesRenderer from "./ImagesRenderer";
 import ProductCardRenderer from "./ProductCardRenderer";
-
+import PaymentRenderer from "./PaymentRenderer";
+import ShoppingCartRenderer from "./ShoppingCartRenderer";
 import {
     Button,
     Typography,Box
@@ -124,7 +125,14 @@ export default function WidgetRenderer({
                     context={context}
                     handlers={handlers}
                 />
-            );    
+            );   
+        case "payment":
+            return (
+                <PaymentRenderer
+                    widget={widget}
+                    context={context}
+                />
+            );     
         case "detail":
             console.log("DETAIL CASE HIT:", widget);
             console.log("DETAIL RENDERER COMPONENT:", DetailRenderer);
@@ -187,7 +195,14 @@ export default function WidgetRenderer({
                 </Typography>
             );
 
-
+        case "shoppingCart":
+            return (
+                <ShoppingCartRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );    
         case "button":
 
                 return (

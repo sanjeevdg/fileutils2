@@ -28,8 +28,8 @@ import FormRenderer from './FormRenderer';
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "http://127.0.0.1:8000";
-
-
+import { getAuthHeaders } from "../utils/auth";
+import YamlNavigationLayout from "../layout/YamlNavigationLayout";
 /*
 =========================================================
 MUI COMPONENT MAP
@@ -261,6 +261,7 @@ const [formData, setFormData] = useState({});
 
 const [dataVersion, setDataVersion] = useState(0);
 
+const [cartItems, setCartItems] = useState([]);
 
 const [validationErrors, setValidationErrors] = useState({});
 
@@ -398,7 +399,7 @@ const updateField = (field, value) => {
     const response =
         await fetch(
             `${API_URL}/api/config?name=${configName}`
-        );
+            );
 
     if (!response.ok) {
 
@@ -429,7 +430,11 @@ const updateField = (field, value) => {
     const response =
       await fetch(
         `${API_URL}/api/customers`
-      );
+      , {
+            headers: {
+                ...getAuthHeaders()
+            }
+        });
 
 
     if (!response.ok) {
@@ -468,7 +473,11 @@ async function loadOrders() {
     const response =
         await fetch(
             `${API_URL}/api/orders`
-        );
+        , {
+            headers: {
+                ...getAuthHeaders()
+            }
+        });
 
     if (!response.ok) {
 
@@ -495,7 +504,53 @@ async function selectUser(event, user) {
 }
 
 
+const addToCart = (product) => {
+    setCartItems(prev => {
+        const existing = prev.find(
+            item => String(item.id) === String(product.id)
+        );
 
+        if (existing) {
+            return prev.map(item =>
+                String(item.id) === String(product.id)
+                    ? { ...item, quantity: item.quantity + 1 }
+                    : item
+            );
+        }
+
+        return [
+            ...prev,
+            {
+                ...product,
+                quantity: 1
+            }
+        ];
+    });
+};
+
+const updateCartQuantity = (productId, quantity) => {
+    if (quantity < 1) return;
+
+    setCartItems(prev =>
+        prev.map(item =>
+            String(item.id) === String(productId)
+                ? { ...item, quantity }
+                : item
+        )
+    );
+};
+
+const removeFromCart = (productId) => {
+    setCartItems(prev =>
+        prev.filter(
+            item => String(item.id) !== String(productId)
+        )
+    );
+};
+
+const clearCart = () => {
+    setCartItems([]);
+};
 
 const selectRecord = async (record, entity) => {
     console.log("SELECTED RECORD:", record);
@@ -515,7 +570,11 @@ const selectRecord = async (record, entity) => {
     try {
         const response = await fetch(
             `${API_URL}/api/order_items?order_id=${cleanRecord.id}`
-        );
+        , {
+            headers: {
+                ...getAuthHeaders()
+            }
+        });
 
         if (!response.ok) {
             throw new Error(
@@ -604,7 +663,11 @@ const selectRecord = async (record, entity) => {
                 try {
                     const response = await fetch(
                         `${API_URL}/api/inventory/${formData.product_id}`
-                    );
+                    , {
+                        headers: {
+                            ...getAuthHeaders()
+                        }
+                    });
 
                     if (!response.ok) {
                         throw new Error(
@@ -683,7 +746,11 @@ const selectRecord = async (record, entity) => {
       const response =
         await fetch(
           `${API_URL}/api/customers/${user.id}`
-        );
+        , {
+            headers: {
+                ...getAuthHeaders()
+            }
+        });
 
           console.log("Selected:", response);
 
@@ -715,6 +782,162 @@ const selectRecord = async (record, entity) => {
 
     }
   }
+
+
+
+
+
+
+
+
+const signup = async () => {
+    setError(null);
+    setMessage(null);
+
+    const email = formData.email?.trim().toLowerCase();
+    const password = formData.password;
+    const confirmPassword = formData.confirm_password;
+
+    if (!email || !password || !confirmPassword) {
+        setError("Please complete all fields.");
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+    }
+
+    if (password.length < 8) {
+        setError("Password must be at least 8 characters long.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/api/signup`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email,
+                password
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || "Unable to create your account."
+            );
+        }
+
+        console.log("SIGNUP SUCCESS:", result);
+
+        alert("Account created successfully! Please log in.");
+
+        setFormData({});
+        window.location.hash = "#/dashboard/user_login";
+
+    } catch (error) {
+        console.error("SIGNUP ERROR:", error);
+        setError(error.message || "Unable to create your account.");
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const login = async () => {
+    setError(null);
+    setMessage(null);
+
+    const email = formData.email?.trim().toLowerCase();
+    const password = formData.password;
+    const rememberMe = formData.remember_me === true;
+
+    if (!email || !password) {
+        setError("Please enter your email and password.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/api/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email,
+                password
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || "Login failed. Please check your credentials."
+            );
+        }
+
+        if (!result.access_token || !result.user?.role) {
+            throw new Error("The server did not return a valid login response.");
+        }
+
+        // Remove any previous login from both storage locations.
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("auth_user");
+        sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("auth_user");
+
+        // Remember Me selects persistent storage.
+        const storage = rememberMe ? localStorage : sessionStorage;
+
+        storage.setItem("access_token", result.access_token);
+        storage.setItem("auth_user", JSON.stringify(result.user));
+
+        setMessage("Login successful!");
+
+        if (result.user.role === "admin") {
+            window.location.hash = "#/dashboard/admin_dashboard";
+        } else if (result.user.role === "user") {
+            window.location.hash = "#/dashboard/new_frontend";
+        } else {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("auth_user");
+            sessionStorage.removeItem("access_token");
+            sessionStorage.removeItem("auth_user");
+
+            throw new Error("Unrecognized user role.");
+        }
+
+    } catch (error) {
+        console.error("LOGIN ERROR:", error);
+        setError(error.message || "Unable to log in.");
+    }
+};
+
+
+
+
 
 
 
@@ -784,7 +1007,8 @@ const errors = validateForm(formData, config);
         const response = await fetch(url, {
             method,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                ...getAuthHeaders()
             },
             body: JSON.stringify(payload)
         });
@@ -909,7 +1133,8 @@ async function saveOrder(formData, buttonWidget) {
                 method,
 
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders()
                 },
 
                 body: JSON.stringify(orderToSave)
@@ -959,7 +1184,11 @@ async function saveOrder(formData, buttonWidget) {
                 const existingItemsResponse =
                     await fetch(
                         `${API_URL}/api/order_items?order_id=${savedOrder.id}`
-                    );
+                    , {
+                        headers: {
+                            ...getAuthHeaders()
+                        }
+                    });
 
                 if (!existingItemsResponse.ok) {
                     throw new Error(
@@ -982,8 +1211,12 @@ async function saveOrder(formData, buttonWidget) {
                             `${API_URL}/api/order_items/${existingItem.id}`,
                             {
                                 method: "DELETE"
-                            }
-                        );
+                            }, {
+                                headers: {
+                                    ...getAuthHeaders()
+                                }
+                            });
+                        
 
                     if (!deleteResponse.ok) {
                         const errorText =
@@ -1024,7 +1257,8 @@ async function saveOrder(formData, buttonWidget) {
                         {
                             method: "POST",
                             headers: {
-                                "Content-Type": "application/json"
+                                "Content-Type": "application/json",
+                                 ...getAuthHeaders()
                             },
                             body: JSON.stringify(orderItem)
                         }
@@ -1146,7 +1380,8 @@ async function saveCustomer(buttonWidget) {
                 method,
 
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                     ...getAuthHeaders()
                 },
 
                 body: JSON.stringify(formData)
@@ -1349,6 +1584,7 @@ async function save() {
                         headers: {
                             "Content-Type":
                                 "application/json",
+                                 ...getAuthHeaders()
                         },
 
                         body:
@@ -1423,6 +1659,7 @@ async function save() {
                     headers: {
                         "Content-Type":
                             "application/json",
+                             ...getAuthHeaders()
                     },
 
                     body:
@@ -1528,8 +1765,11 @@ async function save() {
         `${API_URL}/api/customers/${deletedId}`,
         {
           method: "DELETE",
-        }
-      );
+        }, {
+            headers: {
+                ...getAuthHeaders()
+            }
+        });
 
       if (!response.ok) {
         throw new Error(
@@ -1646,7 +1886,17 @@ const context = {
     search,
     formData,
     dataVersion,
-    validationErrors
+    validationErrors,
+    cartItems,
+    cartCount: cartItems.reduce(
+        (total, item) => total + item.quantity,
+        0
+    ),
+    cartTotal: cartItems.reduce(
+        (total, item) =>
+            total + Number(item.price || 0) * item.quantity,
+        0
+    ),
 };
 console.log("DASHBOARD FORM DATA:", formData);
   console.log(
@@ -1742,7 +1992,13 @@ const newOrder = () => {
     saveOrder,
     saveCustomer,
     selectRecord,
-    saveInventory
+    saveInventory,
+    addToCart,
+    updateCartQuantity,
+    removeFromCart,
+    clearCart,
+    login,
+    signup
 
   };
 
@@ -1820,12 +2076,14 @@ return (
         )}
 
         {config && (
+            <YamlNavigationLayout config={config}>
             <PageRenderer
                 config={config}
                 pageName="dashboard"
                 context={context}
                 handlers={handlers}
             />
+            </YamlNavigationLayout>
         )}
 
         {saving && (

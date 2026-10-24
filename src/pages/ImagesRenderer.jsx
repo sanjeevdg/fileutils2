@@ -10,6 +10,8 @@ import {
 } from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
+import { getAuthHeaders } from "../utils/auth";
+
 
 export default function ImagesRenderer({
     widget,
@@ -133,8 +135,11 @@ export default function ImagesRenderer({
                 {
                     method: "POST",
                     body
-                }
-            );
+                }, {
+            headers: {
+                ...getAuthHeaders()
+            }
+        });
 
             const result = await response.json();
 

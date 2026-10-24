@@ -59,7 +59,9 @@ const COMPONENT_GROUPS = [
             {
                 type: "productCard",
                 label: "Product Card"
-            }
+            },
+            { type: "payment", label: "Payment / Buy Now" },
+            { type: "shoppingCart", label: "Shopping Cart Icon"}
         ]
     },
 

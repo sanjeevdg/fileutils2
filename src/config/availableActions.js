@@ -11,7 +11,9 @@ const availableActions = [
     { name: "saveOrder", label: "Save Order" },
     { name: "saveCustomer", label: "Save Customer" },
     { name: "selectRecord", label: "Select Record" },
-    { name: "saveInventory", label: "Save Inventory" }
+    { name: "saveInventory", label: "Save Inventory" },
+    { name: "login", label: "Login" },
+    { name: "signup", label: "Sign Up" }
 ];
 
 export default availableActions;

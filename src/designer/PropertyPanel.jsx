@@ -1378,6 +1378,7 @@ console.log(
                         >
                             <MenuItem value="text">Text</MenuItem>
                             <MenuItem value="email">Email</MenuItem>
+                            <MenuItem value="password">Password</MenuItem>
                         </TextField>
 
 
@@ -2902,6 +2903,227 @@ console.log(
                     ))}
                 </>
             )}
+
+
+
+
+
+
+
+
+
+
+                                
+                    {widget.type === "payment" && (
+                        <>
+                            <Typography
+                                variant="subtitle1"
+                                sx={{ mt: 3, mb: 1 }}
+                            >
+                                Payment Widget Properties
+                            </Typography>
+
+                            {/* Payment mode */}
+                            <TextField
+                                select
+                                fullWidth
+                                size="small"
+                                label="Payment Mode"
+                                value={widgetProps.mode || "inventory"}
+                                onChange={e =>
+                                    onChange("props", {
+                                        ...widgetProps,
+                                        mode: e.target.value
+                                    })
+                                }
+                                sx={{ mb: 2 }}
+                            >
+                                <MenuItem value="inventory">
+                                    Inventory Product
+                                </MenuItem>
+                                <MenuItem value="custom">
+                                    Custom Amount
+                                </MenuItem>
+                            </TextField>
+
+                            {/* Button label */}
+                            <TextField
+                                fullWidth
+                                size="small"
+                                label="Button Label"
+                                value={widgetProps.label || "Buy Now"}
+                                onChange={e =>
+                                    onChange("props", {
+                                        ...widgetProps,
+                                        label: e.target.value
+                                    })
+                                }
+                                sx={{ mb: 2 }}
+                            />
+
+                            {/* Inventory-specific settings */}
+                            {widgetProps.mode !== "custom" && (
+                                <>
+                                    <TextField
+                                        select
+                                        fullWidth
+                                        size="small"
+                                        label="Data Entity"
+                                        value={widgetProps.entity || "inventory"}
+                                        onChange={e =>
+                                            onChange("props", {
+                                                ...widgetProps,
+                                                entity: e.target.value,
+                                                productField: "",
+                                                priceField: ""
+                                            })
+                                        }
+                                        sx={{ mb: 2 }}
+                                    >
+                                        {availableEntities.map(entity => (
+                                            <MenuItem key={entity} value={entity}>
+                                                {entity}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+
+                                    {[
+                                        {
+                                            key: "productField",
+                                            label: "Product Name Field"
+                                        },
+                                        {
+                                            key: "priceField",
+                                            label: "Price Field"
+                                        }
+                                    ].map(item => (
+                                        <TextField
+                                            key={item.key}
+                                            select
+                                            fullWidth
+                                            size="small"
+                                            label={item.label}
+                                            value={widgetProps[item.key] || ""}
+                                            onChange={e =>
+                                                onChange("props", {
+                                                    ...widgetProps,
+                                                    [item.key]: e.target.value
+                                                })
+                                            }
+                                            sx={{ mb: 2 }}
+                                        >
+                                            <MenuItem value="">
+                                                <em>Select field</em>
+                                            </MenuItem>
+
+                                            {(
+                                                entityMetadata[
+                                                    widgetProps.entity || "inventory"
+                                                ] || []
+                                            ).map(field => (
+                                                <MenuItem
+                                                    key={field.name}
+                                                    value={field.name}
+                                                >
+                                                    {field.label || field.name}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    ))}
+
+                                    <FormControlLabel
+                                        sx={{ display: "flex", mb: 1 }}
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    widgetProps.quantityEnabled ?? true
+                                                }
+                                                onChange={e =>
+                                                    onChange("props", {
+                                                        ...widgetProps,
+                                                        quantityEnabled: e.target.checked
+                                                    })
+                                                }
+                                            />
+                                        }
+                                        label="Allow Quantity Selection"
+                                    />
+                                </>
+                            )}
+
+                            {/* Custom amount settings */}
+                            {widgetProps.mode === "custom" && (
+                                <>
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Payment Description"
+                                        value={widgetProps.description || ""}
+                                        onChange={e =>
+                                            onChange("props", {
+                                                ...widgetProps,
+                                                description: e.target.value
+                                            })
+                                        }
+                                        sx={{ mb: 2 }}
+                                    />
+
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        type="number"
+                                        label="Default Amount"
+                                        value={widgetProps.amount ?? 500}
+                                        onChange={e =>
+                                            onChange("props", {
+                                                ...widgetProps,
+                                                amount: e.target.value
+                                            })
+                                        }
+                                        inputProps={{ min: 0, step: "0.01" }}
+                                        sx={{ mb: 2 }}
+                                    />
+
+                                    <FormControlLabel
+                                        sx={{ display: "flex", mb: 1 }}
+                                        control={
+                                            <Checkbox
+                                                checked={
+                                                    widgetProps.allowAmountEdit ?? true
+                                                }
+                                                onChange={e =>
+                                                    onChange("props", {
+                                                        ...widgetProps,
+                                                        allowAmountEdit: e.target.checked
+                                                    })
+                                                }
+                                            />
+                                        }
+                                        label="Allow Customer to Edit Amount"
+                                    />
+                                </>
+                            )}
+
+                            {/* Currency */}
+                            <TextField
+                                fullWidth
+                                size="small"
+                                label="Currency"
+                                value={widgetProps.currency || "INR"}
+                                onChange={e =>
+                                    onChange("props", {
+                                        ...widgetProps,
+                                        currency: e.target.value.toUpperCase()
+                                    })
+                                }
+                                helperText="For example: INR, USD"
+                                sx={{ mt: 2, mb: 2 }}
+                            />
+                        </>
+                    )}
+
+
+
 
 
 

@@ -7,15 +7,22 @@ import {
     CardContent,
     Typography,
     Chip,
-    Grid
+    Grid, Button
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 import ProductImageGallery from "./ProductImageGallery";
+import { getAuthHeaders } from "../utils/auth";
+
 
 export default function ProductCardRenderer({
     widget,
-    context = {}
+    context = {},
+     handlers = {}
 }) {
+
+    const navigate = useNavigate();
+
     const props = widget?.props || {};
 
     const entity = props.entity || "inventory";
@@ -46,8 +53,11 @@ export default function ProductCardRenderer({
                     "http://127.0.0.1:8000";
 
                 const response = await fetch(
-                    `${apiUrl}/api/${entity}`
-                );
+                    `${apiUrl}/api/${entity}`, {
+                        headers: {
+                            ...getAuthHeaders()
+                        }
+                    });
 
                 if (!response.ok) {
                     throw new Error(
@@ -248,6 +258,23 @@ export default function ProductCardRenderer({
                                             }
                                         />
                                     )}
+
+                                    <Button
+                                        variant="contained"
+                                        fullWidth
+                                        sx={{ mt: 2 }}
+                                        disabled={stock <= 0}
+                                        onClick={() => {
+                                            handlers.addToCart?.({
+                                                ...record,
+                                                id: record.id,
+                                                price: Number(record[priceField]),
+                                                name: record[titleField] || "Product"
+                                            });
+                                        }}
+                                    >
+                                        Add to Cart
+                                    </Button>
                                 </CardContent>
                             </Card>
                         </Box>

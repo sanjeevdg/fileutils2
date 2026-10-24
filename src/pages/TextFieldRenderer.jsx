@@ -40,7 +40,11 @@ const errorMessage = validationErrors[field] || "";
             error={Boolean(errorMessage)}
             helperText={errorMessage}
             variant={props.variant || "outlined"}
-            type={props.numeric ? "number" : (props.type || "text")}
+            type={
+                props.numeric
+                    ? "number"
+                    : (props.type || "text")
+            }
             required={props.required || false}
             multiline={props.multiline || false}
             rows={
@@ -50,15 +54,10 @@ const errorMessage = validationErrors[field] || "";
             }
             slotProps={{
                 htmlInput: {
-                    readOnly:
-                        props.readOnly || false
+                    readOnly: props.readOnly || false,
+                    ...(props.numeric ? { step: "any" } : {})
                 }
             }}
-            inputProps={
-                props.numeric
-                    ? { step: "any" }
-                    : undefined
-            }
         />
     );
 }
