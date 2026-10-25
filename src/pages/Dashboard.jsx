@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,useLocation } from "react-router-dom";
 import {
   Container,
   Box,
@@ -30,6 +30,7 @@ const API_URL =
   "http://127.0.0.1:8000";
 import { getAuthHeaders } from "../utils/auth";
 import YamlNavigationLayout from "../layout/YamlNavigationLayout";
+
 /*
 =========================================================
 MUI COMPONENT MAP
@@ -256,6 +257,13 @@ export default function CustomerMasterDetail() {
 
 
 const { name } = useParams();
+
+
+const location = useLocation();
+
+const redirectMessage = location.state?.message;
+
+
 
 const [formData, setFormData] = useState({});
 
@@ -674,23 +682,34 @@ const selectRecord = async (record, entity) => {
 
 
 useEffect(() => {
-    const isProfilePage =
-        config?.pages?.dashboard?.title === "User Profile";
+    console.log("PROFILE EFFECT FIRED");
+    console.log("CONFIG:", config);
+    console.log(
+        "DASHBOARD TITLE:",
+        config?.pages?.dashboard?.title
+    );
 
-    if (!isProfilePage) {
+    const pageTitle = config?.pages?.dashboard?.title;
+
+    if (pageTitle !== "User Profile") {
+        console.log("NOT PROFILE PAGE - EXITING");
         return;
     }
 
+    console.log("PROFILE PAGE DETECTED - FETCHING");
+
     const loadProfile = async () => {
         try {
+            console.log("CALLING PROFILE API");
+
             const response = await fetch(
                 `${API_URL}/api/profile`,
                 {
-                    headers: {
-                        ...getAuthHeaders(),
-                    },
+                    headers: getAuthHeaders(),
                 }
             );
+
+            console.log("PROFILE STATUS:", response.status);
 
             if (!response.ok) {
                 throw new Error(
@@ -700,7 +719,13 @@ useEffect(() => {
 
             const profile = await response.json();
 
-            setFormData(profile);
+            console.log("LOADED PROFILE:", profile);
+
+            setFormData(prev => ({
+                ...prev,
+                ...profile,
+            }));
+
             setValidationErrors({});
             setError(null);
         } catch (err) {
@@ -710,9 +735,7 @@ useEffect(() => {
     };
 
     loadProfile();
-}, [config]);
-
-
+}, [config?.pages?.dashboard?.title]);
 
 
 
@@ -961,6 +984,12 @@ const login = async () => {
         });
 
         const result = await response.json();
+
+
+        console.log("LOGIN RESPONSE:", {
+            hasToken: Boolean(result.access_token),
+            user: result.user
+        });
 
         if (!response.ok) {
             throw new Error(
@@ -2208,6 +2237,12 @@ return (
                 sx={{ mb: 2 }}
             >
                 {message}
+            </Alert>
+        )}
+
+        {redirectMessage && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+                {redirectMessage}
             </Alert>
         )}
 

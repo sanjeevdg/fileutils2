@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children }) {
             <Navigate
                 to="/dashboard/user_login"
                 replace
-                state={{ from: location }}
+                state={{message: "You need to be logged in to view this page.", from: location }}
             />
         );
     }

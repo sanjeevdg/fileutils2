@@ -1,8 +1,12 @@
-import { useState } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
 
-import Header from "./layout/Header";
-import Sidebar from "./layout/Sidebar";
+import { useState } from "react";
+import {
+    Routes,
+    Route,
+    useLocation,
+    matchPath,
+} from "react-router-dom";
+
 
 import Home from "./pages/Home";
 import FileReaderPage from "./pages/FileReaderPage";
@@ -15,54 +19,60 @@ import TestPicker from './pages/TestPicker';
 import PasswordPage from './pages/PasswordPage';
 import Designer from './designer/Designer';
 import ProtectedRoute from "./components/ProtectedRoute";
+
+
+
+import Header from "./layout/Header";
+import Sidebar from "./layout/Sidebar";
+
+import routeConfig from "./config/routeConfig";
+
+//import routeConfig from "./config/routeConfig";
+
 import "./App.css";
 
-
-
 export default function App() {
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
+    const location = useLocation();
 
+    // Find the configuration for the current route.
+    const currentRoute = routeConfig.find(route =>
+        matchPath(
+            {
+                path: route.path,
+                end: true,
+            },
+            location.pathname
+        )
+    );
 
-const [sidebarOpen, setSidebarOpen] = useState(true);
+    // One check determines which layout to display.
+    const layout = currentRoute?.layout ?? "none";
+    console.log('mylayout===',layout);
+    const showAdminLayout = layout === "admin";
+   
 
+    return (
+         <div className="app">
 
-
-const location = useLocation();
-
-const isLoginPage =
-    location.pathname === "/dashboard/user_login";
-
-const isSignupPage =
-    location.pathname === "/dashboard/user_signup";
-
-
-const isNewFrontendDashboard =
-    location.pathname === "/dashboard/new_frontend";
-
-const isNewFrontendPayment =
-    location.pathname === "/dashboard/new_payment";
-
-
-
-  return (
-     <div className="app">
-
-        {!(isLoginPage || isSignupPage || isNewFrontendDashboard || isNewFrontendPayment) && (
+        {showAdminLayout && (
             <Header
-                onMenuClick={() => setSidebarOpen(prev => !prev)}
+                onMenuClick={() =>
+                    setSidebarOpen(prev => !prev)
+                }
             />
         )}
 
         <div className="body">
 
-            {!(isLoginPage || isSignupPage || isNewFrontendDashboard || isNewFrontendPayment) && (
+            {showAdminLayout && (
                 <Sidebar isOpen={sidebarOpen} />
             )}
 
-            <main className="content">
 
-
-          <Routes>
+                <main className="content">
+                    <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/file-reader" element={<FileReaderPage />} />
             <Route path="/about" element={<About />} />
@@ -85,11 +95,10 @@ const isNewFrontendPayment =
             <Route path="/loginrenderer" element={<LoginRenderer />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
+                </main>
 
-        </main>
-
-      </div>
-
-    </div>
-  );
+            </div>
+        </div>
+    );
 }
+
