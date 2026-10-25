@@ -52,11 +52,24 @@ export default function DashboardRenderer({
 
                                         const isSelected =
                                             widget.id === selectedWidgetId;
+                                        const { offset, ...gridSize } =
+                                            widget.layout || { xs: 12 };
+
+
+
+
+
+
 
                                         return (
                                             <Grid
                                                 key={widget.id || index}
-                                                size={widget.layout || { xs: 12 }}
+                                                size={gridSize}
+                                                    offset={
+                                                        offset != null
+                                                            ? { md: offset }
+                                                            : undefined
+                                                    }
 
                                                 onClick={(event) => {
 

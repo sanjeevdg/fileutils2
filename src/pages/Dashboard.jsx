@@ -477,6 +477,8 @@ const updateField = (field, value) => {
     }
   }
 
+
+
 async function loadOrders() {
     const authHeaders = getAuthHeaders();
 
@@ -662,6 +664,58 @@ const selectRecord = async (record, entity) => {
     initialize();
 
   }, [configName]);
+
+
+
+
+
+
+
+
+
+useEffect(() => {
+    const isProfilePage =
+        config?.pages?.dashboard?.title === "User Profile";
+
+    if (!isProfilePage) {
+        return;
+    }
+
+    const loadProfile = async () => {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/profile`,
+                {
+                    headers: {
+                        ...getAuthHeaders(),
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to load profile: ${response.status}`
+                );
+            }
+
+            const profile = await response.json();
+
+            setFormData(profile);
+            setValidationErrors({});
+            setError(null);
+        } catch (err) {
+            console.error("LOAD PROFILE ERROR:", err);
+            setError(`Failed to load profile: ${err.message}`);
+        }
+    };
+
+    loadProfile();
+}, [config]);
+
+
+
+
+
 
 
 
@@ -1058,6 +1112,68 @@ const errors = validateForm(formData, config);
     }
 };
 
+
+
+const saveProfile = async () => {
+    console.log("=== SAVE PROFILE CALLED ===");
+    console.log("PROFILE FORM DATA:", formData);
+
+    const errors = validateForm(formData, config);
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+        setError("Please correct the highlighted fields.");
+        setMessage(null);
+        return;
+    }
+
+    if (!formData || Object.keys(formData).length === 0) {
+        setError("Please enter your profile details first.");
+        return;
+    }
+
+    try {
+        const payload = {
+            first_name: formData.first_name ?? "",
+            last_name: formData.last_name ?? "",
+            email: formData.email ?? "",
+            age:
+                formData.age === "" || formData.age == null
+                    ? null
+                    : Number(formData.age),
+            gender: formData.gender ?? null,
+            city: formData.city ?? null,
+        };
+
+        const response = await fetch(`${API_URL}/api/profile`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                ...getAuthHeaders(),
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+        }
+
+        const result = await response.json();
+
+        console.log("UPDATED PROFILE:", result);
+
+     //   setFormData(result);
+        setValidationErrors({});
+        setError(null);
+        setMessage("Profile updated successfully.");
+
+    } catch (error) {
+        console.error("SAVE PROFILE ERROR:", error);
+        setError(`Failed to update profile: ${error.message}`);
+        setMessage(null);
+    }
+};
 
 
 
@@ -2014,7 +2130,11 @@ const newOrder = () => {
     removeFromCart,
     clearCart,
     login,
-    signup
+    signup,
+    saveProfile,
+    goToLogin: () => {
+        window.location.hash = "/dashboard/user_login";
+        }
 
   };
 

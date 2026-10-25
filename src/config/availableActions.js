@@ -13,7 +13,9 @@ const availableActions = [
     { name: "selectRecord", label: "Select Record" },
     { name: "saveInventory", label: "Save Inventory" },
     { name: "login", label: "Login" },
-    { name: "signup", label: "Sign Up" }
+    { name: "signup", label: "Sign Up" },
+    { name: "goToLogin", label: "Go to Login" },
+    { name: "saveProfile", label: "Save Profile" }
 ];
 
 export default availableActions;

@@ -185,15 +185,20 @@ export default function WidgetRenderer({
                     handlers={handlers}
                 />
             );   
-                 case "typography":
+         case "typography":
 
             return (
                 <Typography
                     {...(widget.props || {})}
+                    onClick={
+                        widget.events?.onClick
+                            ? () => handlers[widget.events.onClick]?.()
+                            : undefined
+                    }
                 >
-                    {widget.text || ""}
+                    {widget.props?.text || widget.text || ""}
                 </Typography>
-            );
+            );        
 
         case "shoppingCart":
             return (
