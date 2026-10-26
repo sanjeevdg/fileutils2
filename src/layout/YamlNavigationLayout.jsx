@@ -27,7 +27,8 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 
-import { logout } from "../utils/auth";
+import { logout, getAuthUser } from "../utils/auth";
+
 
 const DRAWER_WIDTH = 240;
 
@@ -49,7 +50,29 @@ export default function YamlNavigationLayout({
     const [profileAnchor, setProfileAnchor] = useState(null);
     const [mobileOpen, setMobileOpen] = useState(false);
 
-    const navigation = config?.navigation;
+   const navigationConfig = config?.navigation || {};
+
+    const authUser = getAuthUser();
+    const role = authUser?.role;
+
+    const roleProfile = navigationConfig.profiles?.[role];
+
+    const {
+        profiles,
+        ...pageNavigationOverrides
+    } = navigationConfig;
+
+    const navigation = roleProfile
+        ? {
+            ...roleProfile,
+            ...pageNavigationOverrides,
+            enabled:
+                pageNavigationOverrides.enabled ??
+                roleProfile.enabled ??
+                true,
+        }
+        : navigationConfig;
+
 
     const isLoginOrSignup =
         location.pathname === "/dashboard/user_login" ||

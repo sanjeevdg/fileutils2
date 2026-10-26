@@ -22,9 +22,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 
 
-import Header from "./layout/Header";
-import Sidebar from "./layout/Sidebar";
-
 import routeConfig from "./config/routeConfig";
 
 //import routeConfig from "./config/routeConfig";
@@ -32,8 +29,7 @@ import routeConfig from "./config/routeConfig";
 import "./App.css";
 
 export default function App() {
-    const [sidebarOpen, setSidebarOpen] = useState(true);
-
+    
     const location = useLocation();
 
     // Find the configuration for the current route.
@@ -56,21 +52,10 @@ export default function App() {
     return (
          <div className="app">
 
-        {showAdminLayout && (
-            <Header
-                onMenuClick={() =>
-                    setSidebarOpen(prev => !prev)
-                }
-            />
-        )}
-
+        
         <div className="body">
 
-            {showAdminLayout && (
-                <Sidebar isOpen={sidebarOpen} />
-            )}
-
-
+           
                 <main className="content">
                     <Routes>
             <Route path="/" element={<Home />} />

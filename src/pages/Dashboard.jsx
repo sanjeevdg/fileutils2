@@ -1018,7 +1018,7 @@ const login = async () => {
         setMessage("Login successful!");
 
         if (result.user.role === "admin") {
-            window.location.hash = "#/dashboard/admin_dashboard";
+            window.location.hash = "#/dashboard/dashboard_v2";
         } else if (result.user.role === "user") {
             window.location.hash = "#/dashboard/new_frontend";
         } else {

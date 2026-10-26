@@ -7,18 +7,28 @@ export default function Sidebar({isOpen}) {
       <NavLink to="/">
         Home
       </NavLink>
-
+{/** 
       <NavLink to="/file-reader">
         File Reader
       </NavLink>
-
-<NavLink to="/userformrenderer">
-       User Form Renderer
+**/}
+<NavLink to="/dashboard/user_signup">
+       SignUp
       </NavLink>
 
 <NavLink to="/dashboard/user_login">
         Login
       </NavLink>
+
+      <NavLink to="/dashboard/customer_crud_v1">
+        Customers
+      </NavLink>
+      <NavLink to="/dashboard/inventory_crud_v1">
+        Inventory
+      </NavLink>
+      <NavLink to="/dashboard/orders_crud_v2">
+        Orders
+      </NavLink>        
 
 <NavLink to="/designer">
         Designer 
@@ -32,8 +42,6 @@ export default function Sidebar({isOpen}) {
 <NavLink to="/change-password">
         Change Password 
       </NavLink>
-
-
 
       <NavLink to="/about">
         About

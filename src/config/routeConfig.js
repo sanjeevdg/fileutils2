@@ -3,7 +3,11 @@ const routeConfig = [
     { path: "/", layout: "admin" },
     { path: "/file-reader", layout: "admin" },
     { path: "/about", layout: "admin" },
+    { path: "/settings", layout: "admin" },
+    { path: "/testpicker", layout: "admin" },
+    { path: "/dashboard", layout: "admin" },
     { path: "/designer/:name", layout: "admin" },
+    { path: "/dashboard/:name", layout: "admin" },
 
     { path: "/dashboard/new_frontend", layout: "user" },
     { path: "/dashboard/new_payment", layout: "user" },
