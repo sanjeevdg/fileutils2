@@ -18,9 +18,13 @@ import ImagesRenderer from "./ImagesRenderer";
 import ProductCardRenderer from "./ProductCardRenderer";
 import PaymentRenderer from "./PaymentRenderer";
 import ShoppingCartRenderer from "./ShoppingCartRenderer";
+import MyOrdersRenderer from "./MyOrdersRenderer";
+
+
+
 import {
     Button,
-    Typography,Box
+    Typography,Box, CircularProgress
 } from "@mui/material";
 
 
@@ -208,32 +212,50 @@ export default function WidgetRenderer({
                     handlers={handlers}
                 />
             );    
-        case "button":
+        
+            case "button": {
+                const action = widget.events?.onClick;
+                const isLoginButton = action === "login";
+                const isLoading = isLoginButton && context?.loggingIn === true;
 
                 return (
                     <Button
                         {...(widget.props || {})}
+                        disabled={
+                            Boolean(widget.props?.disabled) ||
+                            Boolean(isLoading)
+                        }
                         onClick={() => {
-                            const action = widget.events?.onClick;
+                if (isLoading) return;
 
-                            if (
-                                action &&
-                                handlers?.[action]
-                            ) {
-                                if (action === "saveOrder") {
-                                    handlers[action](
-                                        context?.formData || {},
-                                        widget
-                                    );
-                                } else {
-                                    handlers[action](widget);
-                                }
-                            }
-                        }}
-                    >
-                        {widget.text || "Button"}
+                if (action && handlers?.[action]) {
+                    if (action === "saveOrder") {
+                        handlers[action](
+                            context?.formData || {},
+                            widget
+                        );
+                    } else {
+                        handlers[action](widget);
+                    }
+                }
+            }}
+        >
+            {isLoading && (
+                <CircularProgress
+                    size={18}
+                    color="inherit"
+                    sx={{ mr: 1 }}
+                />
+            )}
+
+            {isLoading
+                ? "Signing In..."
+                : widget.text || "Button"}
+
                     </Button>
                 );
+            }
+
         case "accordion":
             return (
                 <AccordionRenderer
@@ -285,7 +307,14 @@ export default function WidgetRenderer({
                         ))}
                     </Box>
                 );    
-            
+            case "myOrders":
+                return (
+                    <MyOrdersRenderer
+                        widget={widget}
+                        context={context}
+                        handlers={handlers}
+                    />
+                );
         default:
 
             console.warn(

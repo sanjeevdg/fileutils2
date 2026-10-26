@@ -16,8 +16,8 @@ export default function Sidebar({isOpen}) {
        User Form Renderer
       </NavLink>
 
-<NavLink to="/loginrenderer">
-        Login Renderer
+<NavLink to="/dashboard/user_login">
+        Login
       </NavLink>
 
 <NavLink to="/designer">

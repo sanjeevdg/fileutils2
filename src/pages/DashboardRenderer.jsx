@@ -3,7 +3,7 @@ import React from "react";
 import {
     Box,
     Typography,
-    Grid, Button
+    Grid, Button, CircularProgress
 } from "@mui/material";
 
 import WidgetRenderer from "./WidgetRenderer";

@@ -273,6 +273,8 @@ const [cartItems, setCartItems] = useState([]);
 
 const [validationErrors, setValidationErrors] = useState({});
 
+const [loggingIn, setLoggingIn] = useState(false);
+
 
 const configName =
     name || "customer_master_detail";
@@ -970,7 +972,7 @@ const login = async () => {
         setError("Please enter your email and password.");
         return;
     }
-
+    setLoggingIn(true);
     try {
         const response = await fetch(`${API_URL}/api/login`, {
             method: "POST",
@@ -1031,6 +1033,8 @@ const login = async () => {
     } catch (error) {
         console.error("LOGIN ERROR:", error);
         setError(error.message || "Unable to log in.");
+    } finally {
+        setLoggingIn(false);
     }
 };
 
@@ -2058,6 +2062,7 @@ const context = {
             total + Number(item.price || 0) * item.quantity,
         0
     ),
+    loggingIn
 };
 console.log("DASHBOARD FORM DATA:", formData);
   console.log(

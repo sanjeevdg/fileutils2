@@ -61,6 +61,13 @@ export default function PaymentRenderer({
 
     let checkoutItems = [];
 
+    const [placingOrder, setPlacingOrder] = useState(false);
+    const [orderResult, setOrderResult] = useState(null);
+    const [orderError, setOrderError] = useState("");
+
+
+
+
     if (cartParam) {
         try {
             const parsed = JSON.parse(cartParam);
@@ -210,6 +217,50 @@ export default function PaymentRenderer({
     );    
 
 
+    
+const handlePlaceOrder = async () => {
+    if (placingOrder || orderResult) return;
+
+    setPlacingOrder(true);
+    setOrderError("");
+
+    try {
+        const response = await fetch(
+            `${apiUrl}/api/checkout`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify({
+                    items: validCheckoutProducts.map(item => ({
+                        id: item.id,
+                        quantity: item.quantity
+                    }))
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail ||
+                result.message ||
+                "Unable to place your order."
+            );
+        }
+
+        setOrderResult(result);
+
+    } catch (error) {
+        console.error("PLACE ORDER ERROR:", error);
+        setOrderError(error.message);
+    } finally {
+        setPlacingOrder(false);
+    }
+};
 
 
 if (cartParam) {
@@ -305,12 +356,69 @@ if (cartParam) {
                 No payment will be taken.
             </Alert>
 
-            <Button
-                variant="outlined"
-                onClick={() => window.history.back()}
-            >
-                Back
-            </Button>
+           
+            {orderError && (
+                <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
+                    {orderError}
+                </Alert>
+            )}
+
+            {orderResult ? (
+                <Alert severity="success" sx={{ mt: 2 }}>
+                    <Typography variant="h6">
+                        Order placed successfully!
+                    </Typography>
+
+                    <Typography>
+                        Order number: {orderResult.order.id}
+                    </Typography>
+
+                    <Typography>
+                        Status: {orderResult.order.status}
+                    </Typography>
+
+                    <Typography>
+                        Total: {formatMoney(orderResult.total)}
+                    </Typography>
+
+                    <Typography sx={{ mt: 1 }}>
+                        Your order has been saved.
+                    </Typography>
+                </Alert>
+            ) : (
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 2,
+                        mt: 3,
+                        flexWrap: "wrap"
+                    }}
+                >
+                    <Button
+                        variant="outlined"
+                        onClick={() => window.history.back()}
+                        disabled={placingOrder}
+                    >
+                        Back
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        onClick={handlePlaceOrder}
+                        disabled={placingOrder}
+                        startIcon={
+                            placingOrder
+                                ? <CircularProgress size={18} />
+                                : undefined
+                        }
+                    >
+                        {placingOrder
+                            ? "Placing Order..."
+                            : "Place Order"}
+                    </Button>
+                </Box>
+            )}
+
         </Box>
     );
 }
