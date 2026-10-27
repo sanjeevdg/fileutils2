@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { getAuthToken } from "../utils/auth";
 
 const API_URL =
     import.meta.env.VITE_API_URL ||
@@ -28,6 +29,9 @@ export default function MyOrdersRenderer({ widget }) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const token = getAuthToken();
+
+
 
     useEffect(() => {
         let cancelled = false;
@@ -37,8 +41,7 @@ export default function MyOrdersRenderer({ widget }) {
                 setLoading(true);
                 setError("");
 
-                const token =
-                    localStorage.getItem("access_token");
+               // const token = localStorage.getItem("access_token");
 
                 if (!token) {
                     throw new Error(

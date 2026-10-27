@@ -53,6 +53,28 @@ export default function YamlNavigationLayout({
    const navigationConfig = config?.navigation || {};
 
     const authUser = getAuthUser();
+
+
+
+    console.log("AUTH USER:", authUser);
+    console.log("AUTH ROLE:", authUser?.role);
+    console.log(
+        "AVAILABLE PROFILES:",
+        Object.keys(navigationConfig.profiles || {})
+    );
+    console.log(
+        "SELECTED ROLE PROFILE:",
+        navigationConfig.profiles?.[authUser?.role]
+    );
+
+
+
+
+
+
+
+
+
     const role = authUser?.role;
 
     const roleProfile = navigationConfig.profiles?.[role];
@@ -63,15 +85,16 @@ export default function YamlNavigationLayout({
     } = navigationConfig;
 
     const navigation = roleProfile
-        ? {
-            ...roleProfile,
-            ...pageNavigationOverrides,
-            enabled:
-                pageNavigationOverrides.enabled ??
-                roleProfile.enabled ??
-                true,
-        }
-        : navigationConfig;
+    ? {
+        ...pageNavigationOverrides,
+        ...roleProfile,
+        enabled:
+            pageNavigationOverrides.enabled ??
+            roleProfile.enabled ??
+            navigationConfig.enabled ??
+            true,
+    }
+    : navigationConfig;
 
 
     const isLoginOrSignup =
