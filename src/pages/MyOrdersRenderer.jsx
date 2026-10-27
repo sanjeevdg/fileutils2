@@ -142,14 +142,18 @@ export default function MyOrdersRenderer({ widget }) {
         );
     }
 
-    return (
-        <Box sx={{ width: "100%" }}>
-            <Typography
+/*
+<Typography
                 variant="h5"
                 sx={{ mb: 2, fontWeight: 600 }}
             >
                 {widget?.title || "My Orders"}
             </Typography>
+            */
+
+    return (
+        <Box sx={{ width: "60%" }}>
+            
 
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
