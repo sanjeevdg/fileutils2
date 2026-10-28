@@ -8,6 +8,7 @@ import {
     MenuItem,
     FormHelperText
 } from "@mui/material";
+import { getAuthHeaders } from "../utils/auth";
 
 export default function SelectRenderer({
     widget,
@@ -61,8 +62,11 @@ export default function SelectRenderer({
         const loadOptions = async () => {
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/${sourceEntity}`
-                );
+                    `${import.meta.env.VITE_API_URL}/api/${sourceEntity}`, {
+                    headers: {
+                        ...getAuthHeaders()
+                    }
+                });
 
                 if (!response.ok) {
                     throw new Error(

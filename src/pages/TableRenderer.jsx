@@ -9,6 +9,10 @@ import {
     DataGrid
 } from "@mui/x-data-grid";
 
+import { getAuthHeaders } from '../utils/auth';
+
+
+
 
 export default function TableRenderer({
     widget,
@@ -43,7 +47,10 @@ export default function TableRenderer({
                 setError("");
 
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/${entity}`
+                    `${import.meta.env.VITE_API_URL}/api/${entity}`, {
+                        headers: {
+                            ...getAuthHeaders()
+                        }}
                 );
 
                 if (!response.ok) {

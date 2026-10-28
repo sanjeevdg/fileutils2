@@ -1375,8 +1375,7 @@ async function saveOrder(formData, buttonWidget) {
                         await fetch(
                             `${API_URL}/api/order_items/${existingItem.id}`,
                             {
-                                method: "DELETE"
-                            }, {
+                                method: "DELETE",
                                 headers: {
                                     ...getAuthHeaders()
                                 }
