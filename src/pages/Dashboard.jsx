@@ -580,16 +580,23 @@ const clearCart = () => {
     setCartItems([]);
 };
 
+
+
+
+
+
+
 const selectRecord = async (record, entity) => {
     console.log("SELECTED RECORD:", record);
     console.log("SELECTED ENTITY:", entity);
 
     const {
         _gridId,
+        orderItems,
         ...cleanRecord
     } = record;
 
-    // Only orders need their order items loaded.
+    // Non-order entities must not inherit orderItems.
     if (entity !== "orders") {
         setFormData(cleanRecord);
         return;
@@ -597,12 +604,13 @@ const selectRecord = async (record, entity) => {
 
     try {
         const response = await fetch(
-            `${API_URL}/api/order_items?order_id=${cleanRecord.id}`
-        , {
-            headers: {
-                ...getAuthHeaders()
+            `${API_URL}/api/order_items?order_id=${cleanRecord.id}`,
+            {
+                headers: {
+                    ...getAuthHeaders()
+                }
             }
-        });
+        );
 
         if (!response.ok) {
             throw new Error(
@@ -614,9 +622,7 @@ const selectRecord = async (record, entity) => {
 
         setFormData({
             ...cleanRecord,
-            orderItems: Array.isArray(result)
-                ? result
-                : []
+            orderItems: Array.isArray(result) ? result : []
         });
 
     } catch (err) {
@@ -628,6 +634,14 @@ const selectRecord = async (record, entity) => {
         });
     }
 };
+
+
+
+
+
+
+
+
 
 
   /*
@@ -1493,7 +1507,7 @@ async function saveCustomer(buttonWidget) {
         return;
     }
 
-    console.log("THE SAVE BUTTONWIDGET FUNCTION CALLED");
+    console.log("THE SAVE customer FUNCTION CALLED");
     console.log("=== SAVE CALLED ===");
     console.log("FORM DATA:", formData);
 
@@ -1531,7 +1545,7 @@ async function saveCustomer(buttonWidget) {
             : "PUT";
 
         
-        
+            
 
 
         console.log("SAVE MODE:", isNew ? "CREATE" : "EDIT");
@@ -2156,7 +2170,7 @@ const newOrder = () => {
 
     saveOrder,
     saveCustomer,
-    selectRecord,
+  //  selectRecord,
     saveInventory,
     addToCart,
     updateCartQuantity,

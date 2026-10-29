@@ -1,0 +1,724 @@
+import React, {
+    useEffect,
+    useMemo,
+    useState
+} from "react";
+
+import {
+    Alert,
+    Box,
+    CircularProgress,
+    IconButton,
+    InputAdornment,
+    Paper,
+    TextField,
+    Tooltip,
+    Typography
+} from "@mui/material";
+
+import {
+    DataGrid
+} from "@mui/x-data-grid";
+
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+
+import { getAuthHeaders } from "../utils/auth";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+export default function MasterDetailDataGrid({
+    widget,
+    context = {},
+    handlers = {}
+}) {
+    const source = widget?.source || {};
+
+    const entity = source.entity || "";
+    const columns = source.columns || [];
+    const limit = source.limit || 10;
+
+    // Optional master-detail configuration.
+    const detailConfig = source.detail || {};
+
+    const detailEntity = detailConfig.entity || "";
+    const foreignKey = detailConfig.foreignKey || "";
+    const detailColumns = detailConfig.columns || [];
+
+    const parentKey = detailConfig.parentKey || "id";
+
+    const dataVersion = context?.dataVersion || 0;
+
+    const filter = source.filter || {};
+
+    const [rows, setRows] = useState([]);
+    const [error, setError] = useState("");
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [searchText, setSearchText] = useState("");
+
+    const [expandedRowId, setExpandedRowId] = useState(null);
+
+    const [detailRows, setDetailRows] = useState([]);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [detailError, setDetailError] = useState("");
+    const [detailSearchText, setDetailSearchText] = useState("");
+
+    const filterValue = useMemo(() => {
+        if (!filter.valueFrom) {
+            return undefined;
+        }
+
+        if (filter.valueFrom === "formData.id") {
+            return context?.formData?.id;
+        }
+
+        if (filter.valueFrom.startsWith("formData.")) {
+            const field = filter.valueFrom.substring(
+                "formData.".length
+            );
+
+            return context?.formData?.[field];
+        }
+
+        return undefined;
+    }, [
+        filter.valueFrom,
+        context?.formData
+    ]);
+
+    // --------------------------------------------------
+    // Load master records
+    // --------------------------------------------------
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadData = async () => {
+            if (!entity) {
+                setRows([]);
+                setError("");
+                return;
+            }
+
+            try {
+                setError("");
+
+                let url = `${API_URL}/api/${entity}`;
+
+                if (filter.field && filter.valueFrom) {
+                    if (
+                        filterValue === undefined ||
+                        filterValue === null ||
+                        filterValue === ""
+                    ) {
+                        setRows([]);
+                        return;
+                    }
+
+                    const params = new URLSearchParams();
+
+                    params.set(
+                        filter.field,
+                        String(filterValue)
+                    );
+
+                    url += `?${params.toString()}`;
+                }
+
+                const response = await fetch(url, {
+                    headers: {
+                        ...getAuthHeaders()
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Failed to load ${entity}: ${response.status}`
+                    );
+                }
+
+                const result = await response.json();
+
+                if (!cancelled) {
+                    setRows(
+                        Array.isArray(result)
+                            ? result.slice(0, limit)
+                            : []
+                    );
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error("Master grid error:", err);
+                    setError(err.message);
+                }
+            }
+        };
+
+        loadData();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        entity,
+        limit,
+        dataVersion,
+        refreshKey,
+        filter.field,
+        filter.valueFrom,
+        filterValue
+    ]);
+
+    // --------------------------------------------------
+    // Load details when a master row is expanded
+    // --------------------------------------------------
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadDetails = async () => {
+            setDetailRows([]);
+            setDetailError("");
+
+            if (expandedRowId === null) {
+                setDetailLoading(false);
+                return;
+            }
+
+            if (!detailEntity || !foreignKey) {
+                setDetailLoading(false);
+                return;
+            }
+
+            const masterRecord = rows.find(
+                row => String(row[parentKey]) ===
+                    String(expandedRowId)
+            );
+
+            if (!masterRecord) {
+                setDetailLoading(false);
+                return;
+            }
+
+            const parentId = masterRecord[parentKey];
+
+            if (
+                parentId === undefined ||
+                parentId === null
+            ) {
+                setDetailLoading(false);
+                setDetailError(
+                    `The master record has no "${parentKey}" value.`
+                );
+                return;
+            }
+
+            try {
+                setDetailLoading(true);
+
+                const params = new URLSearchParams();
+
+                params.set(
+                    foreignKey,
+                    String(parentId)
+                );
+
+                const response = await fetch(
+                    `${API_URL}/api/${detailEntity}?${params.toString()}`,
+                    {
+                        headers: {
+                            ...getAuthHeaders()
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Failed to load ${detailEntity}: ${response.status}`
+                    );
+                }
+
+                const result = await response.json();
+
+                if (!cancelled) {
+                    setDetailRows(
+                        Array.isArray(result) ? result : []
+                    );
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error("Detail grid error:", err);
+                    setDetailError(err.message);
+                }
+            } finally {
+                if (!cancelled) {
+                    setDetailLoading(false);
+                }
+            }
+        };
+
+        loadDetails();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        expandedRowId,
+        rows,
+        parentKey,
+        detailEntity,
+        foreignKey,
+        refreshKey
+    ]);
+
+    // --------------------------------------------------
+    // Build master columns
+    // --------------------------------------------------
+
+    const visibleColumns = useMemo(() => {
+        if (columns.length > 0) {
+            return columns;
+        }
+
+        if (rows.length > 0) {
+            return Object.keys(rows[0]).map(field => ({
+                field,
+                label: field
+            }));
+        }
+
+        return [];
+    }, [columns, rows]);
+
+    const gridColumns = useMemo(() => {
+        const configuredColumns = visibleColumns.map(column => {
+            const field =
+                typeof column === "string"
+                    ? column
+                    : column.field;
+
+            const label =
+                typeof column === "string"
+                    ? column
+                    : column.label || column.field;
+
+            return {
+                field,
+                headerName: label,
+                flex: 1,
+                minWidth: 120,
+                sortable: true
+            };
+        });
+
+        if (detailEntity && foreignKey) {
+            configuredColumns.unshift({
+                field: "__expand",
+                headerName: "",
+                width: 55,
+                minWidth: 55,
+                maxWidth: 55,
+                sortable: false,
+                filterable: false,
+                disableColumnMenu: true,
+                renderCell: params => {
+                    const isExpanded =
+                        String(expandedRowId) ===
+                        String(params.row[parentKey]);
+
+                    return (
+                        <Tooltip
+                            title={
+                                isExpanded
+                                    ? "Collapse details"
+                                    : "Expand details"
+                            }
+                        >
+                            <IconButton
+                                size="small"
+                                onClick={event => {
+                                    event.stopPropagation();
+
+                                    const rowId =
+                                        params.row[parentKey];
+
+                                    setExpandedRowId(previous =>
+                                        String(previous) ===
+                                        String(rowId)
+                                            ? null
+                                            : rowId
+                                    );
+
+                                    setDetailSearchText("");
+                                }}
+                            >
+                                {isExpanded
+                                    ? <ExpandMoreIcon />
+                                    : <ChevronRightIcon />
+                                }
+                            </IconButton>
+                        </Tooltip>
+                    );
+                }
+            });
+        }
+
+        return configuredColumns;
+    }, [
+        visibleColumns,
+        detailEntity,
+        foreignKey,
+        expandedRowId,
+        parentKey
+    ]);
+
+    // --------------------------------------------------
+    // Search master records
+    // --------------------------------------------------
+
+    const filteredRows = useMemo(() => {
+        const search = searchText.trim().toLowerCase();
+
+        if (!search) {
+            return rows;
+        }
+
+        return rows.filter(row =>
+            visibleColumns.some(column => {
+                const field =
+                    typeof column === "string"
+                        ? column
+                        : column.field;
+
+                const value = row[field];
+
+                return value !== null &&
+                    value !== undefined &&
+                    String(value).toLowerCase().includes(search);
+            })
+        );
+    }, [rows, visibleColumns, searchText]);
+
+    // --------------------------------------------------
+    // Build detail columns and search details
+    // --------------------------------------------------
+
+    const visibleDetailColumns = useMemo(() => {
+        if (detailColumns.length > 0) {
+            return detailColumns;
+        }
+
+        if (detailRows.length > 0) {
+            return Object.keys(detailRows[0]).map(field => ({
+                field,
+                label: field
+            }));
+        }
+
+        return [];
+    }, [detailColumns, detailRows]);
+
+    const detailGridColumns = useMemo(() => {
+        return visibleDetailColumns.map(column => {
+            const field =
+                typeof column === "string"
+                    ? column
+                    : column.field;
+
+            const label =
+                typeof column === "string"
+                    ? column
+                    : column.label || column.field;
+
+            return {
+                field,
+                headerName: label,
+                flex: 1,
+                minWidth: 120,
+                sortable: true
+            };
+        });
+    }, [visibleDetailColumns]);
+
+    const filteredDetailRows = useMemo(() => {
+        const search =
+            detailSearchText.trim().toLowerCase();
+
+        if (!search) {
+            return detailRows;
+        }
+
+        return detailRows.filter(row =>
+            visibleDetailColumns.some(column => {
+                const field =
+                    typeof column === "string"
+                        ? column
+                        : column.field;
+
+                const value = row[field];
+
+                return value !== null &&
+                    value !== undefined &&
+                    String(value).toLowerCase().includes(search);
+            })
+        );
+    }, [
+        detailRows,
+        visibleDetailColumns,
+        detailSearchText
+    ]);
+
+    const masterGridRows = useMemo(() => {
+        return filteredRows.map((row, index) => ({
+            ...row,
+            _gridId: row.id ?? index
+        }));
+    }, [filteredRows]);
+
+    const detailGridRows = useMemo(() => {
+        return filteredDetailRows.map((row, index) => ({
+            ...row,
+            _gridId: row.id ?? index
+        }));
+    }, [filteredDetailRows]);
+
+    // --------------------------------------------------
+    // Render
+    // --------------------------------------------------
+
+    if (!entity) {
+        return (
+            <Typography color="text.secondary">
+                Select an entity for this Data Grid.
+            </Typography>
+        );
+    }
+
+    if (error) {
+        return (
+            <Alert severity="error">
+                {error}
+            </Alert>
+        );
+    }
+
+    return (
+        <Paper
+            elevation={2}
+            sx={{
+                p: 2,
+                mt: 3
+            }}
+        >
+            {/* Header and refresh */}
+
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                    mb: 2
+                }}
+            >
+                <Typography variant="h6">
+                    {widget.title || entity}
+                </Typography>
+
+                <Tooltip title="Refresh">
+                    <IconButton
+                        size="small"
+                        onClick={() => {
+                            setRefreshKey(previous => previous + 1);
+                        }}
+                    >
+                        <RefreshIcon />
+                    </IconButton>
+                </Tooltip>
+            </Box>
+
+            {/* Master search */}
+
+            <TextField
+                size="small"
+                fullWidth
+                placeholder={`Search ${entity}...`}
+                value={searchText}
+                onChange={event => {
+                    setSearchText(event.target.value);
+                }}
+                sx={{ mb: 2 }}
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon />
+                            </InputAdornment>
+                        ),
+                        endAdornment: searchText ? (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setSearchText("")}
+                                >
+                                    <ClearIcon />
+                                </IconButton>
+                            </InputAdornment>
+                        ) : null
+                    }
+                }}
+            />
+
+            {/* Master grid */}
+
+            <DataGrid
+                rows={masterGridRows}
+                columns={gridColumns}
+                getRowId={row => row._gridId}
+                autoHeight
+                loading={false}
+                checkboxSelection={
+                    source.checkboxSelection || false
+                }
+                disableRowSelectionOnClick
+                onRowClick={params => {
+                    if (handlers.selectRecord) {
+                        handlers.selectRecord(
+                            params.row,
+                            source.entity
+                        );
+                    }
+                }}
+                pageSizeOptions={[5, 10, 25, 50]}
+                initialState={{
+                    pagination: {
+                        paginationModel: {
+                            pageSize: Math.min(
+                                source.pageSize || 10,
+                                10
+                            ),
+                            page: 0
+                        }
+                    }
+                }}
+                sx={{
+                    "& .MuiDataGrid-columnHeader": {
+                        fontWeight: 600
+                    }
+                }}
+            />
+
+            {/* Expanded detail section */}
+
+            {expandedRowId !== null &&
+                detailEntity &&
+                foreignKey && (
+                    <Box
+                        sx={{
+                            mt: 2,
+                            p: 2,
+                            border: 1,
+                            borderColor: "divider",
+                            borderRadius: 1,
+                            backgroundColor: "background.default"
+                        }}
+                    >
+                        <Typography
+                            variant="subtitle1"
+                            fontWeight={600}
+                            sx={{ mb: 2 }}
+                        >
+                            {detailConfig.title || detailEntity}
+                            {" — "}
+                            {parentKey}: {String(expandedRowId)}
+                        </Typography>
+
+                        <TextField
+                            size="small"
+                            fullWidth
+                            placeholder={`Search ${detailEntity}...`}
+                            value={detailSearchText}
+                            onChange={event => {
+                                setDetailSearchText(
+                                    event.target.value
+                                );
+                            }}
+                            sx={{ mb: 2 }}
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon />
+                                        </InputAdornment>
+                                    ),
+                                    endAdornment: detailSearchText ? (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() =>
+                                                    setDetailSearchText("")
+                                                }
+                                            >
+                                                <ClearIcon />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ) : null
+                                }
+                            }}
+                        />
+
+                        {detailLoading ? (
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    p: 3,
+                                    gap: 2
+                                }}
+                            >
+                                <CircularProgress size={24} />
+                                <Typography color="text.secondary">
+                                    Loading details...
+                                </Typography>
+                            </Box>
+                        ) : detailError ? (
+                            <Alert severity="error">
+                                {detailError}
+                            </Alert>
+                        ) : detailGridColumns.length === 0 ? (
+                            <Typography color="text.secondary">
+                                No detail columns or records available.
+                            </Typography>
+                        ) : (
+                            <DataGrid
+                                rows={detailGridRows}
+                                columns={detailGridColumns}
+                                getRowId={row => row._gridId}
+                                autoHeight
+                                disableRowSelectionOnClick
+                                pageSizeOptions={[5, 10, 25]}
+                                initialState={{
+                                    pagination: {
+                                        paginationModel: {
+                                            pageSize: 5,
+                                            page: 0
+                                        }
+                                    }
+                                }}
+                                sx={{
+                                    backgroundColor: "background.paper",
+                                    "& .MuiDataGrid-columnHeader": {
+                                        fontWeight: 600
+                                    }
+                                }}
+                            />
+                        )}
+                    </Box>
+                )}
+        </Paper>
+    );
+}

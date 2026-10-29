@@ -19,7 +19,7 @@ import ProductCardRenderer from "./ProductCardRenderer";
 import PaymentRenderer from "./PaymentRenderer";
 import ShoppingCartRenderer from "./ShoppingCartRenderer";
 import MyOrdersRenderer from "./MyOrdersRenderer";
-
+import MasterDetailDataGrid from "./MasterDetailDataGrid";
 
 
 import {
@@ -93,6 +93,14 @@ export default function WidgetRenderer({
 
             return (
                 <DataGridRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );    
+        case "masterDetailDataGrid":
+            return (
+                <MasterDetailDataGrid
                     widget={widget}
                     context={context}
                     handlers={handlers}

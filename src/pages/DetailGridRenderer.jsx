@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 
 import MenuItem from "@mui/material/MenuItem";
-
+import { getAuthHeaders } from "../utils/auth";
 
 const API_URL =
     import.meta.env.VITE_API_URL;
@@ -112,7 +112,11 @@ export default function DetailGridRenderer({
 
                         try {
                             const response = await fetch(
-                                `${API_URL}/api/${referenceEntity}`
+                                `${API_URL}/api/${referenceEntity}`, {
+                                    headers: {
+                                        ...getAuthHeaders()
+                                    }
+                                }
                             );
 
                             if (!response.ok) {
