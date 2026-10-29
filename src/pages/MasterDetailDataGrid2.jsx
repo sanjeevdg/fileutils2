@@ -30,7 +30,7 @@ import { getAuthHeaders } from "../utils/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function MasterDetailDataGrid({
+export default function MasterDetailDataGrid2({
     widget,
     context = {},
     handlers = {}

@@ -20,6 +20,7 @@ import PaymentRenderer from "./PaymentRenderer";
 import ShoppingCartRenderer from "./ShoppingCartRenderer";
 import MyOrdersRenderer from "./MyOrdersRenderer";
 import MasterDetailDataGrid from "./MasterDetailDataGrid";
+import MasterDetailDataGrid2 from "./MasterDetailDataGrid2";
 
 
 import {
@@ -105,7 +106,15 @@ export default function WidgetRenderer({
                     context={context}
                     handlers={handlers}
                 />
-            );    
+            ); 
+        case "masterDetailDataGrid2":
+            return (
+                <MasterDetailDataGrid2
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );        
         case "detailGrid":
             return (
                 <DetailGridRenderer
