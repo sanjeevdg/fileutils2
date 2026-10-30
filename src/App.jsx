@@ -20,7 +20,7 @@ import PasswordPage from './pages/PasswordPage';
 import Designer from './designer/Designer';
 import ProtectedRoute from "./components/ProtectedRoute";
 
-
+import MitExpandableDataGrid from './components/MitExpandableDataGrid';
 
 import routeConfig from "./config/routeConfig";
 
@@ -59,6 +59,7 @@ export default function App() {
                 <main className="content">
                     <Routes>
             <Route path="/" element={<Home />} />
+
             <Route path="/file-reader" element={<FileReaderPage />} />
             <Route path="/about" element={<About />} />
             <Route
@@ -79,6 +80,7 @@ export default function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />            
             <Route path="/loginrenderer" element={<LoginRenderer />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/customgrid" element={<MitExpandableDataGrid />} />
           </Routes>
                 </main>
 

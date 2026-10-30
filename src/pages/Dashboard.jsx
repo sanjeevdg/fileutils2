@@ -2170,7 +2170,7 @@ const newOrder = () => {
 
     saveOrder,
     saveCustomer,
-  //  selectRecord,
+    selectRecord,
     saveInventory,
     addToCart,
     updateCartQuantity,
