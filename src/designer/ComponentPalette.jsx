@@ -53,6 +53,15 @@ const COMPONENT_GROUPS = [
     },
     
     {
+    type: "controls",
+    label: "Controls",
+    components: [
+        { type: "switch", label: "Switch" },
+        { type: "modal", label: "Modal" }
+      ]
+    },
+
+    {
         type: "display",
         label: "Display",
         components: [

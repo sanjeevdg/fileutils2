@@ -21,13 +21,14 @@ import ShoppingCartRenderer from "./ShoppingCartRenderer";
 import MyOrdersRenderer from "./MyOrdersRenderer";
 import MasterDetailDataGrid from "./MasterDetailDataGrid";
 import MasterDetailDataGrid2 from "./MasterDetailDataGrid2";
+import SwitchRenderer from "./SwitchRenderer";
+import ModalRenderer from "./ModalRenderer";
 
 
 import {
     Button,
     Typography,Box, CircularProgress
 } from "@mui/material";
-
 
 export default function WidgetRenderer({
     widget,
@@ -229,7 +230,14 @@ export default function WidgetRenderer({
                     handlers={handlers}
                 />
             );    
-        
+        case "switch":
+            return (
+                <SwitchRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );
             case "button": {
                 const action = widget.events?.onClick;
                 const isLoginButton = action === "login";
@@ -257,6 +265,8 @@ export default function WidgetRenderer({
                 }
             }}
         >
+
+
             {isLoading && (
                 <CircularProgress
                     size={18}
@@ -272,6 +282,18 @@ export default function WidgetRenderer({
                     </Button>
                 );
             }
+
+            case "modal":
+                return (
+                    <ModalRenderer
+                        widget={widget}
+                        context={context}
+                        handlers={handlers}
+                    />
+                );
+
+
+
 
         case "accordion":
             return (

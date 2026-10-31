@@ -1,5 +1,13 @@
-import React from "react";
-import { TextField } from "@mui/material";
+import React, { useState } from "react";
+
+import {
+    TextField,
+    IconButton,
+    InputAdornment
+} from "@mui/material";
+
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 export default function TextFieldRenderer({
     widget,
@@ -8,7 +16,7 @@ export default function TextFieldRenderer({
 }) {
     const props = widget?.props || {};
     const field = props.field || "";
-
+    const [showPassword, setShowPassword] = useState(false);
 const validationErrors =
     context?.validationErrors || {};
 
@@ -22,7 +30,7 @@ const errorMessage = validationErrors[field] || "";
         "";
 
     return (
-        <TextField
+                <TextField
             fullWidth
             label={
                 props.label ||
@@ -43,7 +51,9 @@ const errorMessage = validationErrors[field] || "";
             type={
                 props.numeric
                     ? "number"
-                    : (props.type || "text")
+                    : props.type === "password"
+                        ? (showPassword ? "text" : "password")
+                        : (props.type || "text")
             }
             required={props.required || false}
             multiline={props.multiline || false}
@@ -56,6 +66,30 @@ const errorMessage = validationErrors[field] || "";
                 htmlInput: {
                     readOnly: props.readOnly || false,
                     ...(props.numeric ? { step: "any" } : {})
+                },
+                input: {
+                    ...(props.type === "password" && {
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    onClick={() =>
+                                        setShowPassword(prev => !prev)
+                                    }
+                                    edge="end"
+                                    aria-label={
+                                        showPassword
+                                            ? "Hide password"
+                                            : "Show password"
+                                    }
+                                >
+                                    {showPassword
+                                        ? <VisibilityOff />
+                                        : <Visibility />
+                                    }
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    })
                 }
             }}
         />

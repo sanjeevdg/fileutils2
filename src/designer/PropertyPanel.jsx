@@ -1540,6 +1540,499 @@ console.log(
 
 
 
+
+
+
+
+
+
+
+
+
+                {widget.type === "switch" && (
+                    <>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{ mt: 3, mb: 1 }}
+                        >
+                            Switch Properties
+                        </Typography>
+
+                        {/* Label */}
+                        <TextField
+                            fullWidth
+                            label="Label"
+                            size="small"
+                            value={widget.props?.label || ""}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    label: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        />
+
+                        {/* Initial Checked State */}
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                            <Checkbox
+                                checked={widget.props?.checked || false}
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        checked: e.target.checked
+                                    })
+                                }
+                            />
+                            <Typography>Initially Checked</Typography>
+                        </Box>
+
+                        {/* Disabled */}
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                            <Checkbox
+                                checked={widget.props?.disabled || false}
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        disabled: e.target.checked
+                                    })
+                                }
+                            />
+                            <Typography>Disabled</Typography>
+                        </Box>
+
+                        {/* Color */}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="Color"
+                            value={widget.props?.color || "primary"}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    color: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            {["primary", "secondary", "success", "error", "info", "warning"].map(
+                                color => (
+                                    <MenuItem key={color} value={color}>
+                                        {color}
+                                    </MenuItem>
+                                )
+                            )}
+                        </TextField>
+
+                        {/* Size */}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="Size"
+                            value={widget.props?.size || "medium"}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    size: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="small">Small</MenuItem>
+                            <MenuItem value="medium">Medium</MenuItem>
+                        </TextField>
+
+                        {/* On Change Action */}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="On Change Action"
+                            value={widget.events?.onChange || ""}
+                            onChange={(e) =>
+                                onChange("events", {
+                                    ...(widget.events || {}),
+                                    onChange: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="">
+                                <em>None</em>
+                            </MenuItem>
+
+                            {availableActions.map(action => (
+                                <MenuItem
+                                    key={action.name}
+                                    value={action.name}
+                                >
+                                    {action.label}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+
+                    </>
+                )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+                {widget.type === "modal" && (
+                    <>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{ mt: 3, mb: 1 }}
+                        >
+                            Modal Properties
+                        </Typography>
+
+                        {/* Title */}
+                        <TextField
+                            fullWidth
+                            size="small"
+                            label="Title"
+                            value={widget.props?.title || ""}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    title: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        />
+
+                        {/* Trigger Text */}
+                        <TextField
+                            fullWidth
+                            size="small"
+                            label="Trigger Button Text"
+                            value={widget.props?.triggerText || ""}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    triggerText: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        />
+
+                        {/* Content */}
+                        <TextField
+                            fullWidth
+                            multiline
+                            rows={3}
+                            size="small"
+                            label="Content"
+                            value={widget.props?.content || ""}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    content: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        />
+
+                        {/* Max Width */}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="Maximum Width"
+                            value={widget.props?.maxWidth || "sm"}
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    maxWidth: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            {["xs", "sm", "md", "lg", "xl"].map(size => (
+                                <MenuItem key={size} value={size}>
+                                    {size.toUpperCase()}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+
+                        {/* Close Button */}
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <Checkbox
+                                checked={widget.props?.showCloseButton !== false}
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        showCloseButton: e.target.checked
+                                    })
+                                }
+                            />
+                            <Typography>Show Close Button</Typography>
+                        </Box>
+
+                        {/* Backdrop Click */}
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <Checkbox
+                                checked={widget.props?.closeOnBackdropClick !== false}
+                                onChange={(e) =>
+                                    onChange("props", {
+                                        ...(widget.props || {}),
+                                        closeOnBackdropClick: e.target.checked
+                                    })
+                                }
+                            />
+                            <Typography>Close On Backdrop Click</Typography>
+                        </Box>
+
+                        {/* Open Event */}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="On Open Action"
+                            value={widget.events?.onOpen || ""}
+                            onChange={(e) =>
+                                onChange("events", {
+                                    ...(widget.events || {}),
+                                    onOpen: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="">None</MenuItem>
+
+                            {availableActions.map(action => (
+                                <MenuItem key={action.name} value={action.name}>
+                                    {action.label}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+
+                        {/* Close Event */}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label="On Close Action"
+                            value={widget.events?.onClose || ""}
+                            onChange={(e) =>
+                                onChange("events", {
+                                    ...(widget.events || {}),
+                                    onClose: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="">None</MenuItem>
+
+                            {availableActions.map(action => (
+                                <MenuItem key={action.name} value={action.name}>
+                                    {action.label}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+
+                        {/* Dialog Actions */}
+                        <Typography
+                            variant="subtitle1"
+                            sx={{ mt: 2, mb: 1 }}
+                        >
+                            Dialog Action Buttons
+                        </Typography>
+
+                        {(widget.props?.actions || []).map((action, index) => (
+                            <Box
+                                key={index}
+                                sx={{
+                                    border: "1px solid #ddd",
+                                    borderRadius: 1,
+                                    p: 1.5,
+                                    mb: 2
+                                }}
+                            >
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="Button Label"
+                                    value={action.label || ""}
+                                    onChange={(e) => {
+                                        const actions = [...(widget.props?.actions || [])];
+
+                                        actions[index] = {
+                                            ...action,
+                                            label: e.target.value
+                                        };
+
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            actions
+                                        });
+                                    }}
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    select
+                                    fullWidth
+                                    size="small"
+                                    label="Action"
+                                    value={action.event || ""}
+                                    onChange={(e) => {
+                                        const actions = [...(widget.props?.actions || [])];
+
+                                        actions[index] = {
+                                            ...action,
+                                            event: e.target.value
+                                        };
+
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            actions
+                                        });
+                                    }}
+                                    sx={{ mb: 2 }}
+                                >
+                                    <MenuItem value="">None</MenuItem>
+
+                                    {availableActions.map(item => (
+                                        <MenuItem key={item.name} value={item.name}>
+                                            {item.label}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+
+                                <TextField
+                                    select
+                                    fullWidth
+                                    size="small"
+                                    label="Variant"
+                                    value={action.variant || "text"}
+                                    onChange={(e) => {
+                                        const actions = [...(widget.props?.actions || [])];
+
+                                        actions[index] = {
+                                            ...action,
+                                            variant: e.target.value
+                                        };
+
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            actions
+                                        });
+                                    }}
+                                    sx={{ mb: 2 }}
+                                >
+                                    <MenuItem value="text">Text</MenuItem>
+                                    <MenuItem value="outlined">Outlined</MenuItem>
+                                    <MenuItem value="contained">Contained</MenuItem>
+                                </TextField>
+
+                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                    <Checkbox
+                                        checked={action.closeOnClick !== false}
+                                        onChange={(e) => {
+                                            const actions = [...(widget.props?.actions || [])];
+
+                                            actions[index] = {
+                                                ...action,
+                                                closeOnClick: e.target.checked
+                                            };
+
+                                            onChange("props", {
+                                                ...(widget.props || {}),
+                                                actions
+                                            });
+                                        }}
+                                    />
+                                    <Typography variant="body2">
+                                        Close Modal On Click
+                                    </Typography>
+                                </Box>
+
+                                <Button
+                                    fullWidth
+                                    color="error"
+                                    variant="outlined"
+                                    onClick={() => {
+                                        const actions = [...(widget.props?.actions || [])];
+
+                                        actions.splice(index, 1);
+
+                                        onChange("props", {
+                                            ...(widget.props || {}),
+                                            actions
+                                        });
+                                    }}
+                                >
+                                    Remove Button
+                                </Button>
+                            </Box>
+                        ))}
+
+                        <Button
+                            fullWidth
+                            variant="outlined"
+                            onClick={() => {
+                                const actions = [...(widget.props?.actions || [])];
+
+                                actions.push({
+                                    label: "New Button",
+                                    event: "",
+                                    variant: "text",
+                                    color: "primary",
+                                    closeOnClick: true
+                                });
+
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    actions
+                                });
+                            }}
+                        >
+                            + Add Action Button
+                        </Button>
+                    </>
+                )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         {widget.type === "select" && (
                             <>
                                 <Typography
