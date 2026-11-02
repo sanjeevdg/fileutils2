@@ -9,8 +9,8 @@ export default function Home() {
       <h1>Home</h1>
       <p>Welcome to the application.</p>
       
-        <p><a href="/#/dashboard/user_login">Login</a></p>
-        <p><a href="/#/dashboard/user_signup">Signup</a></p>
+        <p><a href="/fileutils2/#/dashboard/user_login">Login</a></p>
+        <p><a href="/fileutils2/#/dashboard/user_signup">Signup</a></p>
       
     </>
   );
