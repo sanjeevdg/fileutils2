@@ -19,9 +19,10 @@ import TestPicker from './pages/TestPicker';
 import PasswordPage from './pages/PasswordPage';
 import Designer from './designer/Designer';
 import ProtectedRoute from "./components/ProtectedRoute";
-
+//import GlobalGroupDiscountPage from './components/globalgroupdiscount/GlobalGroupDiscountPage';
 import MitExpandableDataGrid from './components/MitExpandableDataGrid';
-
+import GlobalGroupDiscountLayout
+    from "./components/globalgroupdiscount/GlobalGroupDiscountLayout";
 import routeConfig from "./config/routeConfig";
 
 //import routeConfig from "./config/routeConfig";
@@ -81,6 +82,7 @@ export default function App() {
             <Route path="/loginrenderer" element={<LoginRenderer />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/customgrid" element={<MitExpandableDataGrid />} />
+            <Route path="/apply-discount" element={<ProtectedRoute><GlobalGroupDiscountLayout /></ProtectedRoute>} />
           </Routes>
                 </main>
 

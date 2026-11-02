@@ -48,7 +48,13 @@ export default function DataGridRenderer({
 
     const source = widget?.source || {};
 
-    const entity = source.entity;
+    const entity =
+    source.entity ||
+    (source.endpoint ? source.endpoint.split("/").pop() : "");
+
+    const customEndpoint = source.endpoint || "";
+
+    const responseField = source.responseField || "";
 
     const columns = source.columns || [];
 
@@ -70,8 +76,12 @@ export default function DataGridRenderer({
 
     const detailColumns = detailConfig.columns || [];
 
-    const detailEnabled =
-        Boolean(detailEntity && foreignKey);
+    const detailDataField = detailConfig.dataField || "";
+
+    const detailEnabled = Boolean(
+        (detailEntity && foreignKey) ||
+        detailDataField
+    );
 
 
     const [searchText, setSearchText] = useState("");    
@@ -111,7 +121,9 @@ export default function DataGridRenderer({
 
                 setError("");
 
-                let url = `${API_URL}/api/${entity}`;
+                let url = customEndpoint
+                    ? `${API_URL}${customEndpoint}`
+                    : `${API_URL}/api/${entity}`;
 
                 if (filter.field && filter.valueFrom) {
 
@@ -150,10 +162,14 @@ export default function DataGridRenderer({
 
                 const result = await response.json();
 
+                const resultRows = responseField
+                    ? result?.[responseField]
+                    : result;
+
                 if (!cancelled) {
 
-                    const mappedRows = Array.isArray(result)
-                        ? result.slice(0, limit).map((row, index) => ({
+                    const mappedRows = Array.isArray(resultRows)
+                        ? resultRows.slice(0, limit).map((row, index) => ({
                             ...row,
                             _gridId: row.id ?? index
                         }))
@@ -218,11 +234,34 @@ export default function DataGridRenderer({
         }));
 
         // Don't fetch the same details repeatedly
+        // Don't load the same details repeatedly
         if (detailState[key]) {
             return;
         }
 
         if (!detailEnabled) {
+            return;
+        }
+
+        // --------------------------------------------
+        // Embedded detail data (e.g. discount history)
+        // --------------------------------------------
+
+        if (detailDataField) {
+
+            const embeddedRows = row[detailDataField];
+
+            setDetailState(previous => ({
+                ...previous,
+                [key]: {
+                    loading: false,
+                    rows: Array.isArray(embeddedRows)
+                        ? embeddedRows
+                        : [],
+                    error: ""
+                }
+            }));
+
             return;
         }
 
@@ -733,11 +772,11 @@ export default function DataGridRenderer({
         );
     }
 
-    if (!entity) {
+    if (!entity && !customEndpoint) {
 
         return (
             <Typography color="text.secondary">
-                Select an entity for this Data Grid.
+                Select an entity or endpoint for this Data Grid.
             </Typography>
         );
     }
