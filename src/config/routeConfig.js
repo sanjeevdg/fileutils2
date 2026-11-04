@@ -16,6 +16,7 @@ const routeConfig = [
     { path: "/dashboard/my_orders", layout: "user" }, 
     { path: "/dashboard/user_login", layout: "none" },
     { path: "/dashboard/user_signup", layout: "none" },
+    { path: "/dashboard/forgot_password", layout: "none" },
 ];
 
 export default routeConfig;

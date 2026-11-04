@@ -46,6 +46,9 @@ export default function DetailRenderer({
 
                 record = record[part];
             }
+            console.log("DETAIL BINDING:", source.binding);
+            console.log("DETAIL RECORD:", record);
+            console.log("DETAIL CONTEXT:", context);
         }
 
         

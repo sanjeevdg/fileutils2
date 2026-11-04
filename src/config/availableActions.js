@@ -15,7 +15,10 @@ const availableActions = [
     { name: "login", label: "Login" },
     { name: "signup", label: "Sign Up" },
     { name: "goToLogin", label: "Go to Login" },
-    { name: "saveProfile", label: "Save Profile" }
+    { name: "saveProfile", label: "Save Profile" },
+    { name: "forgotPassword", label: "Forgot Password" },
+    { name: "resetPassword", label: "Reset Password" },
+    { name: "sendPasswordReset", label: "Send Password Reset" }
 ];
 
 export default availableActions;

@@ -23,7 +23,7 @@ import MasterDetailDataGrid from "./MasterDetailDataGrid";
 import MasterDetailDataGrid2 from "./MasterDetailDataGrid2";
 import SwitchRenderer from "./SwitchRenderer";
 import ModalRenderer from "./ModalRenderer";
-
+import PivotGridRenderer from "./PivotGridRenderer";
 
 import {
     Button,
@@ -180,7 +180,16 @@ export default function WidgetRenderer({
                         context={context}
                         handlers={handlers}
                     />
-                );        
+                );     
+        case "pivotGrid":
+
+                    return (
+                        <PivotGridRenderer
+                            widget={widget}
+                            context={context}
+                            handlers={handlers}
+                        />
+                    );           
         case "multiselect":
 
             return (

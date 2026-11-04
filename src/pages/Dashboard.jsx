@@ -897,6 +897,69 @@ useEffect(() => {
 
 
 
+const resetPassword = async () => {
+    setError(null);
+    setMessage(null);
+
+    const newPassword = formData.new_password;
+    const confirmPassword = formData.confirm_password;
+
+    if (!newPassword || !confirmPassword) {
+        setError("Please enter and confirm your new password.");
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        setError("The passwords do not match.");
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        setError("Password must be at least 8 characters.");
+        return;
+    }
+
+    // Read token from the URL query string.
+    const params = new URLSearchParams(window.location.hash.split("?")[1] || "");
+    const token = params.get("token");
+
+    if (!token) {
+        setError("Password reset token is missing. Please request a new link.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/api/reset-password`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                token,
+                new_password: newPassword
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || "Unable to reset password."
+            );
+        }
+
+        setMessage("Your password has been reset successfully.");
+
+    } catch (error) {
+        console.error("RESET PASSWORD ERROR:", error);
+        setError(error.message || "Unable to reset password.");
+    }
+};
+
+
+
+
+
 
 
 const signup = async () => {
@@ -962,7 +1025,44 @@ const signup = async () => {
 
 
 
+const sendPasswordReset = async () => {
+    setError(null);
+    setMessage(null);
 
+    const email = formData.email?.trim().toLowerCase();
+
+    if (!email) {
+        setError("Please enter your registered email address.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/api/forgot-password`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.detail || "Unable to process password reset request."
+            );
+        }
+
+        setMessage(
+            result.message ||
+            "If an account exists, a password reset link has been sent."
+        );
+
+    } catch (error) {
+        console.error("FORGOT PASSWORD ERROR:", error);
+        setError(error.message || "Unable to send password reset link.");
+    }
+};
 
 
 
@@ -1054,7 +1154,12 @@ const login = async () => {
 
 
 
+const forgotPassword = () => {
+    setError(null);
+    setMessage(null);
 
+    window.location.hash = "#/dashboard/forgot_password";
+};
 
 
 
@@ -2179,8 +2284,11 @@ const newOrder = () => {
     login,
     signup,
     saveProfile,
-    goToLogin: () => {
-        window.location.hash = "/dashboard/user_login";
+    forgotPassword,
+    resetPassword,
+    sendPasswordReset,
+    backToLogin: () => {
+        window.location.hash = "#/dashboard/user_login";
         }
 
   };
@@ -2240,32 +2348,28 @@ const newOrder = () => {
 return (
     <>
 
-        {error && (
-            <Alert
-                severity="error"
-                sx={{ mb: 2 }}
-            >
-                {error}
-            </Alert>
-        )}
-
-        {message && (
-            <Alert
-                severity="success"
-                sx={{ mb: 2 }}
-            >
-                {message}
-            </Alert>
-        )}
-
-        {redirectMessage && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-                {redirectMessage}
-            </Alert>
-        )}
-
         {config && (
             <YamlNavigationLayout config={config}>
+
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+
+                {message && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                        {message}
+                    </Alert>
+                )}
+
+                {redirectMessage && (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        {redirectMessage}
+                    </Alert>
+                )}
+
+                
             <PageRenderer
                 config={config}
                 pageName="dashboard"
