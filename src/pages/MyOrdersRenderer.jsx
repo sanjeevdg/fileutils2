@@ -240,10 +240,23 @@ export default function MyOrdersRenderer({ widget }) {
                                             Quantity
                                         </TableCell>
                                         <TableCell align="right">
-                                            Amount
+                                            Original Amount
+                                        </TableCell>
+                                               <TableCell align="right">
+                                            Discount Type
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            Discount Value
+                                        </TableCell>
+                                               <TableCell align="right">
+                                            Discount Amount
+                                        </TableCell>
+                                               <TableCell align="right">
+                                            Final Amount
                                         </TableCell>
                                     </TableRow>
                                 </TableHead>
+
 
                                 <TableBody>
                                     {(order.items || []).map((item) => (
@@ -262,6 +275,22 @@ export default function MyOrdersRenderer({ widget }) {
 
                                             <TableCell align="right">
                                                 {formatMoney(item.amount)}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                {item.discount_type}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                {item.discount_type === "percentage"
+                                                    ? `${Number(item.discount_value) || 0}%`
+                                                    : item.discount_type === "fixed"
+                                                        ? formatMoney(item.discount_value)
+                                                        : "—"}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                {formatMoney(item.discount_amount)}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                {formatMoney(item.final_amount)}
                                             </TableCell>
                                         </TableRow>
                                     ))}
