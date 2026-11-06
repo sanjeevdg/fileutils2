@@ -1,3 +1,4 @@
+
 import React from "react";
 
 import {
@@ -51,29 +52,25 @@ const COMPONENT_GROUPS = [
             { type: "button", label: "Button" }
         ]
     },
-    
+
     {
-    type: "controls",
-    label: "Controls",
-    components: [
-        { type: "switch", label: "Switch" },
-        { type: "modal", label: "Modal" }
-      ]
+        type: "controls",
+        label: "Controls",
+        components: [
+            { type: "switch", label: "Switch" },
+            { type: "modal", label: "Modal" }
+        ]
     },
 
     {
         type: "display",
         label: "Display",
         components: [
-            {
-                type: "productCard",
-                label: "Product Card"
-            },
+            { type: "productCard", label: "Product Card" },
             { type: "payment", label: "Payment / Buy Now" },
-            { type: "shoppingCart", label: "Shopping Cart Icon"}
+            { type: "shoppingCart", label: "Shopping Cart Icon" }
         ]
-    },
-
+    }
 
 ];
 
@@ -84,103 +81,142 @@ export default function ComponentPalette({ onAdd }) {
 
         <Box
             sx={{
-                p: 2,
+                p: 1,
                 borderRight: "1px solid #ddd",
                 height: "100%",
                 bgcolor: "#fafafa"
             }}
         >
 
+            {/* Panel Heading */}
+
             <Typography
-                variant="h6"
-                gutterBottom
+                sx={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    mb: 1,
+                    px: 1
+                }}
             >
                 Components
             </Typography>
 
 
-            {COMPONENT_GROUPS.map(
-                (group, index) => (
+            {/* Component Groups */}
 
-                    <Accordion
-                        key={group.type}
-                        defaultExpanded={
-                            index === 0
+            {COMPONENT_GROUPS.map((group, index) => (
+
+                <Accordion
+                    key={group.type}
+                    defaultExpanded={index === 0}
+                    disableGutters
+                    elevation={0}
+                    sx={{
+                        bgcolor: "transparent",
+
+                        "&:before": {
+                            display: "none"
+                        },
+
+                        "&.Mui-expanded": {
+                            my: 0
                         }
-                        disableGutters
-                        elevation={0}
+                    }}
+                >
+
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
                         sx={{
-                            bgcolor: "transparent",
-                            "&:before": {
-                                display: "none"
+                            minHeight: 32,
+                            px: 1,
+
+                            "&.Mui-expanded": {
+                                minHeight: 32
+                            },
+
+                            "& .MuiAccordionSummary-content": {
+                                my: 0.5
+                            },
+
+                            "& .MuiAccordionSummary-content.Mui-expanded": {
+                                my: 0.5
+                            },
+
+                            "& .MuiSvgIcon-root": {
+                                fontSize: 18
                             }
                         }}
                     >
 
-                        <AccordionSummary
-                            expandIcon={
-                                <ExpandMoreIcon />
-                            }
+                        <Typography
                             sx={{
-                                minHeight: 40,
-                                px: 1,
+                                fontSize: 13,
+                                fontWeight: 600,
+                                color: "#333"
+                            }}
+                        >
+                            {group.label}
+                        </Typography>
 
-                                "& .MuiAccordionSummary-content":
-                                    {
-                                        my: 1
+                    </AccordionSummary>
+
+
+                    <AccordionDetails
+                        sx={{
+                            px: 0.5,
+                            pt: 0,
+                            pb: 0.5
+                        }}
+                    >
+
+                        {group.components.map(component => (
+
+                            <Button
+                                key={component.type}
+                                variant="text"
+                                size="small"
+                                fullWidth
+
+                                sx={{
+                                    justifyContent: "flex-start",
+                                    textAlign: "left",
+                                    textTransform: "none",
+
+                                    fontSize: 12.5,
+                                    fontWeight: 400,
+
+                                    color: "#444",
+
+                                    minHeight: 27,
+
+                                    px: 1,
+                                    py: 0,
+
+                                    mb: 0.25,
+
+                                    borderRadius: 1,
+
+                                    "&:hover": {
+                                        bgcolor: "#e8edf5",
+                                        color: "#1976d2"
                                     }
-                            }}
-                        >
+                                }}
 
-                            <Typography
-                                variant="subtitle1"
-                                fontWeight="bold"
+                                onClick={() => onAdd(component.type)}
                             >
-                                {group.label}
-                            </Typography>
+                                + {component.label}
+                            </Button>
 
-                        </AccordionSummary>
+                        ))}
 
+                    </AccordionDetails>
 
-                        <AccordionDetails
-                            sx={{
-                                px: 0,
-                                pt: 0
-                            }}
-                        >
+                </Accordion>
 
-                            {group.components.map(
-                                component => (
-
-                                    <Button
-                                        key={
-                                            component.type
-                                        }
-                                        variant="outlined"
-                                        fullWidth
-                                        sx={{
-                                            mb: 1
-                                        }}
-                                        onClick={() =>
-                                            onAdd(
-                                                component.type
-                                            )
-                                        }
-                                    >
-                                        + {component.label}
-                                    </Button>
-
-                                )
-                            )}
-
-                        </AccordionDetails>
-
-                    </Accordion>
-
-                )
-            )}
+            ))}
 
         </Box>
 
     );
+
 }

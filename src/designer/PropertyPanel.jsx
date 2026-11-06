@@ -120,8 +120,9 @@ console.log(
     Object.keys(entityMetadata || {})
 );
 
-    return (
-        <Box
+
+/*
+<Box
             sx={{
                 p: 2,
                 borderLeft: "1px solid #ddd",
@@ -129,6 +130,107 @@ console.log(
                 overflow: "auto"
             }}
         >
+
+    return (
+  */    
+
+
+
+return (
+    <Box
+        sx={{
+            p: 1.25,
+            borderLeft: "1px solid #ddd",
+            height: "100%",
+            overflow: "auto",
+            bgcolor: "#fafafa",
+
+            // --------------------------------
+            // TEXT FIELDS AND SELECT CONTROLS
+            // --------------------------------
+
+            "& .MuiFormControl-root": {
+                marginBottom: "8px !important"
+            },
+
+            "& .MuiInputBase-root:not(.MuiInputBase-multiline)": {
+                minHeight: 36,
+                fontSize: 13
+            },
+
+            "& .MuiInputBase-input": {
+                fontSize: 13,
+                padding: "7px 10px"
+            },
+
+            "& .MuiSelect-select": {
+                fontSize: 13,
+                padding: "7px 32px 7px 10px !important"
+            },
+
+            "& .MuiInputLabel-root": {
+                fontSize: 12
+            },
+
+            "& .MuiMenuItem-root": {
+                fontSize: 13,
+                minHeight: 30
+            },
+
+            // --------------------------------
+            // TYPOGRAPHY
+            // --------------------------------
+
+            "& .MuiTypography-h6": {
+                fontSize: 16,
+                fontWeight: 600,
+                marginBottom: 8
+            },
+
+            "& .MuiTypography-subtitle1": {
+                fontSize: 13,
+                fontWeight: 600,
+                marginTop: "12px !important",
+                marginBottom: "6px !important"
+            },
+
+            "& .MuiTypography-subtitle2": {
+                fontSize: 13,
+                fontWeight: 600
+            },
+
+            "& .MuiTypography-body1": {
+                fontSize: 13
+            },
+
+            "& .MuiTypography-body2": {
+                fontSize: 12.5
+            },
+
+            // --------------------------------
+            // CHECKBOXES
+            // --------------------------------
+
+            "& .MuiCheckbox-root": {
+                padding: "4px"
+            },
+
+            "& .MuiCheckbox-root .MuiSvgIcon-root": {
+                fontSize: 19
+            },
+
+            // --------------------------------
+            // BUTTONS
+            // --------------------------------
+
+            "& .MuiButton-root": {
+                fontSize: 12,
+                minHeight: 30,
+                padding: "4px 10px",
+                textTransform: "none"
+            }
+        }}
+    >
 
             <Typography variant="h6" gutterBottom>
                 Properties
