@@ -23,6 +23,7 @@
     "dayjs": "^1.11.21",
     "gh-pages": "^6.3.0",
     "js-yaml": "^5.2.2",
+    "lottie-react": "^3.1.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-dropzone": "^17.0.0",

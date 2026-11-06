@@ -277,7 +277,7 @@ export default function MyOrdersRenderer({ widget }) {
                                                 {formatMoney(item.amount)}
                                             </TableCell>
                                             <TableCell align="right">
-                                                {item.discount_type}
+                                                {item.discount_type || "—"}
                                             </TableCell>
                                             <TableCell align="right">
                                                 {item.discount_type === "percentage"

@@ -22,7 +22,7 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-
+import { Lottie } from "lottie-react";
 import PageRenderer from './PageRenderer';
 import FormRenderer from './FormRenderer';
 const API_URL =
@@ -31,6 +31,7 @@ const API_URL =
 import { getAuthHeaders } from "../utils/auth";
 import YamlNavigationLayout from "../layout/YamlNavigationLayout";
 
+//import pageLoadingAnimation from "../assets/animations/loading_anim1.json";
 /*
 =========================================================
 MUI COMPONENT MAP
@@ -275,9 +276,9 @@ const [validationErrors, setValidationErrors] = useState({});
 
 const [loggingIn, setLoggingIn] = useState(false);
 
-
+//customer_master_detail
 const configName =
-    name || "customer_master_detail";
+    name || "shared";
   /*
   -------------------------------------------------------
   YAML configuration
@@ -1124,10 +1125,10 @@ const login = async () => {
         sessionStorage.removeItem("auth_user");
 
         // Remember Me selects persistent storage.
-        const storage = rememberMe ? localStorage : sessionStorage;
+      //  const storage = rememberMe ? localStorage : sessionStorage;
 
-        storage.setItem("access_token", result.access_token);
-        storage.setItem("auth_user", JSON.stringify(result.user));
+        localStorage.setItem("access_token", result.access_token);
+        localStorage.setItem("auth_user", JSON.stringify(result.user));
 
         setMessage("Login successful!");
 
@@ -2303,24 +2304,45 @@ const newOrder = () => {
   if (loading) {
 
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent:
-            "center",
-          alignItems:
-            "center",
-          minHeight:
-            "50vh",
-        }}
-      >
+        <Box
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                minHeight: "60vh",
+                gap: 2
+            }}
+        >
 
-        <CircularProgress />
+            <Box
+                sx={{
+                    width: 180,
+                    height: 180
+                }}
+            >
+                <Lottie
+                    src="./loading_anim1.json"
+                    loop={true}
+                    autoplay={true}
+                />
+            </Box>
 
-      </Box>
+            <Typography
+                color="text.secondary"
+                variant="body1"
+                sx={{
+                    fontWeight: 500,
+                    mt: 1
+                }}
+            >
+                Page will load in a moment...
+            </Typography>
+
+        </Box>
     );
 
-  }
+}
 
 
   /*
@@ -2388,6 +2410,7 @@ return (
                     right: 20,
                 }}
             />
+            
         )}
 
     </>

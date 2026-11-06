@@ -1,15 +1,14 @@
 
 export function getAuthToken() {
-    return (
-        sessionStorage.getItem("access_token") ||
-        localStorage.getItem("access_token")
-    );
+
+    return localStorage.getItem("access_token");
+
 }
 
+
 export function getAuthUser() {
-    const user =
-        sessionStorage.getItem("auth_user") ||
-        localStorage.getItem("auth_user");
+
+    const user = localStorage.getItem("auth_user");
 
     if (!user) {
         return null;
@@ -20,29 +19,25 @@ export function getAuthUser() {
     } catch {
         return null;
     }
+
 }
 
+
 export function getAuthHeaders() {
+
     const token = getAuthToken();
 
-    console.log("Auth token exists:", Boolean(token));
-
-    const headers = token
+    return token
         ? { Authorization: `Bearer ${token}` }
         : {};
 
-    console.log(
-        "Auth header exists:",
-        Boolean(headers.Authorization)
-    );
-
-    return headers;
 }
 
+
 export function logout() {
+
     localStorage.removeItem("access_token");
+
     localStorage.removeItem("auth_user");
 
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("auth_user");
 }

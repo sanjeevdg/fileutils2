@@ -8,6 +8,8 @@ import {
     Checkbox,
     ListItemText
 } from "@mui/material";
+import { getAuthHeaders } from "../utils/auth";
+
 
 export default function MultiSelectRenderer({
     widget,
@@ -53,7 +55,11 @@ console.log("MULTISELECT CONFIG:", {
             try {
 
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_URL}/api/${entity}`
+                    `${import.meta.env.VITE_API_URL}/api/${entity}`, {
+                                        headers: {
+                                            ...getAuthHeaders()
+                                        }
+                                    }
                 );
 
                 if (!response.ok) {
