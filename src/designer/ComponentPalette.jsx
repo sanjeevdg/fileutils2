@@ -20,7 +20,8 @@ const COMPONENT_GROUPS = [
         label: "Layout",
         components: [
             { type: "container", label: "Container" },
-            { type: "accordion", label: "Accordion" }
+            { type: "accordion", label: "Accordion" },
+            { type: "tabs", label: "Tabs" }
         ]
     },
 

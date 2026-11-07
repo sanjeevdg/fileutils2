@@ -1,4 +1,4 @@
-    import React from "react";
+import React from "react";
 
 import DashboardRenderer from "./DashboardRenderer";
 import ChartRenderer from "./ChartRenderer";
@@ -24,6 +24,8 @@ import MasterDetailDataGrid2 from "./MasterDetailDataGrid2";
 import SwitchRenderer from "./SwitchRenderer";
 import ModalRenderer from "./ModalRenderer";
 import PivotGridRenderer from "./PivotGridRenderer";
+import TabsRenderer from "./TabsRenderer";
+
 
 import {
     Button,
@@ -313,7 +315,15 @@ export default function WidgetRenderer({
                     onSelect={onSelect}
                 />
             );
-                
+        case "tabs":
+            return (
+                <TabsRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                    onSelect={onSelect}
+                />
+            );          
         case "container":
                 return (
                     <Box

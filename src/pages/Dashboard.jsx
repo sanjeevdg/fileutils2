@@ -28,7 +28,7 @@ import FormRenderer from './FormRenderer';
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "http://127.0.0.1:8000";
-import { getAuthHeaders } from "../utils/auth";
+import { getAuthHeaders, getAuthUser } from "../utils/auth";
 import YamlNavigationLayout from "../layout/YamlNavigationLayout";
 
 //import pageLoadingAnimation from "../assets/animations/loading_anim1.json";
@@ -439,7 +439,9 @@ const updateField = (field, value) => {
   async function loadUsers() {
     
     const authHeaders = getAuthHeaders();
+    const authUser = getAuthUser();
 
+console.log('myauthheaders',authHeaders);
     if (!authHeaders.Authorization) {
         console.log(
             "Skipping customers request: user is not logged in"

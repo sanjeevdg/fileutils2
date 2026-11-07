@@ -80,7 +80,7 @@ export default function Designer({
 
     const [selectedRecord, setSelectedRecord] = useState(null);   
     const [selectedAccordionSection, setSelectedAccordionSection] =  useState(null);
-
+    const [selectedTab, setSelectedTab] = useState(null);
     const [formData, setFormData] = useState({});
     const [formRecord, setFormRecord] = useState(null);
 
@@ -336,6 +336,33 @@ export default function Designer({
             }
 
             // -----------------------------
+            // Tabs
+            // -----------------------------
+            if (
+                widget.id === selectedId &&
+                widget.type === "tabs"
+            ) {
+                if (!widget.tabs) {
+                    widget.tabs = [];
+                }
+
+                if (!widget.tabs[0]) {
+                    widget.tabs.push({
+                        id: `tab_${Date.now()}`,
+                        label: "Tab 1",
+                        widgets: []
+                    });
+                }
+
+                if (!widget.tabs[0].widgets) {
+                    widget.tabs[0].widgets = [];
+                }
+
+                widget.tabs[0].widgets.push(newWidget);
+
+                return true;
+            }
+            // -----------------------------
             // Existing container children
             // -----------------------------
             if (widget.children?.length) {
@@ -373,6 +400,36 @@ export default function Designer({
                     }
                 }
             }
+
+
+            // -----------------------------
+            // Existing Tabs children
+            // -----------------------------
+            if (widget.tabs?.length) {
+
+                for (const tab of widget.tabs) {
+
+                    if (
+                        addWidgetToSelectedParent(
+                            tab.widgets || [],
+                            selectedId,
+                            newWidget
+                        )
+                    ) {
+                        return true;
+                    }
+                }
+            }
+
+
+
+
+
+
+
+
+
+
         }
 
         return false;
@@ -519,7 +576,28 @@ export default function Designer({
                         }
                     ];
                 }    
+            if (type === "tabs") {
 
+                    newWidget.title = "New Tabs";
+
+                    newWidget.tabs = [
+                        {
+                            id: `tab_general_${Date.now()}`,
+                            label: "General",
+                            widgets: []
+                        },
+                        {
+                            id: `tab_details_${Date.now()}`,
+                            label: "Details",
+                            widgets: []
+                        },
+                        {
+                            id: `tab_other_${Date.now()}`,
+                            label: "Other",
+                            widgets: []
+                        }
+                    ];
+                }    
             if (type === "detailGrid") {
 
                     newWidget.title = "Order Items";
@@ -554,55 +632,80 @@ export default function Designer({
 
 
 
+                setDesignerConfig(prev => {
 
-           setDesignerConfig(prev => {
+                        const next = structuredClone(prev);
 
-                    const next = structuredClone(prev);
+                        const widgets =
+                            next.pages.dashboard.widgets || [];
 
-                    const widgets =
-                        next.pages.dashboard.widgets || [];
+                        /*
+                         * Priority 1:
+                         * Add to the currently selected Tabs tab.
+                         */
 
-                    /*
-                     * First priority:
-                     * Add to the currently selected Accordion section.
-                     */
-                    if (selectedAccordionSection) {
+                        if (selectedTab) {
 
-                        const {
-                            accordionId,
-                            sectionId
-                        } = selectedAccordionSection;
+                            const {
+                                tabsId,
+                                tabId
+                            } = selectedTab;
 
-                        next.pages.dashboard.widgets =
-                            addWidgetToAccordionSection(
-                                widgets,
+                            next.pages.dashboard.widgets =
+                                addWidgetToTab(
+                                    widgets,
+                                    tabsId,
+                                    tabId,
+                                    newWidget
+                                );
+
+                            return next;
+                        }
+
+                        /*
+                         * Priority 2:
+                         * Add to the currently selected Accordion section.
+                         */
+
+                        if (selectedAccordionSection) {
+
+                            const {
                                 accordionId,
-                                sectionId,
+                                sectionId
+                            } = selectedAccordionSection;
+
+                            next.pages.dashboard.widgets =
+                                addWidgetToAccordionSection(
+                                    widgets,
+                                    accordionId,
+                                    sectionId,
+                                    newWidget
+                                );
+
+                            return next;
+                        }
+
+                        /*
+                         * Priority 3:
+                         * Normal widget/container behaviour.
+                         */
+
+                        const addedToParent =
+                            selectedWidgetId &&
+                            addWidgetToSelectedParent(
+                                widgets,
+                                selectedWidgetId,
                                 newWidget
                             );
 
+                        if (!addedToParent) {
+                            widgets.push(newWidget);
+                        }
+
+                        next.pages.dashboard.widgets = widgets;
+
                         return next;
-                    }
-
-                    /*
-                     * Normal widget/container behaviour
-                     */
-                    const addedToParent =
-                        selectedWidgetId &&
-                        addWidgetToSelectedParent(
-                            widgets,
-                            selectedWidgetId,
-                            newWidget
-                        );
-
-                    if (!addedToParent) {
-                        widgets.push(newWidget);
-                    }
-
-                    next.pages.dashboard.widgets = widgets;
-
-                    return next;
-                });
+                    });
 
 
 
@@ -642,6 +745,35 @@ export default function Designer({
                         }
                     }
                 }
+
+
+
+                // Tabs
+                if (widget.type === "tabs" && widget.tabs) {
+
+                    for (const tab of widget.tabs) {
+
+                        const found = findWidgetById(
+                            tab.widgets || [],
+                            id
+                        );
+
+                        if (found) {
+                            return found;
+                        }
+                    }
+                }
+
+
+
+
+
+
+
+
+
+
+
             }
 
             return null;
@@ -696,12 +828,38 @@ export default function Designer({
                             widgets: updatedWidgets
                         };
                     });
-
-                    updatedWidget = {
+                updatedWidget = {
                         ...updatedWidget,
                         sections: updatedSections
                     };
+                }    
+                // Tabs
+                if (
+                    widget.type === "tabs" &&
+                    widget.tabs
+                ) {
+
+                    const updatedTabs = widget.tabs.map(tab => {
+
+                        return {
+                            ...tab,
+
+                            widgets: updateWidgetInTree(
+                                tab.widgets || [],
+                                id,
+                                updates
+                            )
+                        };
+                    });
+
+                    updatedWidget = {
+                        ...updatedWidget,
+                        tabs: updatedTabs
+                    };
                 }
+
+    
+                
 
                 return updatedWidget;
             });
@@ -790,7 +948,98 @@ export default function Designer({
             };
 
 
+const addWidgetToTab = (
+    widgets,
+    tabsId,
+    tabId,
+    newWidget
+) => {
 
+    return (widgets || []).map(widget => {
+
+        // We found the target Tabs widget
+        if (
+            widget.id === tabsId &&
+            widget.type === "tabs"
+        ) {
+
+            return {
+                ...widget,
+
+                tabs: (widget.tabs || []).map(tab => {
+
+                    if (tab.id !== tabId) {
+                        return tab;
+                    }
+
+                    return {
+                        ...tab,
+                        widgets: [
+                            ...(tab.widgets || []),
+                            newWidget
+                        ]
+                    };
+
+                })
+            };
+        }
+
+        // Search inside Container children
+        if (widget.children) {
+
+            return {
+                ...widget,
+
+                children: addWidgetToTab(
+                    widget.children,
+                    tabsId,
+                    tabId,
+                    newWidget
+                )
+            };
+        }
+
+        // Search inside Accordion sections
+        if (widget.sections) {
+
+            return {
+                ...widget,
+
+                sections: widget.sections.map(section => ({
+                    ...section,
+
+                    widgets: addWidgetToTab(
+                        section.widgets || [],
+                        tabsId,
+                        tabId,
+                        newWidget
+                    )
+                }))
+            };
+        }
+
+        // Search inside nested Tabs
+        if (widget.tabs) {
+
+            return {
+                ...widget,
+
+                tabs: widget.tabs.map(tab => ({
+                    ...tab,
+
+                    widgets: addWidgetToTab(
+                        tab.widgets || [],
+                        tabsId,
+                        tabId,
+                        newWidget
+                    )
+                }))
+            };
+        }
+
+        return widget;
+    });
+};
 
 
 
@@ -836,6 +1085,28 @@ export default function Designer({
                             sections: updatedSections
                         };
                     }
+
+
+
+                    // Tabs
+                        if (
+                            widget.type === "tabs" &&
+                            widget.tabs
+                        ) {
+
+                            updatedWidget = {
+                                ...updatedWidget,
+
+                                tabs: widget.tabs.map(tab => ({
+                                    ...tab,
+
+                                    widgets: deleteWidgetFromTree(
+                                        tab.widgets || [],
+                                        id
+                                    )
+                                }))
+                            };
+                        }
 
                     return updatedWidget;
                 });
@@ -1114,22 +1385,39 @@ console.log("DESIGNER SELECTED RECORD:", selectedRecord);
                                         updateField,
                                         selectRecord: setSelectedRecord
                                     }}
-                                    onWidgetSelect={(widget, sectionInfo) => {
+                                    onWidgetSelect={(widget, selectionInfo) => {
 
-                                            if (sectionInfo) {
+                                            // Tabs selection
+                                            if (selectionInfo?.tabsId) {
 
-                                                setSelectedAccordionSection(sectionInfo);
+                                                setSelectedTab(selectionInfo);
+
+                                                setSelectedAccordionSection(null);
 
                                             } else {
+
+                                                setSelectedTab(null);
+                                            }
+
+                                            // Accordion selection
+                                            if (selectionInfo?.accordionId) {
+
+                                                setSelectedAccordionSection(selectionInfo);
+
+                                                setSelectedTab(null);
+
+                                            } else if (!selectionInfo?.tabsId) {
 
                                                 setSelectedAccordionSection(null);
                                             }
 
+                                            // Selected widget
                                             if (widget) {
                                                 setSelectedWidgetId(widget.id);
                                             } else {
                                                 setSelectedWidgetId(null);
                                             }
+
                                         }}
                                     onWidgetMove={moveWidget}
                                     selectedWidgetId={selectedWidgetId}

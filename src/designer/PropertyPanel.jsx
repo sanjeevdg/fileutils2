@@ -4227,6 +4227,230 @@ return (
                     )}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+                    {/* -------------------------------- */}
+                    {/* TABS PROPERTIES */}
+                    {/* -------------------------------- */}
+
+                    {widget.type === "tabs" && (
+
+                        <>
+
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    mt: 3,
+                                    mb: 1
+                                }}
+                            >
+                                Tabs Properties
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mb: 1 }}
+                            >
+                                Manage Tabs
+                            </Typography>
+
+
+                            {(widget.tabs || []).map((tab, index) => (
+
+                                <Box
+                                    key={tab.id || index}
+                                    sx={{
+                                        mb: 2,
+                                        p: 1.5,
+                                        border: "1px solid #ddd",
+                                        borderRadius: 1
+                                    }}
+                                >
+
+                                    {/* Tab Label */}
+
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        label={`Tab ${index + 1} Label`}
+                                        value={tab.label || ""}
+                                        onChange={(e) => {
+
+                                            const tabs = structuredClone(
+                                                widget.tabs || []
+                                            );
+
+                                            tabs[index].label = e.target.value;
+
+                                            onChange("tabs", tabs);
+
+                                        }}
+                                        sx={{ mb: 1 }}
+                                    />
+
+
+                                    {/* Tab ID */}
+
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                    >
+                                        ID: {tab.id}
+                                    </Typography>
+
+
+                                    {/* Reorder and Delete */}
+
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            gap: 1,
+                                            mt: 1
+                                        }}
+                                    >
+
+                                        <Button
+                                            size="small"
+                                            variant="outlined"
+                                            disabled={index === 0}
+                                            onClick={() => {
+
+                                                const tabs = structuredClone(
+                                                    widget.tabs || []
+                                                );
+
+                                                [
+                                                    tabs[index - 1],
+                                                    tabs[index]
+                                                ] = [
+                                                    tabs[index],
+                                                    tabs[index - 1]
+                                                ];
+
+                                                onChange("tabs", tabs);
+
+                                            }}
+                                        >
+                                            ↑
+                                        </Button>
+
+
+                                        <Button
+                                            size="small"
+                                            variant="outlined"
+                                            disabled={
+                                                index === (widget.tabs || []).length - 1
+                                            }
+                                            onClick={() => {
+
+                                                const tabs = structuredClone(
+                                                    widget.tabs || []
+                                                );
+
+                                                [
+                                                    tabs[index],
+                                                    tabs[index + 1]
+                                                ] = [
+                                                    tabs[index + 1],
+                                                    tabs[index]
+                                                ];
+
+                                                onChange("tabs", tabs);
+
+                                            }}
+                                        >
+                                            ↓
+                                        </Button>
+
+
+                                        <Button
+                                            size="small"
+                                            variant="outlined"
+                                            color="error"
+                                            disabled={
+                                                (widget.tabs || []).length <= 1
+                                            }
+                                            onClick={() => {
+
+                                                const tabs = (widget.tabs || [])
+                                                    .filter((_, i) => i !== index);
+
+                                                onChange("tabs", tabs);
+
+                                            }}
+                                        >
+                                            Delete
+                                        </Button>
+
+                                    </Box>
+
+                                </Box>
+
+                            ))}
+
+
+                            {/* Add Tab */}
+
+                            <Button
+                                variant="outlined"
+                                fullWidth
+                                onClick={() => {
+
+                                    const tabs = structuredClone(
+                                        widget.tabs || []
+                                    );
+
+                                    tabs.push({
+
+                                        id: `tab_${Date.now()}`,
+
+                                        label: `Tab ${tabs.length + 1}`,
+
+                                        widgets: []
+
+                                    });
+
+                                    onChange("tabs", tabs);
+
+                                }}
+                            >
+                                + Add Tab
+                            </Button>
+
+                        </>
+
+                    )}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <Typography
                 variant="subtitle1"
                 sx={{ mt: 3, mb: 1 }}
