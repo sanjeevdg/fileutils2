@@ -155,8 +155,9 @@ export default function StatRenderer({
     let displayValue = value;
 
     if (
-        aggregate === "sum" ||
-        aggregate === "avg"
+        ["sum", "avg", "min", "max"].includes(aggregate) &&
+            value !== null &&
+            value !== undefined
     ) {
 
         displayValue =

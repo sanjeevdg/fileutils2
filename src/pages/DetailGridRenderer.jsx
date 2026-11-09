@@ -16,7 +16,7 @@ import { getAuthHeaders } from "../utils/auth";
 
 const API_URL =
     import.meta.env.VITE_API_URL;
-
+const EMPTY_ARRAY = [];
 
 export default function DetailGridRenderer({
     widget,
@@ -42,7 +42,7 @@ export default function DetailGridRenderer({
             source.entity || "";
 
         const columns =
-            props.columns || [];
+            props.columns || EMPTY_ARRAY;
 
         const validationErrors =
             context?.validationErrors || {};
@@ -77,14 +77,17 @@ export default function DetailGridRenderer({
             // Temporary compatibility with the existing
             // Order Items implementation.
             // -------------------------------------------------
-
+const entityFields =
+                context?.config?.entities?.[entity]?.fields || EMPTY_ARRAY;
             
+const columnsKey = JSON.stringify(columns);
+            const entityFieldsKey = JSON.stringify(entityFields);
+                        
         useEffect(() => {
-            const entityFields =
-                context?.config?.entities?.[entity]?.fields || [];
             console.log("DETAIL GRID ENTITY:", entity);
             console.log("DETAIL GRID ENTITY FIELDS:", entityFields);
             console.log("DETAIL GRID COLUMNS:", columns);    
+            
             const referenceFields = columns
                 .map(column =>
                     typeof column === "string"
@@ -156,7 +159,7 @@ export default function DetailGridRenderer({
             return () => {
                 cancelled = true;
             };
-        }, [entity, columns, context?.config?.entities]);
+        }, [entity, columnsKey, entityFieldsKey]);
 
 
     // -------------------------------------------------

@@ -412,6 +412,46 @@ return (
                         </MenuItem>
                     </TextField>
 
+
+
+
+
+
+
+
+                    {/* COLOR */}
+
+                        <TextField
+                            select
+                            label="Color"
+                            value={widget.props?.color || "primary"}
+                            fullWidth
+                            size="small"
+                            onChange={(e) =>
+                                onChange("props", {
+                                    ...(widget.props || {}),
+                                    color: e.target.value
+                                })
+                            }
+                            sx={{ mb: 2 }}
+                        >
+                            <MenuItem value="primary">Primary</MenuItem>
+                            <MenuItem value="secondary">Secondary</MenuItem>
+                            <MenuItem value="success">Success</MenuItem>
+                            <MenuItem value="error">Error</MenuItem>
+                            <MenuItem value="info">Info</MenuItem>
+                            <MenuItem value="warning">Warning</MenuItem>
+                            <MenuItem value="inherit">Inherit</MenuItem>
+                        </TextField>
+
+
+
+
+
+
+
+
+                    
                     {/* SIZE */}
 
                     <TextField

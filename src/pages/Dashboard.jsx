@@ -28,7 +28,17 @@ import FormRenderer from './FormRenderer';
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "http://127.0.0.1:8000";
-import { getAuthHeaders, getAuthUser } from "../utils/auth";
+
+
+import {
+    getAuthHeaders,
+    getAuthUser,
+    getAuthToken,
+    logout,
+    clearExpiredAuth
+} from "../utils/auth";
+
+
 import YamlNavigationLayout from "../layout/YamlNavigationLayout";
 
 //import pageLoadingAnimation from "../assets/animations/loading_anim1.json";
@@ -436,64 +446,84 @@ const updateField = (field, value) => {
   =======================================================
   */
 
-  async function loadUsers() {
-    
-    const authHeaders = getAuthHeaders();
-    const authUser = getAuthUser();
+async function loadUsers() {
 
-console.log('myauthheaders',authHeaders);
-    if (!authHeaders.Authorization) {
-        console.log(
-            "Skipping customers request: user is not logged in"
-        );
+    // Check token expiry before making API request
+    if (clearExpiredAuth()) {
+
+        window.location.hash = "#/dashboard/user_login";
+
         return;
     }
 
-    const response =
-      await fetch(
-        `${API_URL}/api/customers`
-      , {
-            headers: {
-                ...getAuthHeaders()
-            }
-        });
+    const authHeaders = getAuthHeaders();
 
+    if (!authHeaders.Authorization) {
+
+        console.log(
+            "Skipping customers request: user is not logged in"
+        );
+
+        return;
+    }
+
+    const response = await fetch(
+        `${API_URL}/api/customers`,
+        {
+            headers: authHeaders
+        }
+    );
+
+    // Handle expired or invalid tokens
+    if (response.status === 401) {
+
+        console.log(
+            "401 Unauthorized. Logging out user."
+        );
+
+        logout();
+
+        window.location.hash = "#/dashboard/user_login";
+
+        return;
+    }
 
     if (!response.ok) {
 
-      throw new Error(
-        `Failed to load customers: ${response.status}`
-      );
+        throw new Error(
+            `Failed to load customers: ${response.status}`
+        );
 
     }
 
-
-    const data =
-      await response.json();
-
+    const data = await response.json();
 
     setUsers(data);
 
+    if (data.length > 0) {
 
-    /*
-     * Select first user
-     */
-
-    if (
-      data.length > 0
-    ) {
-
-      setSelectedUser(
-        data[0]
-      );
+        setSelectedUser(data[0]);
 
     }
-  }
+
+}
 
 
 
 async function loadOrders() {
+    
+
+     // Check token expiry before making API request
+    if (clearExpiredAuth()) {
+
+        window.location.hash = "#/dashboard/user_login";
+
+        return;
+    }
+
+
     const authHeaders = getAuthHeaders();
+
 
     if (!authHeaders.Authorization) {
         console.log(
@@ -510,6 +540,20 @@ async function loadOrders() {
             }
         });
 
+     if (response.status === 401) {
+
+        console.log(
+            "401 Unauthorized. Logging out user."
+        );
+
+        logout();
+
+        window.location.hash = "#/dashboard/user_login";
+
+        return;
+    }
+
+        
     if (!response.ok) {
 
         throw new Error(
@@ -643,7 +687,16 @@ const selectRecord = async (record, entity) => {
 
 
 
+useEffect(() => {
 
+    if (clearExpiredAuth()) {
+
+        window.location.hash = "#/dashboard/user_login";
+
+        return;
+    }
+
+}, []);
 
 
 
@@ -2047,11 +2100,11 @@ async function save() {
 
       const deletedId = formData.id;
 
+
       const response = await fetch(
         `${API_URL}/api/customers/${deletedId}`,
         {
           method: "DELETE",
-        }, {
             headers: {
                 ...getAuthHeaders()
             }

@@ -41,3 +41,57 @@ export function logout() {
     localStorage.removeItem("auth_user");
 
 }
+
+
+export function isTokenExpired() {
+
+    const token = getAuthToken();
+
+    if (!token) {
+        return true;
+    }
+
+    try {
+
+        const payload = JSON.parse(
+            atob(
+                token.split(".")[1]
+                    .replace(/-/g, "+")
+                    .replace(/_/g, "/")
+            )
+        );
+
+        if (!payload.exp) {
+            return true;
+        }
+
+        // JWT exp is in seconds
+        const expiryTime = payload.exp * 1000;
+
+        return Date.now() >= expiryTime;
+
+    } catch (error) {
+
+        console.error("Invalid JWT token:", error);
+
+        return true;
+
+    }
+}
+
+
+export function clearExpiredAuth() {
+
+    if (isTokenExpired()) {
+
+        console.log(
+            "Authentication token expired. Clearing stored credentials."
+        );
+
+        logout();
+
+        return true;
+    }
+
+    return false;
+}
