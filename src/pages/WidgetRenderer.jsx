@@ -29,7 +29,7 @@ import TabsRenderer from "./TabsRenderer";
 
 import {
     Button,
-    Typography,Box, CircularProgress
+    Typography,Box, CircularProgress, Grid
 } from "@mui/material";
 
 export default function WidgetRenderer({
@@ -324,47 +324,62 @@ export default function WidgetRenderer({
                     onSelect={onSelect}
                 />
             );          
+        
         case "container":
-                return (
-                    <Box
-                        sx={{
-                            border: "1px dashed",
-                            borderColor: "grey.400",
-                            borderRadius: 1,
-                            p: 2,
-                            minHeight: 100
-                        }}
+            return (
+                <Box
+                    sx={{
+                        border: "1px dashed",
+                        borderColor: "grey.400",
+                        borderRadius: 1,
+                        p: 2,
+                        minHeight: 100
+                    }}
+                >
+                    <Grid
+                        container
+                        spacing={2}
                     >
-                        {widget.children?.map(child => (
-                            <Box
-                                key={child.id}
-                                onClick={(event) => {
-                                    event.stopPropagation();
+                        {widget.children?.map((child, index) => {
 
-                                    if (onSelect) {
-                                        onSelect(child);
+                            const { offset, ...gridSize } =
+                                child.layout || { xs: 12 };
+
+                            return (
+                                <Grid
+                                    key={child.id || index}
+                                    size={gridSize}
+                                    offset={
+                                        offset != null
+                                            ? { md: offset }
+                                            : undefined
                                     }
-                                }}
-                                sx={{
-                                    position: "relative",
-                                    mb: 2,
-                                    ...(onSelect
-                                        ? {
-                                            cursor: "pointer"
+                                    onClick={(event) => {
+                                        if (onSelect) {
+                                            event.stopPropagation();
+                                            onSelect(child);
                                         }
-                                        : {})
-                                }}
-                            >
-                                <WidgetRenderer
-                                    widget={child}
-                                    context={context}
-                                    handlers={handlers}
-                                    onSelect={onSelect}
-                                />
-                            </Box>
-                        ))}
-                    </Box>
-                );    
+                                    }}
+                                    sx={{
+                                        position: "relative",
+                                        cursor: onSelect
+                                            ? "pointer"
+                                            : "default"
+                                    }}
+                                >
+                                    <WidgetRenderer
+                                        widget={child}
+                                        context={context}
+                                        handlers={handlers}
+                                        onSelect={onSelect}
+                                    />
+                                </Grid>
+                            );
+                        })}
+                    </Grid>
+                </Box>
+            );
+
             case "myOrders":
                 return (
                     <MyOrdersRenderer

@@ -41,6 +41,12 @@ export default function PropertyPanel({
     }
 
     const source = widget.source || {};
+
+    const detail = source.detail || {};
+
+    const detailFields =  entityMetadata[detail.entity] || [];
+
+
     const chart = widget.chart || {};
 
 const availableEntities =
@@ -1291,6 +1297,274 @@ return (
                                     );
                                 })}
 
+                                                            
+                            {/* ================================
+                                DETAIL ROWS CONFIGURATION
+                            ================================ */}
+
+                            <Typography
+                                variant="subtitle1"
+                                sx={{ mt: 3, mb: 1 }}
+                            >
+                                Expandable Detail Rows
+                            </Typography>
+
+                            {/* Enable Detail Rows */}
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    mb: 2
+                                }}
+                            >
+                                <Checkbox
+                                    checked={Boolean(source.detail)}
+                                    onChange={(e) => {
+
+                                        if (e.target.checked) {
+
+                                            onChange("source", {
+                                                ...source,
+                                                detail: {
+                                                    entity: "",
+                                                    foreignKey: "",
+                                                    parentKey: "id",
+                                                    title: "Details",
+                                                    columns: []
+                                                }
+                                            });
+
+                                        } else {
+
+                                            const updatedSource = { ...source };
+                                            delete updatedSource.detail;
+
+                                            onChange("source", updatedSource);
+                                        }
+
+                                    }}
+                                />
+
+                                <Typography>
+                                    Enable Detail Rows
+                                </Typography>
+                            </Box>
+
+                            {source.detail && (
+                                <Box
+                                    sx={{
+                                        border: "1px solid",
+                                        borderColor: "divider",
+                                        borderRadius: 1,
+                                        p: 2,
+                                        mb: 2
+                                    }}
+                                >
+
+                                    {/* Detail Entity */}
+
+                                    <TextField
+                                        select
+                                        fullWidth
+                                        size="small"
+                                        label="Detail Entity"
+                                        value={detail.entity || ""}
+                                        onChange={(e) => {
+
+                                            const entity = e.target.value;
+
+                                            const fields =
+                                                entityMetadata[entity] || [];
+
+                                            const defaultColumns =
+                                                fields.map(field => ({
+                                                    field: field.name,
+                                                    label:
+                                                        field.label ||
+                                                        field.name
+                                                }));
+
+                                            onChange("source", {
+                                                ...source,
+                                                detail: {
+                                                    ...detail,
+                                                    entity,
+                                                    columns: defaultColumns
+                                                }
+                                            });
+
+                                        }}
+                                        sx={{ mb: 2 }}
+                                    >
+                                        {availableEntities.map((entity) => (
+                                            <MenuItem
+                                                key={entity}
+                                                value={entity}
+                                            >
+                                                {entity}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+
+
+                                    {/* Detail Title */}
+
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Detail Title"
+                                        value={detail.title || ""}
+                                        onChange={(e) => {
+
+                                            onChange("source", {
+                                                ...source,
+                                                detail: {
+                                                    ...detail,
+                                                    title: e.target.value
+                                                }
+                                            });
+
+                                        }}
+                                        sx={{ mb: 2 }}
+                                    />
+
+
+                                    {/* Foreign Key */}
+
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Foreign Key"
+                                        placeholder="order_id"
+                                        value={detail.foreignKey || ""}
+                                        onChange={(e) => {
+
+                                            onChange("source", {
+                                                ...source,
+                                                detail: {
+                                                    ...detail,
+                                                    foreignKey: e.target.value
+                                                }
+                                            });
+
+                                        }}
+                                        sx={{ mb: 2 }}
+                                    />
+
+
+                                    {/* Parent Key */}
+
+                                    <TextField
+                                        fullWidth
+                                        size="small"
+                                        label="Parent Key"
+                                        placeholder="id"
+                                        value={detail.parentKey || ""}
+                                        onChange={(e) => {
+
+                                            onChange("source", {
+                                                ...source,
+                                                detail: {
+                                                    ...detail,
+                                                    parentKey: e.target.value
+                                                }
+                                            });
+
+                                        }}
+                                        sx={{ mb: 2 }}
+                                    />
+
+
+                                    {/* Detail Columns */}
+
+                                    {detail.entity && (
+                                        <>
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{ mb: 1, mt: 1 }}
+                                            >
+                                                Detail Columns
+                                            </Typography>
+
+                                            {detailFields.map((field) => {
+
+                                                const column =
+                                                    (detail.columns || []).find(
+                                                        item =>
+                                                            typeof item === "string"
+                                                                ? item === field.name
+                                                                : item.field === field.name
+                                                    );
+
+                                                const checked = Boolean(column);
+
+                                                return (
+                                                    <Box
+                                                        key={field.name}
+                                                        sx={{
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            mb: 0.5
+                                                        }}
+                                                    >
+                                                        <Checkbox
+                                                            size="small"
+                                                            checked={checked}
+                                                            onChange={(e) => {
+
+                                                                const currentColumns =
+                                                                    detail.columns || [];
+
+                                                                let newColumns;
+
+                                                                if (e.target.checked) {
+
+                                                                    newColumns = [
+                                                                        ...currentColumns,
+                                                                        {
+                                                                            field: field.name,
+                                                                            label:
+                                                                                field.label ||
+                                                                                field.name
+                                                                        }
+                                                                    ];
+
+                                                                } else {
+
+                                                                    newColumns =
+                                                                        currentColumns.filter(
+                                                                            item =>
+                                                                                typeof item === "string"
+                                                                                    ? item !== field.name
+                                                                                    : item.field !== field.name
+                                                                        );
+                                                                }
+
+                                                                onChange("source", {
+                                                                    ...source,
+                                                                    detail: {
+                                                                        ...detail,
+                                                                        columns: newColumns
+                                                                    }
+                                                                });
+
+                                                            }}
+                                                        />
+
+                                                        <Typography variant="body2">
+                                                            {field.label || field.name}
+                                                        </Typography>
+
+                                                    </Box>
+                                                );
+                                            })}
+                                        </>
+                                    )}
+
+                                </Box>
+                            )}
 
                                 {/* Page Size */}
 
