@@ -81,6 +81,7 @@ export default function Designer({
     const [selectedRecord, setSelectedRecord] = useState(null);   
     const [selectedAccordionSection, setSelectedAccordionSection] =  useState(null);
     const [selectedTab, setSelectedTab] = useState(null);
+    const [selectedModal, setSelectedModal] = useState(null);
     const [formData, setFormData] = useState({});
     const [formRecord, setFormRecord] = useState(null);
 
@@ -306,6 +307,31 @@ export default function Designer({
                 widget.children.push(newWidget);
                 return true;
             }
+
+
+
+            // -----------------------------
+            // Modal
+            // -----------------------------
+            if (
+                widget.id === selectedId &&
+                widget.type === "modal"
+            ) {
+                if (!widget.children) {
+                    widget.children = [];
+                }
+
+                widget.children.push(newWidget);
+
+                return true;
+            }
+
+
+
+
+
+
+
 
             // -----------------------------
             // Accordion
@@ -597,7 +623,29 @@ export default function Designer({
                             widgets: []
                         }
                     ];
-                }    
+                }   
+
+                if (type === "modal") {
+
+                    newWidget.title = "New Modal";
+
+                    newWidget.props = {
+                        title: "Modal",
+                        triggerText: "Open Modal",
+                        maxWidth: "sm",
+                        showCloseButton: true,
+                        closeOnBackdropClick: true,
+                        actions: []
+                    };
+
+                    newWidget.events = {
+                        onOpen: "",
+                        onClose: ""
+                    };
+
+                    newWidget.children = [];
+                }
+     
             if (type === "detailGrid") {
 
                     newWidget.title = "Order Items";
@@ -1385,40 +1433,50 @@ console.log("DESIGNER SELECTED RECORD:", selectedRecord);
                                         updateField,
                                         selectRecord: setSelectedRecord
                                     }}
+                                    
                                     onWidgetSelect={(widget, selectionInfo) => {
 
-                                            // Tabs selection
-                                            if (selectionInfo?.tabsId) {
+                                        // Tabs selection
+                                        if (selectionInfo?.tabsId) {
 
-                                                setSelectedTab(selectionInfo);
+                                            setSelectedTab(selectionInfo);
+                                            setSelectedAccordionSection(null);
 
-                                                setSelectedAccordionSection(null);
+                                        } else {
 
-                                            } else {
+                                            setSelectedTab(null);
+                                        }
 
-                                                setSelectedTab(null);
-                                            }
+                                        // Accordion selection
+                                        if (selectionInfo?.accordionId) {
 
-                                            // Accordion selection
-                                            if (selectionInfo?.accordionId) {
+                                            setSelectedAccordionSection(selectionInfo);
+                                            setSelectedTab(null);
 
-                                                setSelectedAccordionSection(selectionInfo);
+                                        } else if (!selectionInfo?.tabsId) {
 
-                                                setSelectedTab(null);
+                                            setSelectedAccordionSection(null);
+                                        }
 
-                                            } else if (!selectionInfo?.tabsId) {
+                                        // Modal selection
+                                        if (selectionInfo?.modalId) {
 
-                                                setSelectedAccordionSection(null);
-                                            }
+                                            setSelectedModal(selectionInfo);
 
-                                            // Selected widget
-                                            if (widget) {
-                                                setSelectedWidgetId(widget.id);
-                                            } else {
-                                                setSelectedWidgetId(null);
-                                            }
+                                        } else {
 
-                                        }}
+                                            setSelectedModal(null);
+                                        }
+
+                                        // Selected widget
+                                        if (widget) {
+                                            setSelectedWidgetId(widget.id);
+                                        } else {
+                                            setSelectedWidgetId(null);
+                                        }
+
+                                    }}
+
                                     onWidgetMove={moveWidget}
                                     selectedWidgetId={selectedWidgetId}
                                 />
@@ -1435,8 +1493,16 @@ console.log("DESIGNER SELECTED RECORD:", selectedRecord);
                     onDelete={deleteWidget}
                     entityMetadata={entityMetadata}
                     availableActions={availableActions}
-                />
+                    onSelectWidget={(child, parentId) => {
 
+                        setSelectedModal({
+                            modalId: parentId
+                        });
+
+                        setSelectedWidgetId(child.id);
+
+                    }}
+                />
             </Box>
 
         </Box>

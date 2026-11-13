@@ -300,6 +300,7 @@ export default function WidgetRenderer({
                         widget={widget}
                         context={context}
                         handlers={handlers}
+                        onSelect={onSelect}
                     />
                 );
 

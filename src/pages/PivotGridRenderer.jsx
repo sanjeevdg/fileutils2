@@ -12,7 +12,11 @@ import {
     Select,
     Typography
 } from "@mui/material";
-
+import {
+    BarChart,
+    LineChart,
+    PieChart
+} from "@mui/x-charts";
 import { DataGrid } from "@mui/x-data-grid";
 
 import { getAuthHeaders } from "../utils/auth";
@@ -30,7 +34,13 @@ export default function PivotGridRenderer({
     const source = widget?.source || {};
     const pivot = widget?.pivot || {};
 
-    const entity = source.entity;
+    const [entities, setEntities] = useState([]);
+
+    const [entity, setEntity] = useState(
+        source.entity || ""
+    );
+
+    const [chartType, setChartType] = useState("bar");
 
     // ------------------------------------
     // Data state
@@ -73,6 +83,76 @@ export default function PivotGridRenderer({
         pivot.aggregation ||
         "sum"
     );
+
+
+
+
+
+
+
+
+
+
+useEffect(() => {
+
+    const loadEntities = async () => {
+
+        try {
+
+            const response = await fetch(
+                `${API_URL}/api/entities`,
+                {
+                    headers: {
+                        ...getAuthHeaders()
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to load entities");
+            }
+
+            const result = await response.json();
+
+            const availableEntities = result.entities || [];
+
+            setEntities(availableEntities);
+
+            setEntity(current => {
+
+                if (
+                    current &&
+                    availableEntities.includes(current)
+                ) {
+                    return current;
+                }
+
+                return availableEntities[0] || "";
+            });
+
+        } catch (err) {
+
+            setError(err.message);
+
+        }
+    };
+
+    loadEntities();
+
+}, []);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // ------------------------------------
@@ -400,6 +480,73 @@ export default function PivotGridRenderer({
     ]);
 
 
+
+
+                const chartData = useMemo(() => {
+
+                    const rows = pivotResult.rows.filter(
+                        row => !row._isTotal
+                    );
+
+                    const valueColumns = pivotResult.columns.filter(
+                        column => column.field.startsWith("pivot_")
+                    );
+
+                    const dataset = rows.map(row => {
+
+                        const result = {
+                            _rowLabel: row._rowLabel
+                        };
+
+                        valueColumns.forEach(column => {
+                            result[column.field] = row[column.field] || 0;
+                        });
+
+                        return result;
+                    });
+
+                    const series = valueColumns.map(column => ({
+                        dataKey: column.field,
+                        label: column.headerName
+                    }));
+
+                    const pieData = rows.map((row, index) => {
+
+                        const total = valueColumns.reduce(
+                            (sum, column) =>
+                                sum + Number(row[column.field] || 0),
+                            0
+                        );
+
+                        return {
+                            id: index,
+                            value: total,
+                            label: row._rowLabel
+                        };
+                    });
+
+                    return {
+                        dataset,
+                        series,
+                        pieData
+                    };
+
+                }, [pivotResult]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ------------------------------------
     // Render
     // ------------------------------------
@@ -454,6 +601,29 @@ export default function PivotGridRenderer({
                     mb: 2
                 }}
             >
+                <FormControl size="small" sx={{ minWidth: 180 }}>
+
+                <InputLabel>Entity</InputLabel>
+
+                <Select
+                    value={entity}
+                    label="Entity"
+                    onChange={e => setEntity(e.target.value)}
+                >
+
+                    {entities.map(item => (
+
+                        <MenuItem key={item} value={item}>
+                            {item}
+                        </MenuItem>
+
+                    ))}
+
+                </Select>
+
+            </FormControl>
+
+
 
                 <FormControl size="small" sx={{ minWidth: 170 }}>
 
@@ -572,6 +742,120 @@ export default function PivotGridRenderer({
                 />
 
             </Box>
+
+
+
+
+
+
+
+
+
+{/* Pivot Chart */}
+
+<Box sx={{ mt: 4 }}>
+
+    <Box
+        sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2
+        }}
+    >
+
+        <Typography variant="h6">
+            Chart Analysis
+        </Typography>
+
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+
+            <InputLabel>Chart Type</InputLabel>
+
+            <Select
+                value={chartType}
+                label="Chart Type"
+                onChange={e => setChartType(e.target.value)}
+            >
+
+                <MenuItem value="bar">Bar Chart</MenuItem>
+                <MenuItem value="line">Line Chart</MenuItem>
+                <MenuItem value="pie">Pie Chart</MenuItem>
+
+            </Select>
+
+        </FormControl>
+
+    </Box>
+
+
+            {chartType === "bar" && (
+
+                <BarChart
+                    dataset={chartData.dataset}
+                    xAxis={[
+                        {
+                            scaleType: "band",
+                            dataKey: "_rowLabel",
+                            label: rowField
+                        }
+                    ]}
+                    series={chartData.series}
+                    height={350}
+                />
+
+            )}
+
+
+            {chartType === "line" && (
+
+                <LineChart
+                    dataset={chartData.dataset}
+                    xAxis={[
+                        {
+                            scaleType: "point",
+                            dataKey: "_rowLabel",
+                            label: rowField
+                        }
+                    ]}
+                    series={chartData.series}
+                    height={350}
+                />
+
+            )}
+
+
+            {chartType === "pie" && (
+
+                <PieChart
+                    series={[
+                        {
+                            data: chartData.pieData,
+                            innerRadius: 30,
+                            outerRadius: 130,
+                            paddingAngle: 2,
+                            cornerRadius: 4
+                        }
+                    ]}
+                    height={350}
+                />
+
+            )}
+
+        </Box>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         </Paper>
     );

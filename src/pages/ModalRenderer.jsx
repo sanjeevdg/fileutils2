@@ -8,25 +8,31 @@ import {
     DialogActions,
     Button,
     IconButton,
-    Typography
+    Typography,
+    Grid
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
 
+import WidgetRenderer from "./WidgetRenderer";
+
 export default function ModalRenderer({
     widget,
     context = {},
-    handlers = {}
+    handlers = {},
+    onSelect = null
 }) {
 
     const props = widget?.props || {};
     const events = widget?.events || {};
+    const children = widget?.children || [];
 
     const [open, setOpen] = useState(
         props.open ?? props.defaultOpen ?? false
     );
 
     const handleOpen = () => {
+
         setOpen(true);
 
         const action = events.onOpen;
@@ -37,6 +43,7 @@ export default function ModalRenderer({
     };
 
     const handleClose = () => {
+
         setOpen(false);
 
         const action = events.onClose;
@@ -104,13 +111,77 @@ export default function ModalRenderer({
 
                 </DialogTitle>
 
-                {/* Content */}
+                {/* Modal Content */}
 
                 <DialogContent dividers>
 
-                    <Typography>
-                        {props.content || "Modal content goes here."}
-                    </Typography>
+                    {children.length > 0 ? (
+
+                        <Grid
+                            container
+                            spacing={2}
+                        >
+
+                            {children.map((child, index) => {
+
+                                const { offset, ...gridSize } =
+                                    child.layout || { xs: 12 };
+
+                                return (
+
+                                    <Grid
+                                        key={child.id || index}
+                                        size={gridSize}
+                                        offset={
+                                            offset != null
+                                                ? { md: offset }
+                                                : undefined
+                                        }
+                                        onClick={(event) => {
+
+                                            if (onSelect) {
+
+                                                event.stopPropagation();
+
+                                                onSelect(child, {
+                                                    modalId: widget.id
+                                                });
+
+                                            }
+
+                                        }}
+                                        sx={{
+                                            position: "relative",
+                                            cursor: onSelect
+                                                ? "pointer"
+                                                : "default"
+                                        }}
+                                    >
+
+                                        <WidgetRenderer
+                                            widget={child}
+                                            context={context}
+                                            handlers={handlers}
+                                            onSelect={onSelect}
+                                        />
+
+                                    </Grid>
+
+                                );
+
+                            })}
+
+                        </Grid>
+
+                    ) : (
+
+                        props.content && (
+                            <Typography>
+                                {props.content}
+                            </Typography>
+                        )
+
+                    )}
 
                 </DialogContent>
 
@@ -138,6 +209,7 @@ export default function ModalRenderer({
                 )}
 
             </Dialog>
+
         </>
     );
 }

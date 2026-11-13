@@ -12,10 +12,10 @@ export default function PropertyPanel({
     widget,
     onChange,
     onDelete,
-    entityMetadata = {},
-    availableActions = []
+    entityMetadata,
+    availableActions,
+    onSelectWidget
 }) {
-
     if (!widget) {
         return (
             <Box
@@ -2427,6 +2427,204 @@ return (
 
 
 
+
+{/* -------------------------------- */}
+{/* MODAL CHILD WIDGETS */}
+{/* -------------------------------- */}
+
+{widget.type === "modal" && (
+
+    <>
+
+        <Typography
+            variant="subtitle1"
+            sx={{ mt: 3, mb: 1 }}
+        >
+            Modal Child Widgets
+        </Typography>
+
+        <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 1 }}
+        >
+            Manage widgets inside this Modal.
+            Select a widget in the canvas to edit its properties.
+        </Typography>
+
+        {(widget.children || []).map((child, index) => (
+
+            <Box
+                key={child.id || index}
+                sx={{
+                    mb: 2,
+                    p: 1.5,
+                    border: "1px solid #ddd",
+                    borderRadius: 1
+                }}
+            >
+
+                <Typography
+                    variant="body2"
+                    fontWeight="bold"
+                >
+                    {child.type || "Widget"} - {index + 1}
+                </Typography>
+
+                <Typography
+                    variant="caption"
+                    color="text.secondary"
+                >
+                    ID: {child.id}
+                </Typography>
+
+                <Button
+                    size="small"
+                    variant="contained"
+                    fullWidth
+                    sx={{ mt: 1, mb: 1 }}
+                    onClick={() => {
+                        onSelectWidget?.(child, widget.id);
+                    }}
+                >
+                    Edit This Widget
+                </Button>
+
+
+
+
+
+
+                {/* Grid Width */}
+
+                <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Width"
+                    value={child.layout?.xs ?? 12}
+                    onChange={(e) => {
+
+                        const children = structuredClone(
+                            widget.children || []
+                        );
+
+                        children[index].layout = {
+                            ...(children[index].layout || {}),
+                            xs: Number(e.target.value)
+                        };
+
+                        onChange("children", children);
+
+                    }}
+                    sx={{ mt: 1, mb: 1 }}
+                >
+                    {[12, 6, 4, 3, 8, 9].map(size => (
+                        <MenuItem
+                            key={size}
+                            value={size}
+                        >
+                            {size} Columns
+                        </MenuItem>
+                    ))}
+                </TextField>
+
+                {/* Reorder and Delete */}
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 1
+                    }}
+                >
+
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        disabled={index === 0}
+                        onClick={() => {
+
+                            const children = structuredClone(
+                                widget.children || []
+                            );
+
+                            [
+                                children[index - 1],
+                                children[index]
+                            ] = [
+                                children[index],
+                                children[index - 1]
+                            ];
+
+                            onChange("children", children);
+
+                        }}
+                    >
+                        ↑
+                    </Button>
+
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        disabled={
+                            index === (widget.children || []).length - 1
+                        }
+                        onClick={() => {
+
+                            const children = structuredClone(
+                                widget.children || []
+                            );
+
+                            [
+                                children[index],
+                                children[index + 1]
+                            ] = [
+                                children[index + 1],
+                                children[index]
+                            ];
+
+                            onChange("children", children);
+
+                        }}
+                    >
+                        ↓
+                    </Button>
+
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        onClick={() => {
+
+                            const children = (
+                                widget.children || []
+                            ).filter((_, i) => i !== index);
+
+                            onChange("children", children);
+
+                        }}
+                    >
+                        Delete
+                    </Button>
+
+                </Box>
+
+            </Box>
+
+        ))}
+
+        <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "block", mt: 1 }}
+        >
+            Add widgets using the Component Palette.
+            Select this Modal as the parent container first.
+        </Typography>
+
+    </>
+
+)}
 
 
 
