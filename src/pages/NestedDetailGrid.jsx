@@ -253,6 +253,25 @@ export default function NestedDetailGrid({
         });
     });
 
+
+    // Insert an expanded detail row immediately after its parent row
+        const displayRows = filteredRows.flatMap(row => {
+
+            const result = [row];
+
+            if (expandedRows[String(row._gridId)]) {
+
+                result.push({
+                    _gridId: `detail-${row._gridId}`,
+                    __isDetailRow: true,
+                    __parentRow: row
+                });
+            }
+
+            return result;
+        });
+
+
     // --------------------------------------------------
     // BUILD GRID COLUMNS
     // --------------------------------------------------
@@ -280,49 +299,34 @@ export default function NestedDetailGrid({
             disableColumnMenu: true,
 
             colSpan: (value, row) => {
-
-                return expandedRows[String(row._gridId)]
+                return row.__isDetailRow
                     ? visibleColumns.length + 1
                     : 1;
             },
 
-            renderCell: (params) => {
+             renderCell: (params) => {
 
                 const row = params.row;
 
-                const key = String(row._gridId);
+                // This is an expanded detail row
+                if (row.__isDetailRow) {
+                    return renderExpandedContent(row.__parentRow);
+                }
 
-                const isExpanded =
-                    Boolean(expandedRows[key]);
+                const key = String(row._gridId);
+                const isExpanded = Boolean(expandedRows[key]);
 
                 return (
-
-                    <Tooltip
-                        title={
-                            isExpanded
-                                ? "Collapse details"
-                                : "Expand details"
-                        }
-                    >
-
+                    <Tooltip title={isExpanded ? "Collapse details" : "Expand details"}>
                         <IconButton
                             size="small"
                             onClick={(event) => {
-
                                 event.stopPropagation();
-
                                 toggleExpansion(row);
-
                             }}
                         >
-
-                            {isExpanded
-                                ? <ExpandMoreIcon />
-                                : <ChevronRightIcon />
-                            }
-
+                            {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
                         </IconButton>
-
                     </Tooltip>
                 );
             }
@@ -465,7 +469,7 @@ export default function NestedDetailGrid({
 
             <DataGrid
 
-                rows={filteredRows}
+                rows={displayRows}
 
                 columns={gridColumns}
 
@@ -476,10 +480,7 @@ export default function NestedDetailGrid({
                 density="compact"
 
                 getRowHeight={(params) => {
-
-                    return expandedRows[String(params.id)]
-                        ? "auto"
-                        : 48;
+                    return params.model?.__isDetailRow ? "auto" : 48;
                 }}
 
                 disableRowSelectionOnClick
@@ -489,7 +490,7 @@ export default function NestedDetailGrid({
                 initialState={{
                     pagination: {
                         paginationModel: {
-                            pageSize: 5,
+                            pageSize: 25,
                             page: 0
                         }
                     }
@@ -516,30 +517,7 @@ export default function NestedDetailGrid({
 
             />
 
-            {/* Render expanded row content */}
-
-            {filteredRows.map(row => {
-
-                if (!expandedRows[String(row._gridId)]) {
-                    return null;
-                }
-
-                return (
-
-                    <Box
-                        key={row._gridId}
-                        sx={{
-                            mt: 1,
-                            mb: 1
-                        }}
-                    >
-
-                        {renderExpandedContent(row)}
-
-                    </Box>
-
-                );
-            })}
+           
 
         </Box>
     );
