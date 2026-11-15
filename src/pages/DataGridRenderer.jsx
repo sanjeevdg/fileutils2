@@ -9,11 +9,7 @@ import {
     Box,
     CircularProgress,
     Alert,
-    Table,
-    TableHead,
-    TableBody,
-    TableRow,
-    TableCell, TextField
+    TextField
 } from "@mui/material";
 
 import { DataGrid } from "@mui/x-data-grid";
@@ -23,6 +19,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 import { getAuthHeaders } from "../utils/auth";
+import NestedDetailGrid from "./NestedDetailGrid";
+
 
 const API_URL =
     import.meta.env.VITE_API_URL ||
@@ -411,165 +409,136 @@ export default function DataGridRenderer({
     // RENDER EXPANDED CONTENT
     // --------------------------------------------------
 
-    const renderExpandedContent = (row) => {
+    
+const renderExpandedContent = (row) => {
 
-        const key = String(row._gridId);
+    const key = String(row._gridId);
 
-        const state = detailState[key] || {};
+    const state = detailState[key] || {};
 
-        const currentDetailRows = state.rows || [];
+    const currentDetailRows = state.rows || [];
 
-        const currentColumns =
-            getDetailColumns(currentDetailRows);
+    const currentColumns =
+        getDetailColumns(currentDetailRows);
 
-        return (
+    // Give every detail row a stable DataGrid ID
+    const detailGridRows = currentDetailRows.map(
+        (detailRow, index) => ({
+            ...detailRow,
+            _gridId: detailRow.id ?? index
+        })
+    );
 
-            <Box
-                sx={{
-                    width: "100%",
-                    p: 2,
-                    boxSizing: "border-box",
-                    backgroundColor: "action.hover",
-                    borderTop: 1,
-                    borderColor: "divider"
-                }}
+    // Build MUI DataGrid columns
+    const detailGridColumns = currentColumns.map(column => {
+
+        const field =
+            typeof column === "string"
+                ? column
+                : column.field;
+
+        const label =
+            typeof column === "string"
+                ? column
+                : column.label || field;
+
+        return {
+            field,
+            headerName: label,
+            flex: column.flex || 1,
+            minWidth: column.minWidth || 120,
+
+            renderCell: (params) => {
+
+                const value = params.value;
+
+                return typeof value === "boolean"
+                    ? value ? "Yes" : "No"
+                    : value ?? "";
+            }
+        };
+    });
+
+    return (
+
+        <Box
+            sx={{
+                width: "100%",
+                p: 2,
+                boxSizing: "border-box",
+                backgroundColor: "action.hover",
+                borderTop: 1,
+                borderColor: "divider"
+            }}
+        >
+
+            <Typography
+                variant="subtitle2"
+                fontWeight={600}
+                sx={{ mb: 1.5 }}
             >
+                {detailConfig.title || detailEntity}
+            </Typography>
 
-                <Typography
-                    variant="subtitle2"
-                    fontWeight={600}
-                    sx={{ mb: 1.5 }}
-                >
-                    {detailConfig.title || detailEntity}
+            {!detailEnabled ? (
+
+                <Typography color="text.secondary">
+                    Configure a detail entity and foreign key
+                    in the DataGrid properties.
                 </Typography>
 
+            ) : state.loading ? (
 
-                {!detailEnabled ? (
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        py: 2
+                    }}
+                >
+                    <CircularProgress size={22} />
 
-                    <Typography color="text.secondary">
-                        Configure a detail entity and foreign key
-                        in the DataGrid properties.
+                    <Typography variant="body2">
+                        Loading details...
                     </Typography>
+                </Box>
 
-                ) : state.loading ? (
+            ) : state.error ? (
 
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                            py: 2
-                        }}
-                    >
-                        <CircularProgress size={22} />
+                <Alert severity="error">
+                    {state.error}
+                </Alert>
 
-                        <Typography variant="body2">
-                            Loading details...
-                        </Typography>
-                    </Box>
+            ) : currentDetailRows.length === 0 ? (
 
-                ) : state.error ? (
+                <Typography color="text.secondary">
+                    No detail records available.
+                </Typography>
 
-                    <Alert severity="error">
-                        {state.error}
-                    </Alert>
+            ) : (
 
-                ) : currentDetailRows.length === 0 ? (
+                <Box
+                    sx={{
+                        width: "100%",
+                        backgroundColor: "background.paper"
+                    }}
+                >
 
-                    <Typography color="text.secondary">
-                        No detail records available.
-                    </Typography>
+                    <NestedDetailGrid
+                        rows={detailGridRows}
+                        columns={currentColumns}
+                        detailConfig={detailConfig.detail || null}
+                    />
 
-                ) : (
+                </Box>
 
-                    <Box sx={{ overflowX: "auto" }}>
+            )}
 
-                        <Table
-                            size="small"
-                            sx={{
-                                backgroundColor: "background.paper"
-                            }}
-                        >
+        </Box>
+    );
+};
 
-                            <TableHead>
-
-                                <TableRow>
-
-                                    {currentColumns.map((column, index) => {
-
-                                        const field =
-                                            typeof column === "string"
-                                                ? column
-                                                : column.field;
-
-                                        const label =
-                                            typeof column === "string"
-                                                ? column
-                                                : column.label || field;
-
-                                        return (
-                                            <TableCell
-                                                key={field || index}
-                                                sx={{ fontWeight: 600 }}
-                                            >
-                                                {label}
-                                            </TableCell>
-                                        );
-
-                                    })}
-
-                                </TableRow>
-
-                            </TableHead>
-
-
-                            <TableBody>
-
-                                {currentDetailRows.map((detailRow, index) => (
-
-                                    <TableRow key={detailRow.id ?? index}>
-
-                                        {currentColumns.map((column, colIndex) => {
-
-                                            const field =
-                                                typeof column === "string"
-                                                    ? column
-                                                    : column.field;
-
-                                            const value = detailRow[field];
-
-                                            return (
-
-                                                <TableCell
-                                                    key={field || colIndex}
-                                                >
-
-                                                    {typeof value === "boolean"
-                                                        ? value ? "Yes" : "No"
-                                                        : value ?? ""
-                                                    }
-
-                                                </TableCell>
-
-                                            );
-
-                                        })}
-
-                                    </TableRow>
-
-                                ))}
-
-                            </TableBody>
-
-                        </Table>
-
-                    </Box>
-
-                )}
-
-            </Box>
-        );
-    };
 
 
     // --------------------------------------------------
