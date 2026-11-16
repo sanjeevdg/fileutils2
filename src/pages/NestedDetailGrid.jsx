@@ -180,7 +180,7 @@ export default function NestedDetailGrid({
             );
 
             const url =
-                `${API_URL}/api/${detailEntity}?${params.toString()}`;
+                `${API_URL}/api/${detailEntity}/${parentValue}`;
 
             console.log(
                 `NESTED DETAIL LEVEL ${level} FETCH:`,
@@ -201,11 +201,36 @@ export default function NestedDetailGrid({
 
             const result = await response.json();
 
+            /*
+            console.log("NESTED DETAIL RAW RESPONSE:", result);
+
+                console.log(
+                    "IS ARRAY:",
+                    Array.isArray(result)
+                );
+
+                console.log(
+                    "RESPONSE KEYS:",
+                    result && typeof result === "object"
+                        ? Object.keys(result)
+                        : "Not an object"
+                );
+            */
+
+
+
+
+            const detailRows = Array.isArray(result)
+                ? result
+                : result && typeof result === "object"
+                    ? [result]
+                    : [];
+
             setDetailState(previous => ({
                 ...previous,
                 [key]: {
                     loading: false,
-                    rows: Array.isArray(result) ? result : [],
+                    rows: detailRows,
                     error: ""
                 }
             }));
@@ -337,30 +362,115 @@ export default function NestedDetailGrid({
     // NORMAL COLUMNS
     // --------------------------------------------------
 
-    visibleColumns.forEach(column => {
+    
+visibleColumns.forEach(column => {
 
-        const field =
-            typeof column === "string"
-                ? column
-                : column.field;
+    const field =
+        typeof column === "string"
+            ? column
+            : column.field;
 
-        const label =
-            typeof column === "string"
-                ? column
-                : column.label || field;
+    const label =
+        typeof column === "string"
+            ? column
+            : column.label || field;
 
-        gridColumns.push({
+    const columnType =
+        typeof column === "string"
+            ? ""
+            : column.type || "";
 
-            field,
+    const gridColumn = {
 
-            headerName: label,
+        field,
 
-            flex: 1,
+        headerName: label,
 
-            minWidth: 120
+        flex: columnType === "image" ? 2 : 1,
 
-        });
-    });
+        minWidth: columnType === "image" ? 180 : 120
+
+    };
+
+    // ----------------------------------
+    // IMAGE COLUMN
+    // ----------------------------------
+
+    if (columnType === "image") {
+
+        gridColumn.sortable = false;
+
+        gridColumn.filterable = false;
+
+        gridColumn.renderCell = (params) => {
+
+            let images = params.value;
+
+            if (!images) return null;
+
+            // Handle JSON string or array
+            if (typeof images === "string") {
+                try {
+                    images = JSON.parse(images);
+                } catch {
+                    images = [images];
+                }
+            }
+
+            if (!Array.isArray(images)) {
+                return null;
+            }
+
+            return (
+
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: 1,
+                        alignItems: "center",
+                        py: 1,
+                        flexWrap: "wrap"
+                    }}
+                >
+
+                    {images.map((url, index) => (
+
+                        <Box
+                            key={index}
+                            component="img"
+                            src={url}
+                            alt={`Image ${index + 1}`}
+                            sx={{
+                                width: 65,
+                                height: 65,
+                                objectFit: "cover",
+                                borderRadius: 1,
+                                border: "1px solid",
+                                borderColor: "divider",
+                                cursor: "pointer"
+                            }}
+                            onClick={() => {
+                                window.open(
+                                    url,
+                                    "_blank",
+                                    "noopener,noreferrer"
+                                );
+                            }}
+                        />
+
+                    ))}
+
+                </Box>
+
+            );
+        };
+
+    }
+
+    gridColumns.push(gridColumn);
+
+});
+
 
     // --------------------------------------------------
     // RENDER EXPANDED CONTENT
@@ -480,7 +590,19 @@ export default function NestedDetailGrid({
                 density="compact"
 
                 getRowHeight={(params) => {
-                    return params.model?.__isDetailRow ? "auto" : 48;
+
+                    if (params.model?.__isDetailRow) {
+                        return "auto";
+                    }
+
+                    const hasImageColumn = visibleColumns.some(
+                        column =>
+                            typeof column !== "string" &&
+                            column.type === "image"
+                    );
+
+                    return hasImageColumn ? 85 : 48;
+
                 }}
 
                 disableRowSelectionOnClick

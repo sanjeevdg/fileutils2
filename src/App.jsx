@@ -21,6 +21,7 @@ import Designer from './designer/Designer';
 import ProtectedRoute from "./components/ProtectedRoute";
 //import GlobalGroupDiscountPage from './components/globalgroupdiscount/GlobalGroupDiscountPage';
 import MitExpandableDataGrid from './components/MitExpandableDataGrid';
+import TwoLevelExpandableDataGrid from './pages/TwoLevelExpandableDataGrid';
 import GlobalGroupDiscountLayout
     from "./components/globalgroupdiscount/GlobalGroupDiscountLayout";
 import routeConfig from "./config/routeConfig";
@@ -82,6 +83,8 @@ export default function App() {
             <Route path="/loginrenderer" element={<LoginRenderer />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/customgrid" element={<MitExpandableDataGrid />} />
+            <Route path="/customgrid2" element={<TwoLevelExpandableDataGrid />} />
+
             <Route path="/apply-discount" element={<ProtectedRoute><GlobalGroupDiscountLayout /></ProtectedRoute>} />
           </Routes>
                 </main>
