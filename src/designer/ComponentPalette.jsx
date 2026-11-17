@@ -33,6 +33,7 @@ const COMPONENT_GROUPS = [
             { type: "chart", label: "Chart" },
             { type: "table", label: "Table" },
             { type: "datagrid", label: "Data Grid" },
+            { type: "editable_datagrid", label: "Editable Data Grid" },
             { type: "detail", label: "Detail" },
             { type: "detailGrid", label: "Detail Grid" }
         ]
@@ -89,8 +90,6 @@ export default function ComponentPalette({ onAdd }) {
             }}
         >
 
-            {/* Panel Heading */}
-
             <Typography
                 sx={{
                     fontSize: 16,
@@ -102,8 +101,6 @@ export default function ComponentPalette({ onAdd }) {
                 Components
             </Typography>
 
-
-            {/* Component Groups */}
 
             {COMPONENT_GROUPS.map((group, index) => (
 

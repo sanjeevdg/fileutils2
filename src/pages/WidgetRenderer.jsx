@@ -25,7 +25,7 @@ import SwitchRenderer from "./SwitchRenderer";
 import ModalRenderer from "./ModalRenderer";
 import PivotGridRenderer from "./PivotGridRenderer";
 import TabsRenderer from "./TabsRenderer";
-
+import EditableDataGridRenderer from "./EditableDataGridRenderer";
 
 import {
     Button,
@@ -101,7 +101,16 @@ export default function WidgetRenderer({
                     context={context}
                     handlers={handlers}
                 />
-            );    
+            );  
+        case "editable_datagrid":
+
+            return (
+                <EditableDataGridRenderer
+                    widget={widget}
+                    context={context}
+                    handlers={handlers}
+                />
+            );      
         case "masterDetailDataGrid":
             return (
                 <MasterDetailDataGrid

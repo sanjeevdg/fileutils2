@@ -720,7 +720,7 @@ const renderExpandedContent = (row) => {
             headerName: label,
 
             flex: 1,
-
+            
             minWidth: 120
 
         });

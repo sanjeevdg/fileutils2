@@ -518,6 +518,58 @@ export default function Designer({
                 };
 
             }
+
+
+
+            
+            // --------------------------------
+            // EDITABLE DATA GRID
+            // --------------------------------
+
+            if (type === "editable_datagrid") {
+
+                const entityFields =
+                    getEntityFields(entity);
+
+                newWidget.title = "Editable Data Grid";
+
+                newWidget.source = {
+                    entity,
+
+                    columns: entityFields.map(field => ({
+                        field: field.name,
+                        headerName: field.label || field.name,
+                        editor: "text",
+                        editable: true
+                    })),
+
+                    limit: 10
+                };
+
+                newWidget.props = {
+                    pageSize: 10,
+                    editMode: "cell",
+                    saveMode: "cell",
+                    showSearch: true
+                };
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
             if (type === "images") {
                 newWidget.title = "Multiple Images";
 
