@@ -1160,6 +1160,330 @@ return (
             </>
         )}
 
+{/* -------------------------------- */}
+{/* EDITABLE DATA GRID */}
+{/* -------------------------------- */}
+{/* -------------------------------- */}
+{/* COLUMNS */}
+{/* -------------------------------- */}
+
+
+{widget.type === "editable_datagrid" && (
+
+
+
+<>
+<Box sx={{ mb: 2 }}>
+    <FormControlLabel
+        control={
+            <Checkbox
+                checked={source.editable !== false}
+                onChange={(e) =>
+                    updateSource("editable", e.target.checked)
+                }
+            />
+        }
+        label="Enable Editing"
+    />
+</Box>
+
+
+{/* Entity */}
+
+                                <TextField
+                                    select
+                                    fullWidth
+                                    label="Entity"
+                                    value={source.entity || ""}
+                                    onChange={(e) => {
+
+                                        const entity = e.target.value;
+
+                                        const fields =
+                                            entityMetadata[entity] || [];
+
+                                        const defaultColumns =
+                                            fields.map(field => ({
+                                                field: field.name,
+                                                label:
+                                                    field.label ||
+                                                    field.name
+                                            }));
+
+                                        onChange("source", {
+                                            ...source,
+                                            entity,
+                                            columns: defaultColumns
+                                        });
+
+                                    }}
+                                    sx={{ mb: 2 }}
+                                >
+                                    {availableEntities.map((entity) => (
+                                        <MenuItem
+                                            key={entity}
+                                            value={entity}
+                                        >
+                                            {entity}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+
+<Typography
+    variant="body2"
+    color="text.secondary"
+    sx={{ mb: 1 }}
+>
+    Columns
+</Typography>
+
+{tableFields.map((field) => {
+
+    const column = (source.columns || []).find(
+        item =>
+            typeof item === "string"
+                ? item === field.name
+                : item.field === field.name
+    );
+
+    const checked = Boolean(column);
+
+    const columnConfig =
+        typeof column === "string"
+            ? { field: column, label: field.label || field.name }
+            : column || {};
+
+    const updateColumn = (updates) => {
+
+        const currentColumns = source.columns || [];
+
+        const newColumns = currentColumns.map(item => {
+
+            const itemField =
+                typeof item === "string" ? item : item.field;
+
+            if (itemField !== field.name) return item;
+
+            return {
+                ...columnConfig,
+                ...updates
+            };
+
+        });
+
+        onChange("source", {
+            ...source,
+            columns: newColumns
+        });
+    };
+
+    return (
+        <Box
+            key={field.name}
+            sx={{
+                mb: 2,
+                pb: 2,
+                borderBottom: "1px solid",
+                borderColor: "divider"
+            }}
+        >
+
+
+
+
+            {/* Column Selection */}
+
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center"
+                }}
+            >
+
+
+
+
+                <Checkbox
+                    checked={checked}
+                    onChange={(e) => {
+
+                        const currentColumns =
+                            source.columns || [];
+
+                        let newColumns;
+
+                        if (e.target.checked) {
+
+                            newColumns = [
+                                ...currentColumns,
+                                {
+                                    field: field.name,
+                                    label: field.label || field.name,
+                                    editable: true,
+                                    editor: "text"
+                                }
+                            ];
+
+                        } else {
+
+                            newColumns = currentColumns.filter(
+                                item =>
+                                    (typeof item === "string"
+                                        ? item
+                                        : item.field) !== field.name
+                            );
+                        }
+
+                        onChange("source", {
+                            ...source,
+                            columns: newColumns
+                        });
+
+                    }}
+                />
+
+                <Typography>
+                    {field.label || field.name}
+                </Typography>
+
+            </Box>
+
+
+            {/* Column Configuration */}
+
+            {checked && (
+
+                <Box sx={{ pl: 5 }}>
+
+                    {/* Editable */}
+
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                size="small"
+                                checked={
+                                    columnConfig.editable !== false
+                                }
+                                onChange={(e) =>
+                                    updateColumn({
+                                        editable: e.target.checked
+                                    })
+                                }
+                            />
+                        }
+                        label="Editable"
+                    />
+
+
+                    {/* Editor Type */}
+
+                    <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        label="Editor Type"
+                        value={columnConfig.editor || "text"}
+                        disabled={columnConfig.editable === false}
+                        onChange={(e) =>
+                            updateColumn({
+                                editor: e.target.value
+                            })
+                        }
+                        sx={{ mt: 1, mb: 1 }}
+                    >
+
+                        <MenuItem value="text">
+                            Text Field
+                        </MenuItem>
+
+                        <MenuItem value="number">
+                            Number Field
+                        </MenuItem>
+
+                        <MenuItem value="multiline">
+                            Multiline Text Field
+                        </MenuItem>
+
+                        <MenuItem value="select">
+                            Select
+                        </MenuItem>
+
+                        <MenuItem value="checkbox">
+                            Checkbox
+                        </MenuItem>
+
+                        <MenuItem value="date">
+                            Date Picker
+                        </MenuItem>
+
+                        <MenuItem value="image">
+                            Image Editor
+                        </MenuItem>
+
+                    </TextField>
+
+
+                    {/* Select Options */}
+
+                    {columnConfig.editor === "select" && (
+
+                        <TextField
+                            fullWidth
+                            size="small"
+                            label="Options (comma separated)"
+                            value={(columnConfig.options || [])
+                                .map(option =>
+                                    typeof option === "object"
+                                        ? option.value
+                                        : option
+                                )
+                                .join(", ")}
+                            onChange={(e) =>
+                                updateColumn({
+                                    options: e.target.value
+                                        .split(",")
+                                        .map(value => value.trim())
+                                        .filter(Boolean)
+                                })
+                            }
+                            sx={{ mb: 1 }}
+                        />
+
+                    )}
+
+
+                    {/* Image Limit */}
+
+                    {columnConfig.editor === "image" && (
+
+                        <TextField
+                            fullWidth
+                            size="small"
+                            type="number"
+                            label="Maximum Images"
+                            value={columnConfig.maxImages || 10}
+                            onChange={(e) =>
+                                updateColumn({
+                                    maxImages: Number(e.target.value)
+                                })
+                            }
+                        />
+
+                    )}
+
+                </Box>
+
+            )}
+
+        </Box>
+    );
+})}
+
+
+</>
+
+
+    )}
 
 
 

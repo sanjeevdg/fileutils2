@@ -208,6 +208,7 @@ export default function ChartRenderer({
 
                         <PieChart
                             height={350}
+
                             series={[
                                 {
                                     data: pieData,
@@ -215,6 +216,7 @@ export default function ChartRenderer({
                                         faded: "global",
                                         highlighted: "item"
                                     },
+                                    innerRadius: 90,
                                     faded: {
                                         innerRadius: 30,
                                         additionalRadius: -30,

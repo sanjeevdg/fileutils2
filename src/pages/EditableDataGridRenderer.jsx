@@ -13,7 +13,7 @@ import {
     Select,
     MenuItem,
     Checkbox,
-    FormControl,
+    FormControl,FormControlLabel,
     Button
 } from "@mui/material";
 
@@ -520,6 +520,7 @@ export default function EditableDataGridRenderer({
             minWidth: column.minWidth || 130,
 
             editable:
+                source.editable !== false &&
                 editor !== "image" &&
                 column.editable !== false,
 
