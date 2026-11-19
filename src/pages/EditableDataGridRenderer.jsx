@@ -1,5 +1,9 @@
 
-import React, { useEffect, useState } from "react";
+import React, {
+    useEffect,
+    useState,
+    useMemo
+} from "react";
 
 import {
     Paper,
@@ -21,6 +25,14 @@ import {
     DataGrid,
     useGridApiContext
 } from "@mui/x-data-grid";
+
+
+import {
+    ThemeProvider,
+    createTheme
+} from "@mui/material";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 import RefreshIcon from "@mui/icons-material/Refresh";
 import MultiImageEditor from "./MultiImageEditor";
@@ -112,6 +124,40 @@ function EditableCell(props) {
                         }
 
                     }}
+
+                    sx={{
+                            bgcolor: "background.paper",
+                            color: "text.primary",
+
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "divider"
+                            },
+
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "text.secondary"
+                            },
+
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "primary.main"
+                            }
+                        }}
+
+                    MenuProps={{
+                            PaperProps: {
+                                sx: {
+                                    bgcolor: "background.paper",
+                                    color: "text.primary",
+
+                                    "& .MuiMenuItem-root:hover": {
+                                        bgcolor: "action.hover"
+                                    },
+
+                                    "& .MuiMenuItem-root.Mui-selected": {
+                                        bgcolor: "action.selected"
+                                    }
+                                }
+                            }
+                        }}    
 
                 >
 
@@ -226,6 +272,29 @@ return (
             }
 
         }}
+
+        sx={{
+            "& .MuiOutlinedInput-root": {
+                bgcolor: "background.paper",
+                color: "text.primary",
+
+                "& fieldset": {
+                    borderColor: "divider"
+                },
+
+                "&:hover fieldset": {
+                    borderColor: "text.secondary"
+                },
+
+                "&.Mui-focused fieldset": {
+                    borderColor: "primary.main"
+                }
+            },
+
+            "& .MuiInputBase-input": {
+                color: "text.primary"
+            }
+        }}
     />
 );
 }
@@ -271,7 +340,19 @@ export default function EditableDataGridRenderer({
 
     const dataVersion = context?.dataVersion || 0;
 
+    const [darkMode, setDarkMode] = useState(false);
 
+    const gridTheme = useMemo(() =>
+
+        createTheme({
+            palette: {
+                mode: darkMode ? "dark" : "light"
+            }
+        }),
+
+        [darkMode]
+
+    );
     // --------------------------------------------------
     // LOAD RECORDS
     // --------------------------------------------------
@@ -584,6 +665,14 @@ export default function EditableDataGridRenderer({
                             <Button
                                 size="small"
                                 variant="outlined"
+                                sx={{
+                                    borderColor: "primary.main",
+                                    color: "primary.main",
+                                    "&:hover": {
+                                        bgcolor: "action.hover",
+                                        borderColor: "primary.main"
+                                    }
+                                }}
                                 onClick={() => {
 
                                     setImageDialog({
@@ -658,13 +747,17 @@ export default function EditableDataGridRenderer({
     // --------------------------------------------------
 
     return (
-
+         <ThemeProvider theme={gridTheme}>
         <Paper
             elevation={2}
             sx={{
                 p: 2,
                 mt: 2,
-                width: "100%"
+                width: "100%",
+                bgcolor: "background.paper",
+                color: "text.primary",
+                border: 1,
+                borderColor: "divider"
             }}
         >
 
@@ -694,7 +787,22 @@ export default function EditableDataGridRenderer({
                     {saving && (
                         <CircularProgress size={18} />
                     )}
+                    <Tooltip title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
 
+                        <IconButton
+                            size="small"
+                            onClick={() => setDarkMode(previous => !previous)}
+                            color="inherit"
+                        >
+
+                            {darkMode
+                                ? <LightModeIcon />
+                                : <DarkModeIcon />
+                            }
+
+                        </IconButton>
+
+                    </Tooltip>
                     <Tooltip title="Refresh">
 
                         <IconButton
@@ -727,7 +835,18 @@ export default function EditableDataGridRenderer({
                     onChange={event =>
                         setSearchText(event.target.value)
                     }
-                    sx={{ mb: 2 }}
+                    sx={{
+                        mb: 2,
+
+                        "& .MuiOutlinedInput-root": {
+                            bgcolor: "background.paper",
+                            color: "text.primary"
+                        },
+
+                        "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "divider"
+                        }
+                    }}
                 />
 
             )}
@@ -810,23 +929,84 @@ export default function EditableDataGridRenderer({
                     disableRowSelectionOnClick
 
                     sx={{
-                        "& .MuiDataGrid-cell": {
-                            display: "flex",
-                            alignItems: "center",
-                            minHeight: "52px",
-                            paddingTop: "8px",
-                            paddingBottom: "8px"
-                        },
+                            border: 1,
+                            borderColor: "divider",
+                            bgcolor: "background.paper",
+                            color: "text.primary",
 
-                        "& .MuiDataGrid-cell--editing": {
-                            backgroundColor: "action.hover",
-                            alignItems: "flex-start"                            
-                        },
+                            // COLUMN HEADERS
+                            "& .MuiDataGrid-columnHeaders": {
+                                bgcolor: "background.default",
+                                color: "text.primary",
+                                borderBottom: 1,
+                                borderColor: "divider"
+                            },
 
-                        "& .MuiDataGrid-editInputCell": {
-                            alignItems: "flex-start"
-                        }
-                    }}
+                            "& .MuiDataGrid-columnHeaderTitle": {
+                                fontWeight: 600
+                            },
+
+                            // ROWS
+                            "& .MuiDataGrid-row": {
+                                bgcolor: "background.paper"
+                            },
+
+                            "& .MuiDataGrid-row:hover": {
+                                bgcolor: "action.hover"
+                            },
+
+                            // CELLS
+                            "& .MuiDataGrid-cell": {
+                                display: "flex",
+                                alignItems: "center",
+                                minHeight: "52px",
+                                paddingTop: "8px",
+                                paddingBottom: "8px",
+                                borderColor: "divider",
+                                color: "text.primary"
+                            },
+
+                            // EDITING
+                            "& .MuiDataGrid-cell--editing": {
+                                bgcolor: "action.selected",
+                                alignItems: "flex-start"
+                            },
+
+                            "& .MuiDataGrid-editInputCell": {
+                                alignItems: "flex-start"
+                            },
+
+                            // SELECTED ROW
+                            "& .MuiDataGrid-row.Mui-selected": {
+                                bgcolor: "action.selected"
+                            },
+
+                            "& .MuiDataGrid-row.Mui-selected:hover": {
+                                bgcolor: "action.hover"
+                            },
+
+                            // FOOTER / PAGINATION
+                            "& .MuiDataGrid-footerContainer": {
+                                borderTop: 1,
+                                borderColor: "divider",
+                                color: "text.primary"
+                            },
+
+                            // CHECKBOXES
+                            "& .MuiCheckbox-root": {
+                                color: "text.secondary"
+                            },
+
+                            // TOOLBAR ICONS
+                            "& .MuiIconButton-root": {
+                                color: "text.secondary"
+                            },
+
+                            // SCROLLBAR
+                            "& .MuiDataGrid-scrollbar": {
+                                scrollbarColor: "auto"
+                            }
+                        }}
 
                 />
 
@@ -870,6 +1050,6 @@ export default function EditableDataGridRenderer({
 
 
         </Paper>
-
+    </ThemeProvider>
     );
 }

@@ -338,13 +338,30 @@ export default function MultiImageEditor({
     return (
 
         <Dialog
-            open={open}
-            onClose={uploading ? undefined : onClose}
-            fullWidth
-            maxWidth="md"
-        >
+                open={open}
+                onClose={uploading ? undefined : onClose}
+                fullWidth
+                maxWidth="md"
+                PaperProps={{
+                    sx: {
+                        bgcolor: "background.paper",
+                        color: "text.primary",
+                        border: 1,
+                        borderColor: "divider",
+                        borderRadius: 2
+                    }
+                }}
+            >
 
-            <DialogTitle>
+            <DialogTitle
+                sx={{
+                    bgcolor: "background.default",
+                    color: "text.primary",
+                    borderBottom: 1,
+                    borderColor: "divider",
+                    fontWeight: 600
+                }}
+            >
                 Manage Images – {field}
             </DialogTitle>
 
@@ -376,7 +393,12 @@ export default function MultiImageEditor({
                             key={`${url}-${index}`}
                             sx={{
                                 position: "relative",
-                                width: 120
+                                width: 120,
+                                p: 0.5,
+                                border: 1,
+                                borderColor: "divider",
+                                borderRadius: 2,
+                                bgcolor: "background.default"
                             }}
                         >
 
@@ -459,7 +481,12 @@ export default function MultiImageEditor({
                                     key={`${item.file.name}-${index}`}
                                     sx={{
                                         position: "relative",
-                                        width: 120
+                                        width: 120,
+                                        p: 0.5,
+                                        border: 1,
+                                        borderColor: "divider",
+                                        borderRadius: 2,
+                                        bgcolor: "background.default"
                                     }}
                                 >
 
@@ -486,8 +513,15 @@ export default function MultiImageEditor({
                                         sx={{
                                             position: "absolute",
                                             top: -8,
-                                            right: 0,
-                                            bgcolor: "background.paper"
+                                            right: -5,
+                                            bgcolor: "background.paper",
+                                            color: "error.main",
+                                            boxShadow: 2,
+
+                                            "&:hover": {
+                                                bgcolor: "action.hover",
+                                                color: "error.main"
+                                            }
                                         }}
                                     >
                                         <DeleteIcon fontSize="small" />
@@ -516,25 +550,34 @@ export default function MultiImageEditor({
                 {/* SELECT FILES */}
 
                 <Button
-                    variant="outlined"
-                    component="label"
-                    disabled={
-                        uploading ||
-                        images.length + files.length >= maxImages
-                    }
-                >
+                        variant="outlined"
+                        component="label"
+                        disabled={
+                            uploading ||
+                            images.length + files.length >= maxImages
+                        }
+                        sx={{
+                            borderColor: "primary.main",
+                            color: "primary.main",
 
-                    Choose Images
+                            "&:hover": {
+                                bgcolor: "action.hover",
+                                borderColor: "primary.main"
+                            }
+                        }}
+                    >
 
-                    <input
-                        hidden
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
-                        multiple
-                        onChange={handleFileChange}
-                    />
+                        Choose Images
 
-                </Button>
+                        <input
+                            hidden
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            multiple
+                            onChange={handleFileChange}
+                        />
+
+                    </Button>
 
 
                 {uploading && (
@@ -585,30 +628,38 @@ export default function MultiImageEditor({
             </DialogContent>
 
 
-            <DialogActions>
-
-                <Button
-                    onClick={onClose}
-                    disabled={uploading}
+            <DialogActions
+                    sx={{
+                        bgcolor: "background.default",
+                        borderTop: 1,
+                        borderColor: "divider",
+                        p: 2
+                    }}
                 >
-                    Close
-                </Button>
 
-                <Button
-                    variant="contained"
-                    onClick={handleUpload}
-                    disabled={
-                        uploading ||
-                        files.length === 0
-                    }
-                >
-                    Upload {files.length > 0
-                        ? `(${files.length})`
-                        : ""
-                    }
-                </Button>
+                    <Button
+                        onClick={onClose}
+                        disabled={uploading}
+                        color="inherit"
+                    >
+                        Close
+                    </Button>
 
-            </DialogActions>
+                    <Button
+                        variant="contained"
+                        onClick={handleUpload}
+                        disabled={
+                            uploading ||
+                            files.length === 0
+                        }
+                    >
+                        Upload {files.length > 0
+                            ? `(${files.length})`
+                            : ""
+                        }
+                    </Button>
+
+                </DialogActions>
 
         </Dialog>
     );
