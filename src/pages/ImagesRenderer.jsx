@@ -130,8 +130,37 @@ export default function ImagesRenderer({
                 body.append("files", file);
             });
 
+
+
+
+
+            const authHeaders = getAuthHeaders();
+
+            if (!authHeaders.Authorization) {
+
+                console.log(
+                    "Skipping image upload request: user is not logged in"
+                );
+
+                return;
+            }
+       
+// "Content-Type": "application/json",
             const response = await fetch(
-                `${apiUrl}/api/inventory/images/upload`,
+                `${apiUrl}/api/inventory/images/upload`, {
+
+
+                      method: "POST",
+                    headers: {
+                        ...getAuthHeaders()
+                    },
+                    body: body
+                }
+                );
+
+
+
+/*
                 {
                     method: "POST",
                     body
@@ -139,7 +168,7 @@ export default function ImagesRenderer({
             headers: {
                 ...getAuthHeaders()
             }
-        });
+        }*/ 
 
             const result = await response.json();
 

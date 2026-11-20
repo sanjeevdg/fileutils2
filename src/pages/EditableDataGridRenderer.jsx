@@ -396,9 +396,9 @@ export default function EditableDataGridRenderer({
                 const records = Array.isArray(result)
                     ? result
                     : [];
-
+//slice(0, limit).
                 setRows(
-                    records.slice(0, limit).map(
+                    records.map(
                         (row, index) => ({
                             ...row,
                             _gridId: row.id ?? index
